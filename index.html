@@ -216,6 +216,13 @@
   <div class="card">
     <h1>🚦 Stellwerk Neustadt</h1>
     <div>Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <h3>Richtungen</h3>
+    <ul>
+      <li>Links ist <b>Westen</b> (Altdorf, Waldheim), rechts <b>Osten</b> (Neuhafen). Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
+      <li>Rechtsverkehr: ▶ von Altdorf kommt <b>unten</b> an Signal A an, ◀ von Neuhafen <b>oben</b> an Signal F. Die Pfeile auf den Streckengleisen zeigen die Fahrtrichtung.</li>
+      <li>Der Pfeil am Signalnamen zeigt, für welche Richtung das Signal gilt: <b>N1 ▸</b> = Ausfahrt nach Osten, <b>◂ P1</b> = Ausfahrt nach Westen.</li>
+      <li>Ausfahrziele: <b>„nach Neuhafen ▶“</b>, <b>„◀ nach Altdorf“</b>, <b>„◀ nach Waldheim“</b>. Die Statusspalte im Fahrplan sagt dir jeweils, welche Fahrstraße als Nächstes zu stellen ist.</li>
+    </ul>
     <h3>Fahrstraße stellen</h3>
     <ul>
       <li><b>Einfahrt (A / F):</b> Einfahrsignal antippen (weißer Ring blinkt), dann das <b>Zielsignal</b> am gewünschten Gleis (N1–N6 bzw. P1–P6) antippen. Mögliche Ziele sind gestrichelt markiert.</li>
@@ -256,7 +263,7 @@
     <h3>Nebenbahn nach Waldheim</h3>
     <ul>
       <li>Oben links zweigt die eingleisige Nebenbahn ab. Züge von dort (violett) kommen an <b>Einfahrsignal C</b> und kreuzen dabei das Streckengleis Richtung Altdorf.</li>
-      <li>Züge nach Waldheim: Ausfahrsignal P antippen und dann das Ziel <b>„◀ WALDHEIM“</b> (nicht „◀ WEST“).</li>
+      <li>Züge nach Waldheim: Ausfahrsignal P antippen und dann das Ziel <b>„◀ nach Waldheim“</b> (nicht „◀ nach Altdorf“).</li>
       <li>Eingleisig: Solange ein Zug nach Waldheim unterwegs ist, kann keiner von dort einfahren – und umgekehrt.</li>
     </ul>
     <h3>Fahrstraßenspeicher (Voreinstellen)</h3>
@@ -413,13 +420,13 @@ const DISTANT = {
   VC: { x: 40,       y: 170, dir:  1, main: 'C' },
 };
 const EXITS = {
-  WEST: { label: '◀ WEST', town: 'Altdorf',  node: '0,250',        dir: -1, virt: 'XWo', box: [6, 212, 72, 28] },
-  WALD: { label: '◀ WALDHEIM', town: 'Waldheim', node: '0,170',    dir: -1, virt: 'XB',  box: [6, 124, 104, 26] },
-  OST:  { label: 'OST ▶',  town: 'Neuhafen', node: WID + ',330',   dir:  1, virt: 'XEo', box: [WID - 78, 344, 72, 28] },
+  WEST: { label: '◀ nach Altdorf',  town: 'Altdorf',  node: '0,250',      dir: -1, virt: 'XWo', box: [6, 212, 112, 28] },
+  WALD: { label: '◀ nach Waldheim', town: 'Waldheim', node: '0,170',      dir: -1, virt: 'XB',  box: [6, 124, 124, 26] },
+  OST:  { label: 'nach Neuhafen ▶', town: 'Neuhafen', node: WID + ',330', dir:  1, virt: 'XEo', box: [WID - 126, 344, 120, 28] },
 };
 const ENDS = {   // Ziele ohne Weiterfahrt (Prellbock)
-  AG:  { label: 'Abstellgl.', node: '1260,110', dir:  1, box: [1274, 96, 84, 28] },
-  AG8: { label: 'Abstellgl.', node: '400,470',  dir: -1, box: [306, 456, 84, 28] },
+  AG:  { label: 'Abstellgl. 7 ▶', node: '1260,110', dir:  1, box: [1274, 96, 110, 28] },
+  AG8: { label: '◀ Abstellgl. 8', node: '400,470',  dir: -1, box: [282, 456, 110, 28] },
 };
 // Abstellgleise: über welches Bahnsteiggleis / Signal erreichbar, wie wieder heraus
 const SIDINGS = {
@@ -476,6 +483,7 @@ function aspect(id) {
   const ar = S.routes.find(a => a.r.from === id && !a.passed);
   return ar && ar.r.slow ? 'Hp2' : 'Hp1';
 }
+const sigLabel = id => SIGNALS[id].dir > 0 ? id + ' ▸' : '◂ ' + id;   // Pfeil = Fahrtrichtung, für die das Signal gilt
 const isGo = id => S.sig[id] === 'Hp1' || S.sig[id] === 'Zs1';   // Zs1 = Ersatzsignal (Fahrt auf Sicht)
 // Vorsignalbegriff für ein Hauptsignal → Farben [unten links, oben rechts]
 function vrColors(mainId) {
@@ -900,7 +908,7 @@ function spawnTrains() {
     if (!tr.announced && S.t >= tr.plan.spawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
-      log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${ek0 === 'C' ? 'Nebenbahn, Signal C' : tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
+      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt ${ek0 === 'C' ? 'von der Nebenbahn an Signal C' : tr.dir > 0 ? 'von Westen an Signal A' : 'von Osten an Signal F'} ca. ${fmt(tr.plan.spawn)}, Plangleis ${tr.plan.track}.`, 'info');
     }
     let ek = tr.entry || String(tr.dir);
     if (S.closure && S.closure.active) {
@@ -1124,9 +1132,16 @@ function buildStatic() {
   el('rect', { x: -14, y: 40, width: WID + 28, height: 474, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
   txt(WID / 2, 66, 'Bf NEUSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
   txt(WID / 2, 83, 'Gleisbildstellwerk Ns · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
-  txt(6, 372, '◀ zweigleisig nach Altdorf');
-  txt(118, 141, 'Nebenbahn (eingleisig)', { 'font-size': 11 });
-  txt(WID - 6, 206, 'zweigleisig nach Neuhafen ▶', { 'text-anchor': 'end' });
+  txt(8, 60, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(8, 76, 'Altdorf · Waldheim', { 'font-size': 11 });
+  txt(WID - 8, 60, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(WID - 8, 76, 'Neuhafen', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(6, 374, '▶ von Altdorf (Einfahrt an A)', { fill: '#c9ced3' });
+  txt(138, 141, '⇄ Nebenbahn Waldheim (eingleisig)', { 'font-size': 11, fill: '#c9ced3' });
+  txt(WID - 6, 206, '◀ von Neuhafen (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  // Fahrtrichtungspfeile auf den Streckengleisen (Rechtsverkehr)
+  const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
+  [[75, 330, 1], [100, 330, 1], [75, 250, -1], [100, 250, -1], [WID - 75, 250, -1], [WID - 100, 250, -1], [WID - 75, 330, 1], [WID - 100, 330, 1], [72, 170, 1], [102, 170, -1]].forEach(a => arrow(...a));
 
   // Bahnsteige (Mittelbahnsteige zwischen 1/2, 3/4, 5/6)
   [[1, 2], [3, 4], [5, 6]].forEach(([a, b]) => {
@@ -1245,7 +1260,7 @@ function render() {
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
     E_.lamp2[id].setAttribute('fill', asp === 'Hp2' ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
     E_.sigl[id].setAttribute('fill', S.sigFault[id] ? '#ff8a3d' : '#e6e8ea');
-    E_.sigl[id].textContent = id + (S.sigFault[id] ? ' ⚠' : '');
+    E_.sigl[id].textContent = sigLabel(id) + (S.sigFault[id] ? ' ⚠' : '');
     if (E_.vr && E_.vr[id]) {
       const ar = S.routes.find(a => a.r.from === id && !a.passed);
       const c = S.sig[id] === 'Hp1' && ar && SIGNALS[ar.r.to] ? vrColors(ar.r.to) : ['#333', '#333'];
@@ -1287,14 +1302,23 @@ function render() {
     const mid = pointAt(tr, tr.s - tr.len / 2);
     h += `<polyline points="${ps}" fill="none" stroke="#0d0e0f" stroke-width="11" stroke-linejoin="round"/>`;
     h += `<polyline points="${ps}" fill="none" stroke="${tr.color}" stroke-width="7" stroke-linejoin="round"/>`;
-    h += `<circle cx="${head[0].toFixed(1)}" cy="${head[1].toFixed(1)}" r="3.5" fill="#fff" stroke="#000"/>`;
-    const lbl = tr.dir > 0 ? `${tr.num} ▸` : `◂ ${tr.num}`;
-    h += `<text x="${mid[0].toFixed(1)}" y="${(mid[1] - 12).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${tr.color}" stroke="#0d0e0f" stroke-width="3.5" paint-order="stroke" font-family="ui-monospace,Menlo,Consolas,monospace">${lbl}</text>`;
+    const back = pointAt(tr, tr.s - 6), dx = head[0] - back[0], dy = head[1] - back[1], dl = Math.hypot(dx, dy) || 1;
+    const ux = dx / dl, uy = dy / dl, tipX = head[0] + ux * 7, tipY = head[1] + uy * 7;
+    h += `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(head[0] - uy * 6).toFixed(1)},${(head[1] + ux * 6).toFixed(1)} ${(head[0] + uy * 6).toFixed(1)},${(head[1] - ux * 6).toFixed(1)}" fill="#ffffff" stroke="#000" stroke-width="1.2"/>`;
+    const lbl = tr.dir > 0 ? `${tr.num} ▸ ${tr.to}` : `${tr.to} ◂ ${tr.num}`;
+    h += `<text x="${mid[0].toFixed(1)}" y="${(mid[1] - 12).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tr.color}" stroke="#0d0e0f" stroke-width="3.5" paint-order="stroke" font-family="ui-monospace,Menlo,Consolas,monospace">${lbl}</text>`;
   }
   E_.trains.innerHTML = h;
   $('#clock').textContent = fmt(S.t, true);
 }
 
+function wantExit(tr) { return tr.turn ? tr.siding : tr.dir > 0 ? 'OST' : tr.branch ? 'WALD' : 'WEST'; }
+function entryText(tr) {
+  if (tr.fromSiding) return `aus Abstellgl. ${SIDINGS[tr.siding].no}`;
+  const e = tr.spawned ? ENTRY_SIG(tr) : tr.entry === 'C' ? 'C' : tr.dir > 0 ? 'A' : 'F';
+  return 'Einf. ' + e + (/2$/.test(e) ? ' (Gegengleis)' : '');
+}
+function ENTRY_SIG(tr) { const f = tr.segs[1] && tr.segs[1].leg; return f === 'wU0' ? 'A2' : f === 'eU0' ? 'F2' : f === 'BR0' ? 'C' : tr.dir > 0 ? 'A' : 'F'; }
 function trainStatus(tr) {
   if (tr.done) return { txt: tr.turn ? (tr.notParked ? 'ausgefahren (nicht abgestellt!)' : `gewendet → ${tr.link.num}`) : 'ausgefahren', cls: 'done' };
   if (tr.fromSiding && !tr.spawned) {
@@ -1312,8 +1336,12 @@ function trainStatus(tr) {
   if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
   if (tr.dwellUntil != null && !tr.served) return { txt: `hält Gl ${tr.stopTrack} bis ${fmt(tr.dwellUntil)}`, cls: 'stop' };
   if (tr.v < 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) {
-    if (tr.served) return { txt: `abfahrbereit Gl ${tr.stopTrack} – Sig ${tr.endSig}`, cls: 'act' };
-    if (tr.s >= tr.total - 9) return { txt: `Halt vor Sig ${tr.endSig}`, cls: 'act' };
+    if (tr.served) return { txt: `abfahrbereit Gl ${tr.stopTrack} – ${tr.endSig} → ${TGT[wantExit(tr)].label} stellen`, cls: 'act' };
+    if (tr.s >= tr.total - 9) {
+      if (/^(A|F|C|A2|F2)$/.test(tr.endSig)) return { txt: `wartet an ${sigLabel(tr.endSig)} – Einfahrt nach Gl ${tr.plan.track} stellen`, cls: 'act' };
+      if (/^L\d$/.test(tr.endSig)) return { txt: `bereit an ${tr.endSig} – Fahrt nach Gl ${tr.plan.track} stellen`, cls: 'act' };
+      return { txt: `wartet an ${sigLabel(tr.endSig)} – ${tr.endSig} → ${TGT[wantExit(tr)].label} stellen`, cls: 'act' };
+    }
   }
   if (tr.actDep != null) return { txt: 'Ausfahrt', cls: '' };
   return { txt: `fährt → ${tr.endSig}`, cls: '' };
@@ -1322,7 +1350,7 @@ function renderPanel() {
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
   const rows = [...active.slice(0, 14), ...done];
-  let h = '<thead><tr><th>Zug</th><th>Von → Nach</th><th>An</th><th>Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
+  let h = '<thead><tr><th>Zug</th><th>Fahrt</th><th>An</th><th>Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
     let del = '';
@@ -1331,7 +1359,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td>${tr.from}<div class="sub">→ ${tr.to}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+      <td><b>${tr.dir > 0 ? '▶ nach ' + tr.to : '◀ nach ' + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono">${tr.plan.arr != null ? fmt(tr.plan.arr) : '—'}</td>
       <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. ${SIDINGS[tr.siding].no}</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
       <td class="mono">${gl}</td>
