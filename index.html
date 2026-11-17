@@ -195,7 +195,7 @@
       <div id="logWrap"><ul id="log"></ul></div>
       <div id="settings">
         <button class="btn on" id="optSwitch">Weichen automatisch</button>
-        <button class="btn" id="optSignal">Signal automatisch auf Fahrt</button>
+        <button class="btn on" id="optSignal">Signal automatisch auf Fahrt</button>
         <button class="btn" id="optDensity">Zugdichte: normal</button>
         <button class="btn" id="btnNew">Neues Spiel</button>
       </div>
@@ -209,10 +209,11 @@
     <div>Du bist Fahrdienstleiter im Bahnhof Neustadt. Beide Strecken (nach Altdorf im Westen und Neuhafen im Osten) sind <b>eingleisig</b>, hier im Bahnhof begegnen sich die Züge.</div>
     <h3>Fahrstraße stellen</h3>
     <ul>
-      <li><b>Startsignal antippen</b> (weißer Ring blinkt). Mögliche Ziele werden gestrichelt markiert.</li>
-      <li><b>Zielsignal antippen</b> bzw. für die Ausfahrt das Zielfeld <b>„◀ WEST“ / „OST ▶“</b>.</li>
-      <li>Ist der Fahrweg frei, werden die Weichen umgestellt und verschlossen und die Fahrstraße leuchtet <span class="sw" style="background:var(--route)"></span> gelb.</li>
-      <li>Startsignal <b>nochmals antippen</b> → Signal zeigt <span class="dot" style="background:#33ff77"></span> Fahrt. Grünes Signal antippen → zurück auf Halt (wenn der Zug noch anhalten kann).</li>
+      <li><b>Einfahrt (A / F):</b> Einfahrsignal antippen (weißer Ring blinkt), dann das <b>Zielsignal</b> am gewünschten Gleis (N1–N3 bzw. P1–P3) antippen. Mögliche Ziele sind gestrichelt markiert.</li>
+      <li><b>Ausfahrt (N1–N3 / P1–P3):</b> Ausfahrsignal <b>einmal antippen</b> – die Fahrstraße zur Strecke wird direkt gestellt.</li>
+      <li>Ist der Fahrweg frei, werden die Weichen umgestellt und verschlossen, die Fahrstraße leuchtet <span class="sw" style="background:var(--route)"></span> gelb und das Signal geht auf <span class="dot" style="background:#33ff77"></span> Fahrt.</li>
+      <li>Signal antippen schaltet um: grün → <span class="dot" style="background:#ff2d2d"></span> Halt, rot (mit eingestellter Fahrstraße, gelb gestrichelter Ring) → grün. Ein Signal <b>ohne Fahrstraße</b> kann nicht auf Fahrt gehen.</li>
+      <li>Wer jedes Signal von Hand auf Fahrt stellen will: Einstellung „Signal von Hand auf Fahrt“ unten in der Seitenleiste.</li>
       <li>Fahrstraße zurücknehmen: <b>✖ Auflösen</b> und dann das Startsignal antippen.</li>
     </ul>
     <h3>Weichen</h3>
@@ -349,7 +350,7 @@ function newState() {
     sig: Object.fromEntries(Object.keys(SIGNALS).map(k => [k, 'Hp0'])),
     sel: null, cancelMode: false,
     autoSwitch: S ? S.autoSwitch : true,
-    autoSignal: S ? S.autoSignal : false,
+    autoSignal: S ? S.autoSignal : true,
     density: S ? S.density : 'normal',
     occLegs: new Set(), occSecs: new Set(),
     cnt: { RE: 0, RB: 0, IC: 0, GC: 0 }, genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
@@ -469,7 +470,7 @@ function trySetRoute(r) {
   S.routes.push({ r, train: null, released: new Set(), segRefs: null, sigOff: 0, passed: false });
   log(`Fahrstraße ${r.from} → ${r.to} eingestellt${toThrow.length ? ' (Weichen ' + toThrow.join(', ') + ' umgestellt)' : ''}.`);
   if (S.autoSignal) signalGo(r.from, true);
-  else toast(`Fahrstraße ${r.from} → ${r.to} eingestellt. Signal ${r.from} antippen für Fahrt.`);
+  if (S.sig[r.from] !== 'Hp1') toast(`Fahrstraße ${r.from} → ${r.to} eingestellt. Signal ${r.from} antippen für Fahrt.`);
   return true;
 }
 function secName(sec) {
@@ -481,7 +482,8 @@ function signalGo(id, quiet) {
   for (const sec of ar.r.secs) if (S.occSecs.has(sec)) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
   for (const sw in ar.r.sw) if (S.sw[sw] !== ar.r.sw[sw]) return fail(`Signal ${id} kann nicht auf Fahrt: Weiche ${sw} nicht in Endlage.`);
   S.sig[id] = 'Hp1';
-  if (!quiet) log(`Signal ${id} zeigt Fahrt.`, 'info');
+  log(`Signal ${id} zeigt Fahrt.`, 'info');
+  toast(`Signal ${id}: FAHRT (grün)`);
   return true;
 }
 function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * DEC) <= off - 3; }
@@ -503,6 +505,7 @@ function signalStop(id) {
   }
   S.sig[id] = 'Hp0';
   log(`Signal ${id} auf Halt gestellt.`);
+  toast(`Signal ${id}: HALT (rot)`);
   return true;
 }
 function cancelRoute(id) {
@@ -551,10 +554,13 @@ function onTap(kind, id) {
     if (S.sig[id] === 'Hp0') signalGo(id); else signalStop(id);
     return;
   }
-  if (ROUTES.some(r => r.from === id)) {
+  const opts = ROUTES.filter(r => r.from === id);
+  if (opts.length === 1) {            // Ausfahrsignal: nur ein Ziel möglich → Fahrstraße direkt stellen
+    S.sel = null; trySetRoute(opts[0]); return;
+  }
+  if (opts.length) {
     S.sel = id;
-    const targets = ROUTES.filter(r => r.from === id).map(r => r.to).join(', ');
-    toast(`Start ${id} gewählt – Ziel antippen (${targets})`);
+    toast(`Signal ${id} gewählt – jetzt Zielsignal antippen: ${opts.map(r => r.to).join(', ')}`);
   } else { S.sel = null; }
 }
 function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on', on); if (on) toast('Auflösen: Startsignal der Fahrstraße antippen'); }
@@ -807,8 +813,8 @@ function buildStatic() {
     const s = SIGNALS[id];
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
     el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 12, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
-    E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 13, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
-    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 7, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
+    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
     const t = el('text', {
       x: s.x + (s.dir > 0 ? -16 : 16), y: s.ly + (s.dir > 0 ? 9 : -2),
       'text-anchor': s.dir > 0 ? 'end' : 'start', fill: '#e6e8ea', 'font-size': 12, 'font-weight': 700,
