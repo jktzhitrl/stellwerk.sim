@@ -67,6 +67,16 @@
   #board::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .16; background-image: linear-gradient(rgba(155,190,204,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(155,190,204,.14) 1px, transparent 1px); background-size: 32px 32px; }
   #boardHead { position: absolute; top: 10px; right: 12px; z-index: 2; pointer-events: none; color: #b6cbd7; background: rgba(14,23,29,.87); border: 1px solid #425866; border-radius: 6px; padding: 6px 10px; font-size: 11px; letter-spacing: .12em; font-weight: 700; }
   #sideClose { display: none; }
+  #trainCard { position: absolute; right: 12px; bottom: 62px; z-index: 7; width: min(330px, calc(100% - 24px)); background: rgba(17,29,37,.97); border: 1px solid #648296; border-radius: 12px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #trainCard[hidden] { display: none; }
+  #trainCard .cardHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  #trainCard .cardHead strong { font-size: 18px; color: #f3f8fb; }
+  #trainCard .cardGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; font-size: 14px; }
+  #trainCard .cardGrid small { display: block; color: #a8bac7; font-size: 11px; margin-bottom: 2px; }
+  #trainCard .cardStatus { margin-top: 12px; padding: 9px; background: #263b47; border-left: 3px solid var(--route); border-radius: 4px; font-size: 13px; }
+  #trainCardClose { background: #344650; border: 1px solid #6a8595; color: white; border-radius: 8px; min-width: 44px; min-height: 44px; font-size: 20px; cursor: pointer; }
+  .train-hit { cursor: pointer; pointer-events: stroke; }
+  .train-selected { filter: drop-shadow(0 0 5px #fff); }
   #svg { width: 100%; height: 100%; display: block; touch-action: none; }
   #legend {
     position: absolute; left: 8px; bottom: 8px; font-size: 12px; color: var(--muted);
@@ -171,6 +181,7 @@
     .sep { margin: 0 2px; }
   }
   @media (max-width: 700px) {
+    #trainCard { bottom: 50px; right: 8px; width: min(330px, calc(100% - 16px)); }
     #side { width: 100%; top: auto; height: min(70dvh, 620px); border-left: 0; border-top: 2px solid var(--accent); border-radius: 16px 16px 0 0; transform: translateY(105%); box-shadow: 0 -10px 35px rgba(0,0,0,.65); }
     #side.open { transform: translateY(0); }
     #side h2 { min-height: 52px; font-size: 14px; }
@@ -277,6 +288,7 @@
         <g id="world"></g>
       </svg>
       <div id="boardHead">ESTW · GLEISBILD</div>
+      <section id="trainCard" hidden aria-label="Zugdetails" aria-live="polite"><div class="cardHead"><strong id="trainCardTitle"></strong><button type="button" id="trainCardClose" aria-label="Zugdetails schließen">✕</button></div><div id="trainCardBody"></div></section>
       <div id="toast"></div>
       <div id="alerts"></div>
       <div id="legend">
@@ -398,6 +410,7 @@
         <span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#33ff77"></span> <b>Vr1</b> Fahrt erwarten ·
         <span class="dot" style="background:#ffc400"></span><span class="dot" style="background:#33ff77"></span> <b>Vr2</b> Langsamfahrt erwarten.</li>
     </ul>
+    <p>Im Gleisbild steht der aktuelle Signalbegriff direkt am Signal: <b>Hp0</b>, <b>Hp1</b>, <b>Hp2</b>, <b>Sh1</b> (Rangierfahrt) oder <b>Zs1</b> (Ersatzsignal mit weißem Blinklicht). Die Anzeige ist eine vereinfachte ESTW-Darstellung, keine vollständige Nachbildung aller deutschen Signalbauformen.</p>
     <h3>Weichen</h3>
     <ul>
       <li>Weiche (W…) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
@@ -1116,6 +1129,7 @@ function throwSwitch(id) {
 
 // ---------- Eingabe (Tap) ----------
 function onTap(kind, id) {
+  if (kind === 'train') { selectedTrain = S.trains[Number(id)] || null; return; }
   if (kind === 'leg') { S.sel = null; tapLeg(id); return; }
   if (kind === 'switch') { S.sel = null; throwSwitch(id); return; }
   if (kind === 'exit') {
@@ -1813,7 +1827,7 @@ function buildStatic() {
   }
 
   // Hauptsignale
-  E_.lamp = {}; E_.ring = {};
+  E_.lamp = {}; E_.ring = {}; E_.aspectText = {}; E_.sigHousing = {};
   for (const id in SIGNALS) {
     const s = SIGNALS[id];
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
@@ -1821,7 +1835,9 @@ function buildStatic() {
     E_.lamp2 = E_.lamp2 || {};
     E_.lamp2[id] = el('circle', { cx: s.x - s.dir * 15, cy: s.ly, r: 5, fill: '#2a2d30', stroke: '#0d0e0f', 'stroke-width': 1.5 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
-    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    E_.sigHousing[id] = el('rect', { x: s.lx - 11, y: s.ly - 12, width: 22, height: 24, rx: 5, fill: '#11191e', stroke: '#64717a', 'stroke-width': 1.3 }, W);
+    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 8, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    E_.aspectText[id] = txt(s.lx, s.ly + (s.dir > 0 ? 29 : -21), 'Hp0', { 'text-anchor': 'middle', 'font-size': 10, fill: '#ffaaa4', 'font-weight': 700 });
     if (s.kind === 'Einfahrsignal') {   // Vorsignal am Einfahrsignal: zeigt das Ausfahrsignal an
       const vx = s.lx + s.dir * 17;
       el('rect', { x: vx - 6, y: s.ly - 8, width: 12, height: 16, rx: 3, fill: '#141618', stroke: '#000' }, W);
@@ -1877,9 +1893,14 @@ function render() {
   for (const id in SIGNALS) {
     const asp = aspect(id);
     const arS = S.routes.find(a => a.r.from === id && !a.passed), shunt = arS && arS.r.shunt;
-    E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
+    const zs1 = S.sig[id] === 'Zs1';
+    const signalTerm = zs1 ? 'Zs1' : shunt && asp !== 'Hp0' ? 'Sh1' : asp;
+    E_.lamp[id].setAttribute('fill', zs1 ? '#3b4850' : asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
-    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' && !shunt ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
+    E_.lamp2[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : '#2a2d30') : asp === 'Hp2' && !shunt ? COL.yellow : shunt && asp !== 'Hp0' ? '#f2f6ff' : '#2a2d30');
+    E_.aspectText[id].textContent = signalTerm;
+    E_.aspectText[id].setAttribute('fill', zs1 ? '#ffffff' : signalTerm === 'Hp0' ? '#ffaaa4' : signalTerm === 'Hp2' ? '#ffe17c' : '#a7f2c1');
+    E_.sigHousing[id].setAttribute('stroke', S.sigFault[id] ? '#ff8a3d' : '#64717a');
     E_.sigl[id].setAttribute('fill', S.sigFault[id] ? '#ff8a3d' : '#e6e8ea');
     E_.sigl[id].textContent = sigLabel(id) + (S.sigFault[id] ? ' ⚠' : '');
     if (E_.vr && E_.vr[id]) {
@@ -1916,7 +1937,7 @@ function render() {
   if (E_.queue._h !== qh) { E_.queue.innerHTML = qh; E_.queue._h = qh; }
   // Züge
   let h = '';
-  for (const tr of S.trains) {
+  for (const [idx, tr] of S.trains.entries()) {
     const pts = subPath(tr, tr.s - tr.len, tr.s);
     const ps = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
     const head = pointAt(tr, tr.s);
@@ -1932,11 +1953,28 @@ function render() {
     h += `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(head[0] - uy * 6).toFixed(1)},${(head[1] + ux * 6).toFixed(1)} ${(head[0] + uy * 6).toFixed(1)},${(head[1] - ux * 6).toFixed(1)}" fill="#ffffff" stroke="#000" stroke-width="1.2"/>`;
     const lbl = tr.dir > 0 ? `${tr.num} ▸ ${tr.to}` : `${tr.to} ◂ ${tr.num}`;
     h += `<text x="${mid[0].toFixed(1)}" y="${(mid[1] - 12).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tr.color}" stroke="#0d0e0f" stroke-width="3.5" paint-order="stroke" font-family="ui-monospace,Menlo,Consolas,monospace">${lbl}</text>`;
+    h += `<polyline class="train-hit${selectedTrain === tr ? ' train-selected' : ''}" points="${ps}" fill="none" stroke="transparent" stroke-width="24" data-hit="train" data-id="${idx}"/>`;
+    h += `<rect x="${(mid[0] - 35).toFixed(1)}" y="${(mid[1] - 27).toFixed(1)}" width="70" height="22" fill="transparent" data-hit="train" data-id="${idx}" style="cursor:pointer"/>`;
   }
   E_.trains.innerHTML = h;
   $('#clock').textContent = fmt(S.t, true);
+  renderTrainCard();
 }
 
+let selectedTrain = null;
+function renderTrainCard() {
+  const card = $('#trainCard');
+  if (!selectedTrain || !S.trains.includes(selectedTrain) || selectedTrain.done) { card.hidden = true; selectedTrain = null; return; }
+  const tr = selectedTrain;
+  card.hidden = false;
+  $('#trainCardTitle').textContent = `${tr.num} · ${tr.type}`;
+  const delay = tr.delay != null ? `${tr.delay > 0 ? '+' : ''}${tr.delay} Min.` : tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'noch offen';
+  const fields = [['Von', tr.from], ['Ziel', tr.to], ['Tempo (Spielwert)', `${Math.round(tr.v || 0)} / ${tr.vmax}`], ['Verspätung', delay], ['Plangleis', tr.plan.track || '–'], ['Planabfahrt', tr.plan.dep != null ? fmt(tr.plan.dep) : '–']];
+  const grid = document.createElement('div'); grid.className = 'cardGrid';
+  for (const [label, value] of fields) { const item = document.createElement('div'), small = document.createElement('small'); small.textContent = label; item.append(small, document.createTextNode(String(value))); grid.append(item); }
+  const status = document.createElement('div'); status.className = 'cardStatus'; status.textContent = trainStatus(tr).txt;
+  $('#trainCardBody').replaceChildren(grid, status);
+}
 function exitFor(tr) { return tr.branch ? (tr.dir > 0 ? CFG.branch.exitE : CFG.branch.exitW) : tr.dir > 0 ? 'OST' : 'WEST'; }
 function wantExit(tr) { return tr.turn ? tr.siding : exitFor(tr); }
 // Ausfahrziel, das vom aktuellen Signal aus wirklich erreichbar ist (sonst eine Umleitung)
@@ -2127,7 +2165,7 @@ function endPtr(e) {
   if (gest && gest.type === 'tap' && ptrs.size === 0 && e.type === 'pointerup') {
     const t = gest.target && gest.target.closest ? gest.target.closest('[data-hit]') : null;
     if (t) onTap(t.getAttribute('data-hit'), t.getAttribute('data-id'));
-    else { S.sel = null; if (S.cancelMode) setCancel(false); }
+    else { S.sel = null; selectedTrain = null; if (S.cancelMode) setCancel(false); }
     render();
   }
   if (ptrs.size === 1) { const p = [...ptrs.values()][0]; gest = { type: 'pan', p0: p, v0: { ...view } }; }
@@ -2155,6 +2193,7 @@ $('#btnPanel').addEventListener('click', () => {
   if (narrow.matches) side.classList.toggle('open'); else side.classList.toggle('closed');
   setTimeout(fit, 30);
 });
+$('#trainCardClose').addEventListener('click', () => { selectedTrain = null; $('#trainCard').hidden = true; });
 $('#sideClose').addEventListener('click', () => $('#side').classList.remove('open'));
 $('#sideBackdrop').addEventListener('click', () => $('#side').classList.remove('open'));
 function setMenu(open) { $('#menu').classList.toggle('open', open); $('#menuBack').classList.toggle('open', open); $('#btnMenu').classList.toggle('on', open); }
