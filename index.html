@@ -311,6 +311,14 @@
       <li><b>Bauarbeiten</b> 🚧: Ein Streckengleis wird angekündigt gesperrt (orange gestrichelt). Züge aus dieser Richtung kommen dann auf dem <b>Gegengleis</b> an <b>Signal A2</b> (West) bzw. <b>F2</b> (Ost) an – das Gleis teilen sie sich mit den ausfahrenden Zügen.</li>
       <li>Abschaltbar im ☰ Menü.</li>
     </ul>
+    <h3>Lok umsetzen</h3>
+    <ul>
+      <li>Manche <b>lokbespannte RE</b> aus Altdorf enden auf <b>Gleis 1</b> (Fahrplan: „endet → Lok umsetzen“, Lok = dunkles Zugende). Nach dem Halt wird die Lok abgekuppelt.</li>
+      <li>① <b>N1</b> antippen → Ziel <b>„Umsetzhalt ▶“</b>: Die Lok fährt nach Osten bis zum Umsetzhalt.</li>
+      <li>② Rangiersignal <b>RY</b> antippen: Die Lok fährt über <b>Gleis 2</b> am Zug vorbei nach Westen bis zum „◀ Umsetzhalt“.</li>
+      <li>③ Rangiersignal <b>RB</b> antippen: Die Lok fährt auf Gleis 1 an die Wagen und kuppelt an (+5 Punkte).</li>
+      <li>Danach ist der Zug ein neuer RE nach Altdorf: wie gewohnt <b>P1 → „◀ nach Altdorf“</b>. Rangiersignale zeigen <b>weiß</b> (Sh1) statt grün. Gleis 2 und die Weichenbereiche müssen für die Lokfahrt frei sein.</li>
+    </ul>
     <h3>Abstellgleis 7 &amp; Wendezüge</h3>
     <ul>
       <li>Manche RB und Güterzüge <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7/8“).</li>
@@ -387,6 +395,13 @@ LEGS.wK6db = { pts: [[560,410],[620,470]] };
 LEGS.wK6da = { pts: [[620,470],[650,470]] };
 LEGS.AG80  = { pts: [[560,470],[620,470]] };
 LEGS.AG8   = { pts: [[400,470],[560,470]] };
+// Lok umsetzen: Rangierwege auf der Gleisverbindung West (K3d) und Ost (eK5d), geteilt für Rangiersignale
+delete LEGS.wK3d;                                     // (470,250)→(550,170)
+LEGS.wK3da = { pts: [[470,250],[520,200]] };
+LEGS.wK3db = { pts: [[520,200],[550,170]] };
+delete LEGS.eK5d;                                     // (1100,170)→(1180,250)
+LEGS.eK5da = { pts: [[1100,170],[1130,200]] };
+LEGS.eK5db = { pts: [[1130,200],[1180,250]] };
 // Abzweig der eingleisigen Nebenbahn nach Waldheim (flache Einmündung ins obere Streckengleis West)
 LEGS.BR0   = { pts: [[0,170],[130,170]] };
 LEGS.BRd   = { pts: [[130,170],[210,250]] };
@@ -442,6 +457,9 @@ for (let g = 1; g <= NTRACKS; g++) {
 }
 SIGNALS.L7 = { x: 1100, y: 110, dir: -1, kind: 'Rangiersignal (Abstellgleis)' };
 SIGNALS.L8 = { x: 560,  y: 470, dir:  1, kind: 'Rangiersignal (Abstellgleis)' };
+// Rangiersignale für das Umsetzen der Lok (nur Rangierfahrten, weißes Licht = Sh1)
+SIGNALS.RY = { x: 1130, y: 200, dir: -1, kind: 'Rangiersignal', sh: true };
+SIGNALS.RB = { x: 520,  y: 200, dir:  1, kind: 'Rangiersignal', sh: true };
 // Einfahrsignale vom Gegengleis (nur bei Streckensperrung benutzt)
 SIGNALS.A2 = { x: 130,       y: 250, dir:  1, kind: 'Einfahrsignal' };
 SIGNALS.F2 = { x: WID - 130, y: 330, dir: -1, kind: 'Einfahrsignal' };
@@ -466,7 +484,12 @@ const SIDINGS = {
   AG:  { no: 7, track: 1, inSig: 'N1', outSig: 'L7', outTarget: 'P1', dirIn:  1 },
   AG8: { no: 8, track: 6, inSig: 'P6', outSig: 'L8', outTarget: 'N6', dirIn: -1 },
 };
-const TGT = { ...EXITS, ...ENDS };
+const SHUNT_TGT = {   // Ziele von Rangierfahrten
+  RX:  { label: 'Umsetzhalt ▶', node: '1180,250', dir:  1, box: [1196, 196, 104, 22] },
+  RA:  { label: '◀ Umsetzhalt', node: '470,250',  dir: -1, box: [362, 214, 100, 22] },
+  KUP: { label: 'an die Wagen', node: '1010,110', dir:  1, nobox: true },
+};
+const TGT = { ...EXITS, ...ENDS, ...SHUNT_TGT };
 const ENTRY = {
   '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
   '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eL0', d: -1 }], sec: 'eL0', sig: 'F' },
@@ -479,14 +502,15 @@ const ENTRY = {
 const R = (from, to, legs, sw) => ({ id: from + '-' + to, from, to, legs, sw });
 const ROUTES = [];
 (function buildRoutes() {
-  const sigAt = (k, dir) => Object.keys(SIGNALS).find(id => key([SIGNALS[id].x, SIGNALS[id].y]) === k && SIGNALS[id].dir === dir);
-  const exitAt = (k, dir) => Object.keys(TGT).find(id => TGT[id].node === k && TGT[id].dir === dir);
-  for (const from in SIGNALS) {
-    const s0 = SIGNALS[from], dir = s0.dir, best = {};
+  const sigAt = (k, dir) => Object.keys(SIGNALS).find(id => !SIGNALS[id].sh && key([SIGNALS[id].x, SIGNALS[id].y]) === k && SIGNALS[id].dir === dir);
+  const TRAIN_TGT = { ...EXITS, ...ENDS };
+  const exitAt = (k, dir) => Object.keys(TRAIN_TGT).find(id => TRAIN_TGT[id].node === k && TRAIN_TGT[id].dir === dir);
+  const search = (from, dir, targetOf) => {
+    const s0 = SIGNALS[from], best = {};
     (function dfs(k, incoming, legs, sw, cost) {
       if (legs.length > 25) return;
       if (legs.length) {
-        const to = sigAt(k, dir) || exitAt(k, dir);
+        const to = targetOf(k);
         if (to) {
           if (!best[to] || cost < best[to].cost) best[to] = { legs: EXITS[to] ? [...legs, [EXITS[to].virt, dir]] : legs, sw, cost };
           return;
@@ -503,7 +527,18 @@ const ROUTES = [];
         dfs(other, e.leg, [...legs, [e.leg, e.at === 0 ? 1 : -1]], req, cost + c);
       }
     })(key([s0.x, s0.y]), null, [], {}, 0);
+    return best;
+  };
+  // Zugfahrstraßen: vom Hauptsignal bis zum nächsten gleichgerichteten Hauptsignal / Ziel
+  for (const from in SIGNALS) {
+    if (SIGNALS[from].sh) continue;
+    const dir = SIGNALS[from].dir, best = search(from, dir, k => sigAt(k, dir) || exitAt(k, dir));
     for (const to in best) ROUTES.push(R(from, to, best[to].legs, best[to].sw));
+  }
+  // Rangierfahrstraßen für das Umsetzen der Lok (laufen über Hauptsignale hinweg)
+  for (const [from, to] of [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']]) {
+    const best = search(from, SIGNALS[from].dir, k => k === SHUNT_TGT[to].node ? to : null);
+    if (best[to]) { const r = R(from, to, best[to].legs, best[to].sw); r.shunt = true; r.couple = to === 'KUP'; ROUTES.push(r); }
   }
 })();
 ROUTES.forEach(r => {
@@ -655,7 +690,7 @@ function checkRoute(r) {
   if (activeFrom(r.from)) return { msg: `Ab Signal ${r.from} ist noch eine Fahrstraße eingestellt.`, queue: true };
   const locked = lockedSecs();
   for (const sec of r.secs) {
-    if (S.occSecs.has(sec)) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
+    if (S.occSecs.has(sec) && !(r.couple && sec === 'G1')) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
     if (locked.has(sec)) return { msg: `${secName(sec)} ist durch eine andere Fahrstraße verschlossen.`, queue: true };
   }
   const toThrow = [];
@@ -711,7 +746,7 @@ function secName(sec) {
 function signalGo(id, quiet) {
   const ar = activeFrom(id);
   if (!ar) return fail(`Signal ${id}: keine Fahrstraße eingestellt.`);
-  for (const sec of ar.r.secs) if (S.occSecs.has(sec)) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
+  for (const sec of ar.r.secs) if (S.occSecs.has(sec) && !(ar.r.couple && sec === 'G1')) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
   for (const sw in ar.r.sw) if (S.sw[sw] !== ar.r.sw[sw]) return fail(`Signal ${id} kann nicht auf Fahrt: Weiche ${sw} nicht in Endlage.`);
   if (S.sigFault[id]) {
     S.sig[id] = 'Zs1';
@@ -720,6 +755,7 @@ function signalGo(id, quiet) {
     return true;
   }
   S.sig[id] = 'Hp1';
+  if (ar.r.shunt) { log(`Signal ${id}: Rangierfahrt erlaubt (Sh1).`, 'info'); toast(`Signal ${id}: RANGIERFAHRT (weiß)`); return true; }
   const slow = ar.r.slow;
   log(`Signal ${id} zeigt ${slow ? 'Langsamfahrt (Hp2)' : 'Fahrt (Hp1)'}.`, 'info');
   toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
@@ -853,7 +889,7 @@ function genNext() {
   else if (r < 0.29) addTrain('ICE', dir, t);
   else if (r < 0.36) { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }
   else if (r < 0.45) addTrain('IC', dir, t);
-  else if (r < 0.70) addTrain('RE', dir, t);
+  else if (r < 0.70) { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }
   else if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8');
   else addTrain('RB', dir, t);
 }
@@ -888,6 +924,55 @@ function addTurnPair(spawn, sid, type) {
   S.turnBusy[sid] = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug für dieses Abstellgleis planen
 }
 const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
+// ---------- Lok umsetzen ----------
+// Lokbespannter RE aus Altdorf endet auf Gleis 1 → Lok läuft über Gleis 2 um den Zug herum → fährt zurück nach Altdorf
+function addRunaround(t) {
+  const A = addTrain('RE', 1, t);
+  A.runaround = true; A.hasLoco = true; A.to = 'Neustadt'; A.plan.track = 1; A.locoNo = 218400 + S.uid;
+  const B = addTrain('RE', -1, A.plan.dep + 14 * 60);
+  B.fromRunaround = true; B.hasLoco = true; B.from = 'Neustadt'; B.to = A.from; B.plan.track = 1;
+  B.plan.arr = null; B.plan.dep = B.plan.spawn;
+  A.link = B; B.link = A;
+  S.turnBusy.AG = B.plan.dep + 5 * 60;       // Gleis 1 / Ostkopf in der Zeit nicht für weitere Wendezüge verplanen
+}
+function freeRoutesOf(tr) { for (const ar of S.routes) if (ar.train === tr) { ar.passed = true; ar.segRefs = []; ar.r.secs.forEach(sc => ar.released.add(sc)); } }
+function splitLoco(T) {
+  T.split = true;
+  const L = {
+    id: ++S.uid, type: 'LOK', num: 'Lok ' + T.locoNo, isLoco: true, cars: T, dir: T.dir, from: 'Neustadt', to: 'Umsetzen',
+    len: 20, vmax: 22, dwell: 0, stops: false, color: '#d6dde4', plan: { spawn: S.t, arr: null, dep: S.t, track: 1 },
+    spawned: true, done: false, segs: T.segs.map(x => ({ ...x })), pts: [], cum: [], total: 0, s: T.s, v: 0,
+    endSig: T.endSig, stopAt: null, stopTrack: null, dwellUntil: null, served: false,
+    exitOff: null, depOff: null, actArr: null, actDep: null, delay: null, waitLogged: true,
+  };
+  rebuild(L);
+  T.len -= 22; T.s -= 22; T.frozen = true; T.hasLoco = false; T.endSig = 'Wagen';
+  S.trains.push(L);
+  log(`${T.num} endet: Lok abgekuppelt. Umsetzen: ① N1 → „Umsetzhalt ▶“, ② RY (über Gleis 2), ③ RB (an die Wagen).`, 'info');
+  toast(`${T.num}: Lok umsetzen – ① N1 antippen, dann „Umsetzhalt ▶“`);
+}
+function reverseLoco(L) {
+  const tail = L.s - L.len, span = L.segs.filter(sg => sg.b > tail && sg.a < L.s), b1 = span[span.length - 1].b;
+  freeRoutesOf(L);
+  L.segs = span.reverse().map(sg => ({ leg: sg.leg, d: -sg.d, a: 0, b: 0 }));
+  rebuild(L);
+  L.s = b1 - tail; L.v = 0; L.dir = -L.dir;
+  L.endSig = L.endSig === 'RX' ? 'RY' : 'RB';
+  log(L.endSig === 'RY' ? `${L.num} am Umsetzhalt Ost – ② RY antippen (Lok fährt über Gleis 2 nach Westen).`
+                        : `${L.num} am Umsetzhalt West – ③ RB antippen (Lok fährt an die Wagen auf Gleis 1).`, 'info');
+}
+function couple(L) {
+  const T = L.cars, B = T.link;
+  const xW = pointAt(L, L.s - L.len)[0], xE = pointAt(T, T.s)[0];
+  freeRoutesOf(L);
+  B.segs = [{ leg: 'G1', d: -1 }]; rebuild(B);
+  B.s = X1 - xW; B.len = xE - xW; B.v = 0; B.endSig = 'P1'; B.spawned = true; B.announced = true;
+  B.stopAt = B.s; B.stopTrack = 1; B.actArr = S.t; B.dwellUntil = Math.max(S.t + 60, B.plan.dep);
+  T.done = true; T.actDep = S.t;
+  S.trains = S.trains.filter(t => t !== L && t !== T); S.trains.push(B);
+  S.score += 5;
+  log(`Lok angekuppelt (+5 Punkte): ${B.num} nach ${B.to} steht auf Gleis 1 – Ausfahrt ◂ P1 → „◀ nach Altdorf“.`, 'good');
+}
 function handleTurns() {
   for (const B of S.schedule) {
     if (!B.fromSiding || B.spawned || B.done) continue;
@@ -937,7 +1022,7 @@ function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
-    if (tr.spawned || tr.done || tr.fromSiding) continue;
+    if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround) continue;
     if (!tr.announced && S.t >= tr.plan.spawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
@@ -975,7 +1060,12 @@ function appendRoute(tr, ar) {
     if (g) { tr.stopAt = Math.min(g.a + (g.b - g.a) / 2 + tr.len / 2, g.b - 14); tr.stopTrack = +g.leg[1]; }   // Zugmitte = Bahnsteigmitte
   }
   if (EXITS[ar.r.to]) tr.depOff = tr.stops && tr.stopAt != null && tr.stopAt < ar.sigOff ? tr.stopAt + 1 : ar.sigOff;   // Abfahrt = Losfahren vom Bahnsteig
-  if (S.sig[ar.r.from] === 'Zs1') tr.capUntil = tr.total;   // Fahrt auf Sicht bis zum Ende der Fahrstraße
+  if (S.sig[ar.r.from] === 'Zs1') tr.capUntil = tr.total;
+  if (ar.r.couple && tr.cars) {   // Lok fährt an die Wagen heran
+    const g = added.find(sg => sg.leg === 'G1');
+    const xTail = pointAt(tr.cars, tr.cars.s - tr.cars.len)[0];
+    tr.coupleAt = g.a + (xTail - X0) - 1;
+  }   // Fahrt auf Sicht bis zum Ende der Fahrstraße
 }
 function assignRoutes() {
   for (const tr of S.trains) {
@@ -983,6 +1073,10 @@ function assignRoutes() {
     while (SIGNALS[tr.endSig] && isGo(tr.endSig) && guard++ < 3) {
       const ar = activeFrom(tr.endSig);
       if (!ar || ar.train) break;
+      if (!!ar.r.shunt !== !!tr.isLoco) {
+        if (!tr.shuntWarn) { tr.shuntWarn = true; log(tr.isLoco ? `${tr.num}: Für die Lok eine Rangierfahrt stellen (Ziel „Umsetzhalt“).` : `${tr.num}: Rangierfahrstraße ist nur für die Lok beim Umsetzen.`, 'bad'); }
+        break;
+      }
       if (EXITS[ar.r.to]) {
         const want = tr.dir > 0 ? 'OST' : tr.branch ? 'WALD' : 'WEST';
         if (ar.r.to !== want) {
@@ -1001,11 +1095,13 @@ function assignRoutes() {
 function endLimit(tr) {
   let E = EXITS[tr.endSig] ? Infinity : tr.total - 8;
   if (tr.stopAt != null && !tr.served) E = Math.min(E, tr.stopAt);
+  if (tr.coupleAt != null) E = Math.min(E, tr.coupleAt);
   // nach dem Halt am Bahnsteig stehen bleiben, bis das Ausfahrsignal Fahrt zeigt (nicht bis vors Signal vorziehen)
   if (tr.stopAt != null && tr.served && tr.s <= tr.stopAt + 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) E = Math.min(E, tr.stopAt);
   return E;
 }
 function stepTrain(tr, dt) {
+  if (tr.frozen) { tr.v = 0; return; }
   const E = endLimit(tr);
   let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
   if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
@@ -1042,9 +1138,13 @@ function trainEvents(tr) {
       }
     } else if (S.t >= tr.dwellUntil) {
       tr.served = true;
+      if (tr.runaround && !tr.split) { splitLoco(tr); return; }
       if (SIGNALS[tr.endSig] && !isGo(tr.endSig)) log(`${tr.num} in Gleis ${tr.stopTrack} abfahrbereit – Ausfahrt über Signal ${tr.endSig}.`, 'info');
     }
   }
+  // Lok am Umsetzhalt → Fahrtrichtung wechseln / an den Wagen → kuppeln
+  if (tr.isLoco && (tr.endSig === 'RX' || tr.endSig === 'RA') && tr.v === 0 && tr.s >= tr.total - 8.5) { reverseLoco(tr); return; }
+  if (tr.isLoco && tr.coupleAt != null && tr.v === 0 && tr.s >= tr.coupleAt - 0.5) { couple(tr); return; }
   // Im Abstellgleis angekommen
   if (ENDS[tr.endSig] && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
     tr.parked = true; S.score += 5;
@@ -1257,6 +1357,7 @@ function buildStatic() {
   el('line', { x1: 1262, y1: 104, x2: 1268, y2: 104, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   el('line', { x1: 1262, y1: 116, x2: 1268, y2: 116, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   for (const id in TGT) {
+    if (TGT[id].nobox) continue;
     const [x, y, w, h] = TGT[id].box;
     E_.exitRing[id] = el('rect', { x: x - 3, y: y - 3, width: w + 6, height: h + 6, rx: 6, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, 'stroke-dasharray': '5 4', display: 'none' }, W);
     el('rect', { x, y, width: w, height: h, rx: 4, fill: '#1d2023', stroke: '#6b7279' }, W);
@@ -1276,7 +1377,7 @@ function buildStatic() {
   }
   for (const id in SWITCHES) { const w = SWITCHES[id]; el('circle', { cx: w.x, cy: w.y + w.ly * 0.35, r: 24, fill: '#000', 'fill-opacity': 0, 'data-hit': 'switch', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in SIGNALS) { const s = SIGNALS[id]; el('circle', { cx: s.lx, cy: s.ly, r: 28, fill: '#000', 'fill-opacity': 0, 'data-hit': 'signal', 'data-id': id, style: 'cursor:pointer' }, hit); }
-  for (const id in TGT) { const [x, y, w, h] = TGT[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
+  for (const id in TGT) { if (TGT[id].nobox) continue; const [x, y, w, h] = TGT[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
 }
 
 function render() {
@@ -1291,9 +1392,10 @@ function render() {
   const targets = new Set(S.sel ? ROUTES.filter(r => r.from === S.sel).map(r => r.to) : []);
   for (const id in SIGNALS) {
     const asp = aspect(id);
-    E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : COL.green);
+    const arS = S.routes.find(a => a.r.from === id && !a.passed), shunt = arS && arS.r.shunt;
+    E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
-    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
+    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' && !shunt ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
     E_.sigl[id].setAttribute('fill', S.sigFault[id] ? '#ff8a3d' : '#e6e8ea');
     E_.sigl[id].textContent = sigLabel(id) + (S.sigFault[id] ? ' ⚠' : '');
     if (E_.vr && E_.vr[id]) {
@@ -1309,7 +1411,7 @@ function render() {
     else ring.setAttribute('display', 'none');
     ring.setAttribute('stroke', '#fff');
   }
-  for (const id in TGT) E_.exitRing[id].setAttribute('display', targets.has(id) ? 'inline' : 'none');
+  for (const id in TGT) if (E_.exitRing[id]) E_.exitRing[id].setAttribute('display', targets.has(id) ? 'inline' : 'none');
   for (const id in DISTANT) {
     const c = vrColors(DISTANT[id].main);
     E_.dist[id].forEach((e, i) => e.setAttribute('fill', c[i]));
@@ -1337,6 +1439,10 @@ function render() {
     const mid = pointAt(tr, tr.s - tr.len / 2);
     h += `<polyline points="${ps}" fill="none" stroke="#0d0e0f" stroke-width="11" stroke-linejoin="round"/>`;
     h += `<polyline points="${ps}" fill="none" stroke="${tr.color}" stroke-width="7" stroke-linejoin="round"/>`;
+    if (tr.hasLoco) {   // Lok an der Zugspitze dunkel absetzen
+      const lp = subPath(tr, tr.s - 18, tr.s).map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      h += `<polyline points="${lp}" fill="none" stroke="#39424b" stroke-width="7"/>`;
+    }
     const back = pointAt(tr, tr.s - 6), dx = head[0] - back[0], dy = head[1] - back[1], dl = Math.hypot(dx, dy) || 1;
     const ux = dx / dl, uy = dy / dl, tipX = head[0] + ux * 7, tipY = head[1] + uy * 7;
     h += `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(head[0] - uy * 6).toFixed(1)},${(head[1] + ux * 6).toFixed(1)} ${(head[0] + uy * 6).toFixed(1)},${(head[1] - ux * 6).toFixed(1)}" fill="#ffffff" stroke="#000" stroke-width="1.2"/>`;
@@ -1350,11 +1456,23 @@ function render() {
 function wantExit(tr) { return tr.turn ? tr.siding : tr.dir > 0 ? 'OST' : tr.branch ? 'WALD' : 'WEST'; }
 function entryText(tr) {
   if (tr.fromSiding) return `aus Abstellgl. ${SIDINGS[tr.siding].no}`;
+  if (tr.fromRunaround) return 'Lok umsetzen auf Gl 1';
   const e = tr.spawned ? ENTRY_SIG(tr) : tr.entry === 'C' ? 'C' : tr.dir > 0 ? 'A' : 'F';
   return 'Einf. ' + e + (/2$/.test(e) ? ' (Gegengleis)' : '');
 }
 function ENTRY_SIG(tr) { const f = tr.segs[1] && tr.segs[1].leg; return f === 'wU0' ? 'A2' : f === 'eU0' ? 'F2' : f === 'BR0' ? 'C' : tr.dir > 0 ? 'A' : 'F'; }
+function runStep(L) {
+  if (!L) return 'Lok umsetzen';
+  if (L.v > 0.5) return 'Lok fährt (Umsetzen) …';
+  if (L.endSig === 'N1') return 'Lok umsetzen: ① N1 → „Umsetzhalt ▶“ stellen';
+  if (L.endSig === 'RY') return 'Lok umsetzen: ② RY antippen (über Gl 2)';
+  if (L.endSig === 'RB') return 'Lok umsetzen: ③ RB antippen (an die Wagen)';
+  return 'Lok fährt (Umsetzen) …';
+}
 function trainStatus(tr) {
+  if (tr.runaround && tr.done) return { txt: `Lok umgesetzt → ${tr.link.num}`, cls: 'done' };
+  if (tr.runaround && tr.split) return { txt: runStep(S.trains.find(x => x.cars === tr)), cls: 'act' };
+  if (tr.fromRunaround && !tr.spawned) return { txt: `wartet: Lok von ${tr.link.num} umsetzen`, cls: S.t >= tr.plan.dep ? 'warn' : '' };
   if (tr.done) return { txt: tr.turn ? (tr.notParked ? 'ausgefahren (nicht abgestellt!)' : `gewendet → ${tr.link.num}`) : 'ausgefahren', cls: 'done' };
   if (tr.fromSiding && !tr.spawned) {
     if (!tr.link.parked && S.t >= tr.plan.spawn) return { txt: `wartet: ${tr.link.num} noch nicht abgestellt`, cls: 'warn' };
@@ -1396,7 +1514,7 @@ function renderPanel() {
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
       <td><b>${tr.dir > 0 ? '▶ nach ' + tr.to : '◀ nach ' + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
-      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.turn ? `<span class="sub">endet → Abst. ${SIDINGS[tr.siding].no}</span>` : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
+      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.turn ? `<span class="sub">endet → Abst. ${SIDINGS[tr.siding].no}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
