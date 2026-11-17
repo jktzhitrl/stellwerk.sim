@@ -227,6 +227,13 @@
       <li>Reisezüge (RE, RB, IC) halten am Bahnsteig und fahren frühestens zur Plan-Abfahrt. Güterzüge (GC) fahren durch.</li>
       <li><span class="sw" style="background:var(--occ)"></span> rot = Gleisabschnitt besetzt. Ein neuer Zug kommt erst, wenn die Strecke frei ist.</li>
     </ul>
+    <h3>Abstellgleis 7 &amp; Wendezüge</h3>
+    <ul>
+      <li>Manche RB aus Altdorf <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7“). Plangleis ist Gleis 1 – nur von dort erreicht man das Abstellgleis.</li>
+      <li>Nach dem Halt: <b>N1 antippen → „Abstellgl.“ antippen</b>. Der Zug fährt bis zum Prellbock (+5 Punkte).</li>
+      <li>Zur Bereitstellungszeit wird er zum Gegenzug nach Altdorf: <b>L7 antippen</b> (fährt nach Gleis 1), dort halten, dann wie gewohnt <b>P1</b> für die Ausfahrt nach Westen.</li>
+      <li>Fährt ein endender Zug stattdessen aus, kommt der Gegenzug als Ersatz von Osten (−10 Punkte).</li>
+    </ul>
     <h3>Punkte</h3>
     <ul>
       <li>+10 für pünktliche Abfahrt (≤ 1 Min.), Abzug pro Verspätungsminute, −5 für Abweichung vom Plangleis.</li>
@@ -281,12 +288,18 @@ const VIRTUAL = {
   XEi: [[WID,250],[WID+300,250]], XEo: [[WID,330],[WID+300,330]],     // außerhalb Ost  (ein / aus)
 };
 for (const k in VIRTUAL) LEGS[k] = { pts: VIRTUAL[k], virtual: true };
+// Abstellgleis 7: Stumpfgleis östlich von Gleis 1 (Weiche im Ost-Kopf, Rangiersignal L7, Prellbock)
+delete LEGS.eK6d;                                     // (1010,110)→(1040,110)→(1100,170) wird an der neuen Weiche geteilt
+LEGS.eK6da = { pts: [[1010,110],[1040,110]] };
+LEGS.eK6db = { pts: [[1040,110],[1100,170]] };
+LEGS.AG0   = { pts: [[1040,110],[1100,110]] };
+LEGS.AG    = { pts: [[1100,110],[1260,110]] };
 for (const k in LEGS) {
   const L = LEGS[k], p = L.pts; let l = 0, curved = false;
   for (let i = 1; i < p.length; i++) { l += Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]); if (p[i][1] !== p[i-1][1]) curved = true; }
   L.len = l;
   L.sec = L.virtual ? null : k;                       // jeder Gleisabschnitt hat eigene Freimeldung
-  L.v = L.virtual || /L0$|U0$/.test(k) ? 45 : /^G/.test(k) ? 30 : curved ? 20 : 30;
+  L.v = L.virtual || /L0$|U0$/.test(k) ? 45 : /^G/.test(k) ? 30 : /^AG/.test(k) ? 18 : curved ? 20 : 30;
 }
 
 // Knoten & Weichen automatisch aus der Geometrie ableiten
@@ -327,6 +340,7 @@ for (let g = 1; g <= NTRACKS; g++) {
   SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
   SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
 }
+SIGNALS.L7 = { x: 1100, y: 110, dir: -1, kind: 'Rangiersignal (Abstellgleis)' };
 for (const id in SIGNALS) { const s = SIGNALS[id]; s.lx = s.x; s.ly = s.y + (s.dir > 0 ? 18 : -18); }
 
 const DISTANT = {
@@ -337,6 +351,10 @@ const EXITS = {
   WEST: { label: '◀ WEST', town: 'Altdorf',  node: '0,250',        dir: -1, virt: 'XWo', box: [6, 212, 72, 28] },
   OST:  { label: 'OST ▶',  town: 'Neuhafen', node: WID + ',330',   dir:  1, virt: 'XEo', box: [WID - 78, 344, 72, 28] },
 };
+const ENDS = {   // Ziele ohne Weiterfahrt (Prellbock)
+  AG: { label: 'Abstellgl.', node: '1260,110', dir: 1, box: [1274, 96, 84, 28] },
+};
+const TGT = { ...EXITS, ...ENDS };
 const ENTRY = {
   '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
   '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eL0', d: -1 }], sec: 'eL0', sig: 'F' },
@@ -347,7 +365,7 @@ const R = (from, to, legs, sw) => ({ id: from + '-' + to, from, to, legs, sw });
 const ROUTES = [];
 (function buildRoutes() {
   const sigAt = (k, dir) => Object.keys(SIGNALS).find(id => key([SIGNALS[id].x, SIGNALS[id].y]) === k && SIGNALS[id].dir === dir);
-  const exitAt = (k, dir) => Object.keys(EXITS).find(id => EXITS[id].node === k && EXITS[id].dir === dir);
+  const exitAt = (k, dir) => Object.keys(TGT).find(id => TGT[id].node === k && TGT[id].dir === dir);
   for (const from in SIGNALS) {
     const s0 = SIGNALS[from], dir = s0.dir, best = {};
     (function dfs(k, incoming, legs, sw, cost) {
@@ -520,6 +538,7 @@ function trySetRoute(r) {
 }
 function secName(sec) {
   if (/^G\d$/.test(sec)) return 'Gleis ' + sec[1];
+  if (/^AG/.test(sec)) return 'Abstellgleis 7';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
   return 'Weichenbereich ' + (sec[0] === 'w' ? 'West' : 'Ost') + ' (' + sec.slice(1) + ')';
 }
@@ -580,7 +599,7 @@ function throwSwitch(id) {
 function onTap(kind, id) {
   if (kind === 'switch') { S.sel = null; throwSwitch(id); return; }
   if (kind === 'exit') {
-    if (!S.sel) return fail(`Zuerst ein Ausfahrsignal antippen, dann das Ziel ${EXITS[id].label}.`);
+    if (!S.sel) return fail(`Zuerst das Startsignal antippen, dann das Ziel ${TGT[id].label}.`);
     const r = ROUTES.find(r => r.from === S.sel && r.to === id);
     S.sel = null;
     if (!r) return fail('Keine Fahrstraße zu diesem Ziel möglich.');
@@ -607,7 +626,7 @@ function onTap(kind, id) {
   }
   if (opts.length) {
     S.sel = id;
-    toast(`Signal ${id} gewählt – jetzt Zielsignal antippen: ${opts.map(r => r.to).join(', ')}`);
+    toast(`Signal ${id} gewählt – jetzt Ziel antippen: ${opts.map(r => TGT[r.to] ? TGT[r.to].label : r.to).join(', ')}`);
   } else { S.sel = null; }
 }
 function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on', on); if (on) toast('Auflösen: Startsignal der Fahrstraße antippen'); }
@@ -622,7 +641,36 @@ function genNext() {
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
   const rnd = Math.random();
   const type = rnd < 0.36 ? 'RE' : rnd < 0.72 ? 'RB' : rnd < 0.84 ? 'IC' : 'GC';
-  addTrain(type, dir, t);
+  if (type === 'RB' && dir > 0 && Math.random() < 0.7) addTurnPair(t);
+  else addTrain(type, dir, t);
+}
+// Wendezug: RB aus dem Westen endet auf Gleis 1 → Abstellgleis 7 → später als neuer RB zurück nach Westen
+function addTurnPair(spawn) {
+  const A = addTrain('RB', 1, spawn);
+  A.turn = true; A.to = 'Neustadt'; A.plan.track = 1;
+  const B = addTrain('RB', -1, A.plan.dep + 9 * 60);
+  B.fromSiding = true; B.from = 'Neustadt'; B.to = A.from; B.plan.track = 1;
+  B.plan.arr = B.plan.spawn + 180; B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60;
+  A.link = B; B.link = A;
+}
+function handleTurns() {
+  for (const B of S.schedule) {
+    if (!B.fromSiding || B.spawned || B.done) continue;
+    const A = B.link;
+    if (S.t >= B.plan.spawn && A.parked) turnOut(A, B);
+  }
+}
+function turnOut(A, B) {
+  const tail = A.s - A.len;
+  const span = A.segs.filter(sg => sg.b > tail && sg.a < A.s);
+  const b1 = span[span.length - 1].b;
+  B.segs = span.reverse().map(sg => ({ leg: sg.leg, d: -sg.d, a: 0, b: 0 }));
+  rebuild(B);
+  B.s = b1 - tail; B.v = 0; B.len = A.len; B.endSig = 'L7'; B.spawned = true; B.announced = true;
+  for (const ar of S.routes) if (ar.train === A) { ar.passed = true; ar.r.secs.forEach(sc => ar.released.add(sc)); }
+  A.done = true; A.actDep = S.t;
+  S.trains = S.trains.filter(t => t !== A); S.trains.push(B);
+  log(`${A.num} wird zu ${B.num} nach ${B.to}: bereit im Abstellgleis 7 – Signal L7 stellen (→ Gleis 1).`, 'info');
 }
 function addTrain(type, dir, spawn) {
   const T = TYPES[type];
@@ -646,6 +694,7 @@ function addTrain(type, dir, spawn) {
     exitOff: null, depOff: null, actArr: null, actDep: null, delay: null, waitLogged: false,
   });
   S.schedule.sort((a, b) => a.plan.spawn - b.plan.spawn);
+  return S.schedule.find(x => x.id === S.uid);
 }
 function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 
@@ -653,7 +702,7 @@ function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
-    if (tr.spawned || tr.done) continue;
+    if (tr.spawned || tr.done || tr.fromSiding) continue;
     if (!tr.announced && S.t >= tr.plan.spawn - 60) {
       tr.announced = true;
       log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
@@ -684,7 +733,7 @@ function appendRoute(tr, ar) {
     const g = added.find(s => /^G\d$/.test(s.leg));
     if (g) { tr.stopAt = g.b - 14; tr.stopTrack = +g.leg[1]; }
   }
-  if (/^[NP]\d$/.test(ar.r.from)) tr.depOff = ar.sigOff;
+  if (EXITS[ar.r.to]) tr.depOff = ar.sigOff;
 }
 function assignRoutes() {
   for (const tr of S.trains) {
@@ -692,6 +741,10 @@ function assignRoutes() {
     while (SIGNALS[tr.endSig] && S.sig[tr.endSig] === 'Hp1' && guard++ < 3) {
       const ar = activeFrom(tr.endSig);
       if (!ar || ar.train) break;
+      if (ar.r.to === 'AG' && !tr.turn) {
+        if (!tr.agWarn) { tr.agWarn = true; log(`${tr.num} fährt weiter nach ${tr.to} und darf nicht abgestellt werden!`, 'bad'); toast(`${tr.num} endet nicht hier – nicht ins Abstellgleis!`, true); }
+        break;
+      }
       appendRoute(tr, ar);
     }
   }
@@ -739,6 +792,14 @@ function trainEvents(tr) {
       if (SIGNALS[tr.endSig] && S.sig[tr.endSig] !== 'Hp1') log(`${tr.num} in Gleis ${tr.stopTrack} abfahrbereit – Ausfahrt über Signal ${tr.endSig}.`, 'info');
     }
   }
+  // Im Abstellgleis angekommen
+  if (tr.endSig === 'AG' && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
+    tr.parked = true; S.score += 5;
+    log(`${tr.num} im Abstellgleis 7 abgestellt (+5 Punkte).`, 'good');
+    for (const ar of S.routes) if (ar.train === tr && ar.segRefs) {
+      for (const sg of ar.segRefs) { const sec = LEGS[sg.leg].sec; if (sec && sg.a <= tr.s) ar.released.add(sec); }
+    }
+  }
   // Halt vor rotem Signal
   if (tr.v === 0 && SIGNALS[tr.endSig] && tr.s >= tr.total - 8.5 && !tr.waitLogged && (tr.stopAt == null || tr.served)) {
     tr.waitLogged = true;
@@ -774,6 +835,11 @@ function removeTrains() {
   for (const tr of S.trains) {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
       tr.done = true;
+      if (tr.turn && tr.link && !tr.link.spawned) {
+        const B = tr.link; B.fromSiding = false; B.from = 'Neuhafen (Ersatzzug)';
+        S.score -= 10; tr.notParked = true;
+        log(`${tr.num} endet in Neustadt, ist aber ausgefahren! ${B.num} kommt als Ersatzzug von Osten (−10 Punkte).`, 'bad');
+      }
       for (const ar of S.routes) if (ar.train === tr) { ar.passed = true; ar.r.secs.forEach(s => ar.released.add(s)); }
     }
   }
@@ -785,6 +851,7 @@ function update(dt) {
   ensureSchedule();
   computeOcc();
   spawnTrains();
+  handleTurns();
   assignRoutes();
   for (const tr of S.trains) { stepTrain(tr, dt); trainEvents(tr); }
   signalsAndRelease();
@@ -867,11 +934,16 @@ function buildStatic() {
 
   // Ausfahrziele
   E_.exitRing = {};
-  for (const id in EXITS) {
-    const [x, y, w, h] = EXITS[id].box;
+  // Abstellgleis: Beschriftung und Prellbock
+  txt(1185, 131, 'Abstellgleis 7', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
+  el('line', { x1: 1262, y1: 100, x2: 1262, y2: 120, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
+  el('line', { x1: 1262, y1: 104, x2: 1268, y2: 104, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+  el('line', { x1: 1262, y1: 116, x2: 1268, y2: 116, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+  for (const id in TGT) {
+    const [x, y, w, h] = TGT[id].box;
     E_.exitRing[id] = el('rect', { x: x - 3, y: y - 3, width: w + 6, height: h + 6, rx: 6, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, 'stroke-dasharray': '5 4', display: 'none' }, W);
     el('rect', { x, y, width: w, height: h, rx: 4, fill: '#1d2023', stroke: '#6b7279' }, W);
-    txt(x + w / 2, y + h / 2 + 5, EXITS[id].label, { 'text-anchor': 'middle', fill: '#e6e8ea', 'font-size': 13, 'font-weight': 700 });
+    txt(x + w / 2, y + h / 2 + 5, TGT[id].label, { 'text-anchor': 'middle', fill: '#e6e8ea', 'font-size': 13, 'font-weight': 700 });
   }
 
   // Züge
@@ -881,7 +953,7 @@ function buildStatic() {
   const hit = el('g', {}, W);
   for (const id in SWITCHES) { const w = SWITCHES[id]; el('circle', { cx: w.x, cy: w.y + w.ly * 0.35, r: 24, fill: '#000', 'fill-opacity': 0, 'data-hit': 'switch', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in SIGNALS) { const s = SIGNALS[id]; el('circle', { cx: s.lx, cy: s.ly, r: 28, fill: '#000', 'fill-opacity': 0, 'data-hit': 'signal', 'data-id': id, style: 'cursor:pointer' }, hit); }
-  for (const id in EXITS) { const [x, y, w, h] = EXITS[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
+  for (const id in TGT) { const [x, y, w, h] = TGT[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
 }
 
 function render() {
@@ -900,7 +972,7 @@ function render() {
     else ring.setAttribute('display', 'none');
     ring.setAttribute('stroke', '#fff');
   }
-  for (const id in EXITS) E_.exitRing[id].setAttribute('display', targets.has(id) ? 'inline' : 'none');
+  for (const id in TGT) E_.exitRing[id].setAttribute('display', targets.has(id) ? 'inline' : 'none');
   for (const id in DISTANT) {
     const c = S.sig[DISTANT[id].main] === 'Hp1' ? COL.green : COL.yellow;
     E_.dist[id].forEach(e => e.setAttribute('fill', c));
@@ -930,7 +1002,13 @@ function render() {
 }
 
 function trainStatus(tr) {
-  if (tr.done) return { txt: 'ausgefahren', cls: 'done' };
+  if (tr.done) return { txt: tr.turn ? (tr.notParked ? 'ausgefahren (nicht abgestellt!)' : `gewendet → ${tr.link.num}`) : 'ausgefahren', cls: 'done' };
+  if (tr.fromSiding && !tr.spawned) {
+    if (!tr.link.parked && S.t >= tr.plan.spawn) return { txt: `wartet: ${tr.link.num} noch nicht abgestellt`, cls: 'warn' };
+    return { txt: tr.link.parked ? 'steht im Abstellgleis 7' : 'Bereitstellung aus Abstellgl.', cls: '' };
+  }
+  if (tr.parked) return { txt: `abgestellt in Gl 7 (wendet ${fmt(tr.link.plan.spawn)})`, cls: 'stop' };
+  if (tr.turn && tr.served && tr.v < 0.5 && tr.endSig === 'N1' && S.sig.N1 !== 'Hp1') return { txt: 'endet – abstellen: N1 → Abstellgl.', cls: 'act' };
   if (!tr.spawned) {
     if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
     if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
@@ -959,7 +1037,7 @@ function renderPanel() {
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
       <td>${tr.from}<div class="sub">→ ${tr.to}</div></td>
       <td class="mono">${tr.plan.arr != null ? fmt(tr.plan.arr) : '—'}</td>
-      <td class="mono">${tr.stops ? '' : '<span class="sub">durch </span>'}${fmt(tr.plan.dep)} ${del}</td>
+      <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. 7</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
