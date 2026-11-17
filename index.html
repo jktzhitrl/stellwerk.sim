@@ -640,30 +640,11 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
   if (BF === 'falkenberg') {
-    // Vier zusätzliche Bahnhofsgleise im Nord-/Südkopf, mit eigenen Ausfahrsignalen.
-    // Die neuen Gleise zweigen von den bestehenden Weichenstraßen ab.
-    // Abzweig Nord: vorhandene Verbindung 550,170 -> 610,110 wird geteilt.
-    delete LEGS.wK4d;
-    LEGS.wK4da = { pts: [[550,170],[580,140]] };
-    LEGS.wK4db = { pts: [[580,140],[610,110],[650,110]] };
-    LEGS.f7w = { pts: [[580,140],[650,50]] };
-    LEGS.G7 = { pts: [[650,50],[1010,50]] };
-    LEGS.f7e = { pts: [[1010,50],[1080,140]] };
-    delete LEGS.eK4d;
-    LEGS.eK4da = { pts: [[1010,470],[1080,400]] };
-    LEGS.eK4db = { pts: [[1080,400],[1110,370],[1110,410]] };
-    // Südliche Ergänzung als zwei zusätzliche Stumpfgleise (Rangier-/Bereitstellungsgleise).
-    LEGS.f8w = { pts: [[560,410],[620,530],[650,530]] };
-    LEGS.G8 = { pts: [[650,530],[1010,530]] };
-    LEGS.f9w = { pts: [[620,470],[650,590]] };
-    LEGS.G9 = { pts: [[650,590],[1010,590]] };
-    LEGS.f10w = { pts: [[470,250],[530,30],[650,30]] };
-    LEGS.G10 = { pts: [[650,30],[1010,30]] };
+    // Vier zusätzliche, zunächst nur dargestellte Bereitstellungsgleise.
     for (const [g,y] of [[7,50],[8,530],[9,590],[10,30]]) {
       TRACK_Y[g] = y;
-      SIGNALS['P'+g] = { x:650,y,dir:-1,kind:'Ausfahrsignal' };
+      LEGS['G'+g] = { pts: [[650,y],[1010,y]] };
     }
-    SIGNALS.N7 = { x:1010,y:50,dir:1,kind:'Ausfahrsignal' };
     // Verbindungswege im Netz: Falkenberg ↔ Bk Heidekreuz ↔ Neustadt / Teutschenthal.
     EXITS.WEST.label = '◀ Bk Heidekreuz / Neustadt';
     EXITS.WEST.town = 'Neustadt';
