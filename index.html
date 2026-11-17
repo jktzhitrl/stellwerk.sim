@@ -943,8 +943,10 @@ function routeLegs() {
 }
 function activeFrom(id) { return S.routes.find(ar => ar.r.from === id && !ar.passed); }
 function switchLocked(id) {
-  const w = SWITCHES[id], sec = LEGS[w.trunk].sec;
-  return S.routes.some(ar => ar.r.sw[id] && !ar.released.has(sec));
+  // Eine Fahrstrasse haelt ihre Weichen verschlossen, solange noch ein
+  // Abschnitt dieser Fahrstrasse verriegelt ist. Die Freigabe des
+  // Stammgleises allein darf die Weiche nicht entriegeln.
+  return S.routes.some(ar => ar.r.sw[id] && ar.r.secs.some(sec => !ar.released.has(sec)));
 }
 function switchOccupied(id) {
   const w = SWITCHES[id];
