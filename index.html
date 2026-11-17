@@ -227,6 +227,18 @@
       <li>Reisezüge (RE, RB, IC) halten am Bahnsteig und fahren frühestens zur Plan-Abfahrt. Güterzüge (GC) fahren durch.</li>
       <li><span class="sw" style="background:var(--occ)"></span> rot = Gleisabschnitt besetzt. Ein neuer Zug kommt erst, wenn die Strecke frei ist.</li>
     </ul>
+    <h3>Durchfahrt &amp; Überholung</h3>
+    <ul>
+      <li><b>ICE</b> (rosa) halten nicht. Stelle Einfahr- <i>und</i> Ausfahrsignal rechtzeitig auf Fahrt – dann fährt er ohne Halt durch (+5 Punkte). Das kleine Vorsignal neben A/F/C zeigt, was das Ausfahrsignal zeigt (grün = Fahrt, gelb = Halt erwarten).</li>
+      <li>Güterzüge mit „Überh.“ im Fahrplan fahren auf ein <b>Nebengleis</b> (Plangleis, z. B. 5/6 oder 1/2) und warten dort, bis der ICE durchgefahren ist. Fährt der Güterzug vorher ab, hängt der ICE dahinter (−10 Punkte).</li>
+      <li>Tipp: Den Güterzug nicht aufs durchgehende Hauptgleis 3/4 nehmen – sonst muss der ICE langsam über die Weichen ausweichen.</li>
+    </ul>
+    <h3>Nebenbahn nach Waldheim</h3>
+    <ul>
+      <li>Oben links zweigt die eingleisige Nebenbahn ab. Züge von dort (violett) kommen an <b>Einfahrsignal C</b> und kreuzen dabei das Streckengleis Richtung Altdorf.</li>
+      <li>Züge nach Waldheim: Ausfahrsignal P antippen und dann das Ziel <b>„◀ WALDHEIM“</b> (nicht „◀ WEST“).</li>
+      <li>Eingleisig: Solange ein Zug nach Waldheim unterwegs ist, kann keiner von dort einfahren – und umgekehrt.</li>
+    </ul>
     <h3>Abstellgleis 7 &amp; Wendezüge</h3>
     <ul>
       <li>Manche RB aus Altdorf <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7“). Plangleis ist Gleis 1 – nur von dort erreicht man das Abstellgleis.</li>
@@ -272,7 +284,7 @@ const TRACK_Y = { 1: 110, 2: 170, 3: 250, 4: 330, 5: 410, 6: 470 };
 const NTRACKS = 6;
 const WEST_LEGS = {
   L0:  [[0,330],[130,330]],   L1: [[130,330],[200,330]], L2: [[200,330],[420,330]], L3: [[420,330],[480,330]], L4: [[480,330],[650,330]],
-  U0:  [[0,250],[130,250]],   U1: [[130,250],[280,250]], U2: [[280,250],[340,250]], U3: [[340,250],[470,250]], U4: [[470,250],[650,250]],
+  U0:  [[0,250],[130,250]],   U1a: [[130,250],[210,250]], U1b: [[210,250],[280,250]], U2: [[280,250],[340,250]], U3: [[340,250],[470,250]], U4: [[470,250],[650,250]],
   XA:  [[200,330],[280,250]], XB: [[340,250],[420,330]],              // Gleisverbindungen zwischen den Streckengleisen
   K3d: [[470,250],[550,170]], K4s: [[550,170],[650,170]], K4d: [[550,170],[610,110],[650,110]],
   K5d: [[480,330],[560,410]], K6s: [[560,410],[650,410]], K6d: [[560,410],[620,470],[650,470]],
@@ -295,12 +307,18 @@ LEGS.eK6da = { pts: [[1010,110],[1040,110]] };
 LEGS.eK6db = { pts: [[1040,110],[1100,170]] };
 LEGS.AG0   = { pts: [[1040,110],[1100,110]] };
 LEGS.AG    = { pts: [[1100,110],[1260,110]] };
+// Abzweig der eingleisigen Nebenbahn nach Waldheim (flache Einmündung ins obere Streckengleis West)
+LEGS.BR0   = { pts: [[0,170],[130,170]] };
+LEGS.BRd   = { pts: [[130,170],[210,250]] };
+LEGS.XB    = { pts: [[-300,170],[0,170]], virtual: true };
 for (const k in LEGS) {
   const L = LEGS[k], p = L.pts; let l = 0, curved = false;
   for (let i = 1; i < p.length; i++) { l += Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]); if (p[i][1] !== p[i-1][1]) curved = true; }
   L.len = l;
   L.sec = L.virtual ? null : k;                       // jeder Gleisabschnitt hat eigene Freimeldung
-  L.v = L.virtual || /L0$|U0$/.test(k) ? 45 : /^G/.test(k) ? 30 : /^AG/.test(k) ? 18 : curved ? 20 : 30;
+  const mainStraight = !curved && (p[0][1] === 250 || p[0][1] === 330);
+  L.v = L.virtual || /L0$|U0$/.test(k) ? 55 : k === 'BR0' ? 35 : (k === 'G3' || k === 'G4') ? 45 : /^G/.test(k) ? 30
+      : /^AG/.test(k) ? 18 : curved ? 20 : mainStraight ? 45 : 30;
 }
 
 // Knoten & Weichen automatisch aus der Geometrie ableiten
@@ -336,6 +354,7 @@ Object.keys(NODES).filter(k => NODES[k].length === 3)
 const SIGNALS = {
   A: { x: 130,       y: 330, dir:  1, kind: 'Einfahrsignal' },
   F: { x: WID - 130, y: 250, dir: -1, kind: 'Einfahrsignal' },
+  C: { x: 130,       y: 170, dir:  1, kind: 'Einfahrsignal' },   // von der Nebenbahn Waldheim
 };
 for (let g = 1; g <= NTRACKS; g++) {
   SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
@@ -347,9 +366,11 @@ for (const id in SIGNALS) { const s = SIGNALS[id]; s.lx = s.x; s.ly = s.y + (s.d
 const DISTANT = {
   VA: { x: 40,       y: 330, dir:  1, main: 'A' },
   VF: { x: WID - 40, y: 250, dir: -1, main: 'F' },
+  VC: { x: 40,       y: 170, dir:  1, main: 'C' },
 };
 const EXITS = {
   WEST: { label: '◀ WEST', town: 'Altdorf',  node: '0,250',        dir: -1, virt: 'XWo', box: [6, 212, 72, 28] },
+  WALD: { label: '◀ WALDHEIM', town: 'Waldheim', node: '0,170',    dir: -1, virt: 'XB',  box: [6, 124, 104, 26] },
   OST:  { label: 'OST ▶',  town: 'Neuhafen', node: WID + ',330',   dir:  1, virt: 'XEo', box: [WID - 78, 344, 72, 28] },
 };
 const ENDS = {   // Ziele ohne Weiterfahrt (Prellbock)
@@ -359,6 +380,7 @@ const TGT = { ...EXITS, ...ENDS };
 const ENTRY = {
   '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
   '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eL0', d: -1 }], sec: 'eL0', sig: 'F' },
+  'C':  { segs: [{ leg: 'XB',  d:  1 }, { leg: 'BR0', d:  1 }], sec: 'BR0', sig: 'C' },
 };
 
 // Fahrstraßen automatisch suchen: vom Startsignal in Fahrtrichtung bis zum nächsten gleichgerichteten Signal / Streckenausgang
@@ -400,6 +422,8 @@ const TYPES = {
   RB: { len: 50,  vmax: 40, dwell: 60,  color: '#7fd3ff', stops: true,  w: 34, base: 27100 },
   IC: { len: 105, vmax: 50, dwell: 120, color: '#ffffff', stops: true,  w: 12, base: 2010 },
   GC: { len: 125, vmax: 34, dwell: 0,   color: '#9be39b', stops: false, w: 20, base: 61200 },
+  ICE:{ len: 110, vmax: 55, dwell: 0,   color: '#ff7ac0', stops: false, w: 10, base: 570 },
+  RBN:{ len: 45,  vmax: 35, dwell: 60,  color: '#c3a6ff', stops: true,  w: 10, base: 34500, name: 'RB' },   // Nebenbahn
 };
 const TOWNS_W = ['Altdorf', 'Bergheim', 'Lindenau'];
 const TOWNS_E = ['Neuhafen', 'Seestadt', 'Ostkirchen'];
@@ -417,7 +441,7 @@ function newState() {
     autoSignal: S ? S.autoSignal : true,
     density: S ? S.density : 'normal',
     occLegs: new Set(), occSecs: new Set(),
-    cnt: { RE: 0, RB: 0, IC: 0, GC: 0 }, genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
+    cnt: Object.fromEntries(Object.keys(TYPES).map(k => [k, 0])), genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
     uid: 0,
   };
 }
@@ -540,6 +564,7 @@ function trySetRoute(r) {
 function secName(sec) {
   if (/^G\d$/.test(sec)) return 'Gleis ' + sec[1];
   if (/^AG/.test(sec)) return 'Abstellgleis 7';
+  if (/^BR/.test(sec)) return 'Nebenbahn Waldheim';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
   return 'Weichenbereich ' + (sec[0] === 'w' ? 'West' : 'Ost') + ' (' + sec.slice(1) + ')';
 }
@@ -640,10 +665,32 @@ function genNext() {
   if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
   t = Math.round(t / 60) * 60;
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
-  const rnd = Math.random();
-  const type = rnd < 0.36 ? 'RE' : rnd < 0.72 ? 'RB' : rnd < 0.84 ? 'IC' : 'GC';
-  if (type === 'RB' && dir > 0 && t > (S.turnBusyUntil || 0) && Math.random() < 0.7) addTurnPair(t);
-  else addTrain(type, dir, t);
+  const r = Math.random();
+  if (r < 0.12) addBranch(t, dir);
+  else if (r < 0.21) addOvertake(t, dir);
+  else if (r < 0.29) addTrain('ICE', dir, t);
+  else if (r < 0.36) addTrain('GC', dir, t);
+  else if (r < 0.45) addTrain('IC', dir, t);
+  else if (r < 0.70) addTrain('RE', dir, t);
+  else if (dir > 0 && t > (S.turnBusyUntil || 0) && Math.random() < 0.6) addTurnPair(t);
+  else addTrain('RB', dir, t);
+}
+const pick = a => a[Math.floor(Math.random() * a.length)];
+// Überholung: Güterzug wartet auf einem Nebengleis, bis der nachfolgende ICE durchgefahren ist
+function addOvertake(t, dir) {
+  const G = addTrain('GC', dir, t), I = addTrain('ICE', dir, t + 150);
+  G.overtake = true; G.stops = true; G.dwell = 60;
+  G.plan.track = dir > 0 ? pick([5, 6]) : pick([1, 2]);
+  G.plan.arr = t + 300; G.plan.dep = I.plan.dep + 120;
+  G.link = I; I.overtakes = G;
+  S.lastDir[dir] = Math.max(S.lastDir[dir], t + 150); S.genT = Math.max(S.genT, t + 150);
+}
+// Nebenbahn Waldheim ↔ Neuhafen über den Abzweig
+function addBranch(t, dir) {
+  const B = addTrain('RBN', dir, t);
+  B.branch = true;
+  if (dir > 0) { B.from = 'Waldheim'; B.entry = 'C'; } else B.to = 'Waldheim';
+  B.plan.track = pick([1, 2]);
 }
 // Wendezug: RB aus dem Westen endet auf Gleis 1 → Abstellgleis 7 → später als neuer RB zurück nach Westen
 function addTurnPair(spawn) {
@@ -680,15 +727,14 @@ function addTrain(type, dir, spawn) {
   const from = dir > 0 ? TOWNS_W[Math.floor(Math.random() * TOWNS_W.length)] : TOWNS_E[Math.floor(Math.random() * TOWNS_E.length)];
   const to = dir > 0 ? TOWNS_E[Math.floor(Math.random() * TOWNS_E.length)] : TOWNS_W[Math.floor(Math.random() * TOWNS_W.length)];
   let track;
-  const pick = a => a[Math.floor(Math.random() * a.length)];
-  if (type === 'IC') track = dir > 0 ? 4 : 3;                       // Hauptgleise
+  if (type === 'IC' || type === 'ICE') track = dir > 0 ? 4 : 3;                       // Hauptgleise
   else if (type === 'GC') track = dir > 0 ? pick([4, 6]) : pick([3, 1]);
   else if (dir > 0) track = pick([4, 5, 5, 6]);                     // Richtung Ost: Gleise 4–6
   else track = pick([3, 2, 2, 1]);                                  // Richtung West: Gleise 1–3
   const arr = T.stops ? spawn + 300 : null;
-  const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : spawn + 300;
+  const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : Math.ceil((spawn + (type === 'ICE' ? 210 : 300)) / 60) * 60;
   S.schedule.push({
-    id: ++S.uid, type, num: `${type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
+    id: ++S.uid, type, num: `${T.name || type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
     plan: { spawn, arr, dep, track },
     spawned: false, announced: false, done: false,
     segs: [], pts: [], cum: [], total: 0, s: 0, v: 0,
@@ -707,12 +753,14 @@ function spawnTrains() {
     if (tr.spawned || tr.done || tr.fromSiding) continue;
     if (!tr.announced && S.t >= tr.plan.spawn - 60) {
       tr.announced = true;
-      log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
+      const ek0 = tr.entry || String(tr.dir);
+      log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${ek0 === 'C' ? 'Nebenbahn, Signal C' : tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
     }
-    if (S.t < tr.plan.spawn || blocked.has(tr.dir)) continue;
-    const ent = ENTRY[tr.dir], sec = ent.sec;
-    if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(tr.dir); continue; }
-    blocked.add(tr.dir);
+    const ek = tr.entry || String(tr.dir);
+    if (S.t < tr.plan.spawn || blocked.has(ek)) continue;
+    const ent = ENTRY[ek], sec = ent.sec;
+    if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(ek); continue; }
+    blocked.add(ek);
     tr.spawned = true;
     tr.segs = ent.segs.map(x => ({ ...x }));
     rebuild(tr);
@@ -743,6 +791,13 @@ function assignRoutes() {
     while (SIGNALS[tr.endSig] && S.sig[tr.endSig] === 'Hp1' && guard++ < 3) {
       const ar = activeFrom(tr.endSig);
       if (!ar || ar.train) break;
+      if (EXITS[ar.r.to]) {
+        const want = tr.dir > 0 ? 'OST' : tr.branch ? 'WALD' : 'WEST';
+        if (ar.r.to !== want) {
+          if (!tr.exitWarn) { tr.exitWarn = true; log(`${tr.num} fährt nach ${tr.to} – Ausfahrt Richtung ${EXITS[want].label} stellen!`, 'bad'); toast(`${tr.num} muss nach ${EXITS[want].label} – falsche Ausfahrt!`, true); }
+          break;
+        }
+      }
       if (ar.r.to === 'AG' && !tr.turn) {
         if (!tr.agWarn) { tr.agWarn = true; log(`${tr.num} fährt weiter nach ${tr.to} und darf nicht abgestellt werden!`, 'bad'); toast(`${tr.num} endet nicht hier – nicht ins Abstellgleis!`, true); }
         break;
@@ -771,6 +826,7 @@ function stepTrain(tr, dt) {
   if (tr.v < vT) tr.v = Math.min(vT, tr.v + ACC * dt); else tr.v = Math.max(vT, tr.v - DEC * 1.6 * dt);
   tr.s += tr.v * dt;
   if (tr.s >= E) { tr.s = E; tr.v = 0; }
+  if (tr.v < 0.5) tr.halted = true;
 }
 function trainEvents(tr) {
   // Halt am Bahnsteig
@@ -813,10 +869,15 @@ function trainEvents(tr) {
   // Abfahrt (Vorbeifahrt am Ausfahrsignal)
   if (tr.depOff != null && tr.actDep == null && tr.s > tr.depOff) {
     tr.actDep = S.t;
-    tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep) / 60));
+    tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep + (tr.extraDelay || 0)) / 60));
     const pts = tr.delay <= 1 ? 10 : Math.max(-10, 10 - 2 * (tr.delay - 1));
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
+    if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
+    if (tr.overtake && tr.link && tr.link.actDep == null) {
+      S.score -= 10; tr.link.extraDelay = 240;
+      log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, der ICE hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+    }
   }
 }
 function signalsAndRelease() {
@@ -875,6 +936,7 @@ function buildStatic() {
   txt(WID / 2, 66, 'Bf NEUSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
   txt(WID / 2, 83, 'Gleisbildstellwerk Ns · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
   txt(6, 372, '◀ zweigleisig nach Altdorf');
+  txt(118, 141, 'Nebenbahn (eingleisig)', { 'font-size': 11 });
   txt(WID - 6, 206, 'zweigleisig nach Neuhafen ▶', { 'text-anchor': 'end' });
 
   // Bahnsteige (Mittelbahnsteige zwischen 1/2, 3/4, 5/6)
@@ -930,6 +992,12 @@ function buildStatic() {
     el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 13, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
     E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    if (s.kind === 'Einfahrsignal') {   // Vorsignal am Einfahrsignal: zeigt das Ausfahrsignal an
+      const vx = s.lx + s.dir * 17;
+      el('rect', { x: vx - 6, y: s.ly - 8, width: 12, height: 16, rx: 3, fill: '#141618', stroke: '#000' }, W);
+      E_.vr = E_.vr || {};
+      E_.vr[id] = [el('circle', { cx: vx - 2.5, cy: s.ly + 3.5, r: 2.6, fill: '#333' }, W), el('circle', { cx: vx + 2.5, cy: s.ly - 3.5, r: 2.6, fill: '#333' }, W)];
+    }
     txt(s.x + (s.dir > 0 ? -18 : 18), s.ly + (s.dir > 0 ? 9 : -2), id,
       { 'text-anchor': s.dir > 0 ? 'end' : 'start', fill: '#e6e8ea', 'font-weight': 700 });
   }
@@ -967,6 +1035,11 @@ function render() {
   const targets = new Set(S.sel ? ROUTES.filter(r => r.from === S.sel).map(r => r.to) : []);
   for (const id in SIGNALS) {
     E_.lamp[id].setAttribute('fill', S.sig[id] === 'Hp1' ? COL.green : COL.red);
+    if (E_.vr && E_.vr[id]) {
+      const ar = S.routes.find(a => a.r.from === id && !a.passed);
+      const c = S.sig[id] === 'Hp1' && ar && SIGNALS[ar.r.to] ? (S.sig[ar.r.to] === 'Hp1' ? COL.green : COL.yellow) : '#333';
+      E_.vr[id].forEach(e => e.setAttribute('fill', c));
+    }
     const ring = E_.ring[id];
     if (S.sel === id) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'blink'); ring.removeAttribute('stroke-dasharray'); }
     else if (targets.has(id)) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'pulse'); ring.setAttribute('stroke-dasharray', '4 3'); }
@@ -1016,6 +1089,7 @@ function trainStatus(tr) {
     if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
     return { txt: 'wartet auf freie Strecke', cls: 'warn' };
   }
+  if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
   if (tr.dwellUntil != null && !tr.served) return { txt: `hält Gl ${tr.stopTrack} bis ${fmt(tr.dwellUntil)}`, cls: 'stop' };
   if (tr.v < 0.5 && SIGNALS[tr.endSig] && S.sig[tr.endSig] !== 'Hp1') {
     if (tr.served) return { txt: `abfahrbereit Gl ${tr.stopTrack} – Sig ${tr.endSig}`, cls: 'act' };
@@ -1037,7 +1111,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td>${tr.from}<div class="sub">→ ${tr.to}</div></td>
+      <td>${tr.from}<div class="sub">→ ${tr.to}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono">${tr.plan.arr != null ? fmt(tr.plan.arr) : '—'}</td>
       <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. 7</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
       <td class="mono">${gl}</td>
