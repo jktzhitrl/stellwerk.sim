@@ -162,7 +162,7 @@
     <div class="sep"></div>
     <div id="score"><b id="scoreVal">0</b> Punkte<br><span id="punct">pünktlich 0/0</span></div>
     <div class="sep"></div>
-    <button class="btn warn" id="btnCancel" title="Fahrstraße auflösen: danach Startsignal antippen">✖ Auflösen</button>
+    <button class="btn warn" id="btnCancel" title="Fahrstraße löschen: danach Startsignal antippen">✖ FS löschen</button>
     <div class="grp">
       <button class="btn" id="zoomOut">−</button>
       <button class="btn" id="zoomIn">+</button>
@@ -185,6 +185,8 @@
         <span><i style="background:var(--occ)"></i>besetzt</span>
         <span><span class="dot" style="background:#ff2d2d"></span> Halt</span>
         <span><span class="dot" style="background:#33ff77"></span> Fahrt</span>
+        <span><span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#ffc400"></span> Langsamfahrt</span>
+        <span>FS löschen: Fahrstraße 2× tippen / Signal lang drücken</span>
       </div>
     </div>
 
@@ -214,7 +216,18 @@
       <li>Ist der Fahrweg frei, werden die Weichen umgestellt und verschlossen, die Fahrstraße leuchtet <span class="sw" style="background:var(--route)"></span> gelb und das Signal geht auf <span class="dot" style="background:#33ff77"></span> Fahrt.</li>
       <li>Signal antippen schaltet um: grün → <span class="dot" style="background:#ff2d2d"></span> Halt, rot (mit eingestellter Fahrstraße, gelb gestrichelter Ring) → grün. Ein Signal <b>ohne Fahrstraße</b> kann nicht auf Fahrt gehen.</li>
       <li>Wer jedes Signal von Hand auf Fahrt stellen will: Einstellung „Signal von Hand auf Fahrt“ unten in der Seitenleiste.</li>
-      <li>Fahrstraße zurücknehmen: <b>✖ Auflösen</b> und dann das Startsignal antippen.</li>
+      <li><b>Fahrstraße löschen</b> (solange kein Zug sie befährt):
+        <ul><li>auf die <b>gelbe Fahrstraße tippen</b> (blinkt weiß) und zur Bestätigung nochmal tippen, oder</li>
+        <li>das <b>Startsignal lange drücken</b>, oder</li>
+        <li><b>✖ FS löschen</b> und dann Startsignal bzw. Fahrstraße antippen.</li></ul></li>
+    </ul>
+    <h3>Signalbegriffe &amp; Vorsignale</h3>
+    <ul>
+      <li>Hauptsignal: <span class="dot" style="background:#ff2d2d"></span> <b>Hp0</b> Halt · <span class="dot" style="background:#33ff77"></span> <b>Hp1</b> Fahrt · <span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#ffc400"></span> <b>Hp2</b> Langsamfahrt (Fahrstraße über abzweigende Weichen).</li>
+      <li>Vorsignale (VA, VF, VC vor den Einfahrsignalen und das kleine Vorsignal am Einfahrsignal für das Ausfahrsignal):
+        <span class="dot" style="background:#ffc400"></span><span class="dot" style="background:#ffc400"></span> <b>Vr0</b> Halt erwarten ·
+        <span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#33ff77"></span> <b>Vr1</b> Fahrt erwarten ·
+        <span class="dot" style="background:#ffc400"></span><span class="dot" style="background:#33ff77"></span> <b>Vr2</b> Langsamfahrt erwarten.</li>
     </ul>
     <h3>Weichen</h3>
     <ul>
@@ -414,7 +427,21 @@ const ROUTES = [];
     for (const to in best) ROUTES.push(R(from, to, best[to].legs, best[to].sw));
   }
 })();
-ROUTES.forEach(r => { r.secs = [...new Set(r.legs.map(l => LEGS[l[0]].sec).filter(Boolean))]; });
+ROUTES.forEach(r => {
+  r.secs = [...new Set(r.legs.map(l => LEGS[l[0]].sec).filter(Boolean))];
+  r.slow = r.legs.some(([l]) => !LEGS[l].virtual && LEGS[l].v <= 20);   // über abzweigende Weiche → Hp2 (Langsamfahrt)
+});
+// Signalbegriff: Hp0 Halt, Hp1 Fahrt, Hp2 Langsamfahrt
+function aspect(id) {
+  if (!S.sig[id] || S.sig[id] === 'Hp0') return 'Hp0';
+  const ar = S.routes.find(a => a.r.from === id && !a.passed);
+  return ar && ar.r.slow ? 'Hp2' : 'Hp1';
+}
+// Vorsignalbegriff für ein Hauptsignal → Farben [unten links, oben rechts]
+function vrColors(mainId) {
+  const a = aspect(mainId);
+  return a === 'Hp1' ? [COL.green, COL.green] : a === 'Hp2' ? [COL.yellow, COL.green] : [COL.yellow, COL.yellow];
+}
 
 // Zuggattungen
 const TYPES = {
@@ -574,8 +601,9 @@ function signalGo(id, quiet) {
   for (const sec of ar.r.secs) if (S.occSecs.has(sec)) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
   for (const sw in ar.r.sw) if (S.sw[sw] !== ar.r.sw[sw]) return fail(`Signal ${id} kann nicht auf Fahrt: Weiche ${sw} nicht in Endlage.`);
   S.sig[id] = 'Hp1';
-  log(`Signal ${id} zeigt Fahrt.`, 'info');
-  toast(`Signal ${id}: FAHRT (grün)`);
+  const slow = ar.r.slow;
+  log(`Signal ${id} zeigt ${slow ? 'Langsamfahrt (Hp2)' : 'Fahrt (Hp1)'}.`, 'info');
+  toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
   return true;
 }
 function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * DEC) <= off - 3; }
@@ -623,6 +651,7 @@ function throwSwitch(id) {
 
 // ---------- Eingabe (Tap) ----------
 function onTap(kind, id) {
+  if (kind === 'leg') { S.sel = null; tapLeg(id); return; }
   if (kind === 'switch') { S.sel = null; throwSwitch(id); return; }
   if (kind === 'exit') {
     if (!S.sel) return fail(`Zuerst das Startsignal antippen, dann das Ziel ${TGT[id].label}.`);
@@ -655,7 +684,24 @@ function onTap(kind, id) {
     toast(`Signal ${id} gewählt – jetzt Ziel antippen: ${opts.map(r => TGT[r.to] ? TGT[r.to].label : r.to).join(', ')}`);
   } else { S.sel = null; }
 }
-function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on', on); if (on) toast('Auflösen: Startsignal der Fahrstraße antippen'); }
+// Fahrstraße durch Antippen der gelben Ausleuchtung löschen (mit Bestätigung)
+function routeOfLeg(leg) { return S.routes.find(ar => ar.r.legs.some(([l]) => l === leg) && !ar.released.has(LEGS[leg].sec)); }
+function tapLeg(leg) {
+  const ar = routeOfLeg(leg);
+  if (!ar) { if (S.cancelMode) setCancel(false); return; }
+  const name = `${ar.r.from} → ${TGT[ar.r.to] ? TGT[ar.r.to].label : ar.r.to}`;
+  if (ar.passed) { setCancel(false); return fail(`Fahrstraße ${name} wird gerade befahren und löst sich hinter dem Zug selbst auf.`); }
+  if (S.cancelMode || (S.pendingDel === ar && performance.now() - S.pendingAt < 4000)) {
+    S.pendingDel = null; setCancel(false); cancelRoute(ar.r.from); return;
+  }
+  S.pendingDel = ar; S.pendingAt = performance.now();
+  toast(`Fahrstraße ${name} löschen? Zum Bestätigen nochmal antippen.`);
+}
+function longPress(kind, id) {
+  if (kind === 'signal' && activeFrom(id)) { S.sel = null; cancelRoute(id); if (navigator.vibrate) navigator.vibrate(40); render(); }
+  else if (kind === 'leg') { const ar = routeOfLeg(id); if (ar) { S.sel = null; S.pendingDel = ar; S.pendingAt = performance.now(); tapLeg(id); render(); } }
+}
+function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on', on); if (on) toast('Fahrstraße löschen: Startsignal oder gelbe Fahrstraße antippen'); }
 
 // ---------- Fahrplan ----------
 function genNext() {
@@ -977,9 +1023,9 @@ function buildStatic() {
   for (const id in DISTANT) {
     const v = DISTANT[id], ly = v.y + (v.dir > 0 ? 18 : -18);
     el('line', { x1: v.x, y1: v.y + (v.dir > 0 ? 4 : -4), x2: v.x, y2: ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
-    el('rect', { x: v.x - 10, y: ly - 7, width: 20, height: 14, rx: 3, fill: '#141618', stroke: '#000' }, W);
-    const a = el('circle', { cx: v.x - 5, cy: ly + 3 * v.dir, r: 3.6 }, W);
-    const b = el('circle', { cx: v.x + 5, cy: ly - 3 * v.dir, r: 3.6 }, W);
+    el('polygon', { points: `${v.x - 13},${ly + 9} ${v.x - 13},${ly - 3} ${v.x - 1},${ly - 9} ${v.x + 13},${ly - 9} ${v.x + 13},${ly + 3} ${v.x + 1},${ly + 9}`, fill: '#141618', stroke: '#000' }, W);
+    const a = el('circle', { cx: v.x - 6, cy: ly + 4 * v.dir, r: 4.3 }, W);
+    const b = el('circle', { cx: v.x + 6, cy: ly - 4 * v.dir, r: 4.3 }, W);
     E_.dist[id] = [a, b];
     txt(v.x + (v.dir > 0 ? 14 : -14), ly + 4, id, { 'text-anchor': v.dir > 0 ? 'start' : 'end', 'font-size': 11 });
   }
@@ -990,6 +1036,8 @@ function buildStatic() {
     const s = SIGNALS[id];
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
     el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 13, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
+    E_.lamp2 = E_.lamp2 || {};
+    E_.lamp2[id] = el('circle', { cx: s.x - s.dir * 15, cy: s.ly, r: 5, fill: '#2a2d30', stroke: '#0d0e0f', 'stroke-width': 1.5 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
     E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
     if (s.kind === 'Einfahrsignal') {   // Vorsignal am Einfahrsignal: zeigt das Ausfahrsignal an
@@ -1021,6 +1069,10 @@ function buildStatic() {
 
   // Touch-Trefferflächen (unsichtbar, groß)
   const hit = el('g', {}, W);
+  for (const id in LEGS) {
+    if (LEGS[id].virtual) continue;
+    el('path', { d: 'M' + LEGS[id].pts.map(p => p.join(',')).join(' L'), fill: 'none', stroke: '#000', 'stroke-opacity': 0, 'stroke-width': 22, 'data-hit': 'leg', 'data-id': id }, hit);
+  }
   for (const id in SWITCHES) { const w = SWITCHES[id]; el('circle', { cx: w.x, cy: w.y + w.ly * 0.35, r: 24, fill: '#000', 'fill-opacity': 0, 'data-hit': 'switch', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in SIGNALS) { const s = SIGNALS[id]; el('circle', { cx: s.lx, cy: s.ly, r: 28, fill: '#000', 'fill-opacity': 0, 'data-hit': 'signal', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in TGT) { const [x, y, w, h] = TGT[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
@@ -1029,16 +1081,19 @@ function buildStatic() {
 function render() {
   const rl = routeLegs();
   for (const id in E_.legs) {
-    const c = S.occLegs.has(id) ? COL.occ : rl.has(id) ? COL.route : COL.track;
+    const pend = S.pendingDel && performance.now() - S.pendingAt < 4000 && S.routes.includes(S.pendingDel) && S.pendingDel.r.legs.some(([l]) => l === id);
+    const c = S.occLegs.has(id) ? COL.occ : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
     if (E_.legs[id]._c !== c) { E_.legs[id].setAttribute('stroke', c); E_.legs[id]._c = c; }
   }
   const targets = new Set(S.sel ? ROUTES.filter(r => r.from === S.sel).map(r => r.to) : []);
   for (const id in SIGNALS) {
-    E_.lamp[id].setAttribute('fill', S.sig[id] === 'Hp1' ? COL.green : COL.red);
+    const asp = aspect(id);
+    E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : COL.green);
+    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' ? COL.yellow : '#2a2d30');
     if (E_.vr && E_.vr[id]) {
       const ar = S.routes.find(a => a.r.from === id && !a.passed);
-      const c = S.sig[id] === 'Hp1' && ar && SIGNALS[ar.r.to] ? (S.sig[ar.r.to] === 'Hp1' ? COL.green : COL.yellow) : '#333';
-      E_.vr[id].forEach(e => e.setAttribute('fill', c));
+      const c = S.sig[id] === 'Hp1' && ar && SIGNALS[ar.r.to] ? vrColors(ar.r.to) : ['#333', '#333'];
+      E_.vr[id].forEach((e, i) => e.setAttribute('fill', c[i]));
     }
     const ring = E_.ring[id];
     if (S.sel === id) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'blink'); ring.removeAttribute('stroke-dasharray'); }
@@ -1049,8 +1104,8 @@ function render() {
   }
   for (const id in TGT) E_.exitRing[id].setAttribute('display', targets.has(id) ? 'inline' : 'none');
   for (const id in DISTANT) {
-    const c = S.sig[DISTANT[id].main] === 'Hp1' ? COL.green : COL.yellow;
-    E_.dist[id].forEach(e => e.setAttribute('fill', c));
+    const c = vrColors(DISTANT[id].main);
+    E_.dist[id].forEach((e, i) => e.setAttribute('fill', c[i]));
   }
   for (const id in SWITCHES) {
     const pos = S.sw[id];
@@ -1153,6 +1208,10 @@ svg.addEventListener('pointerdown', e => {
   ptrs.set(e.pointerId, rel(e));
   if (ptrs.size === 1) {
     gest = { type: 'tap', p0: rel(e), v0: { ...view }, target: e.target };
+    const g0 = gest, ht = e.target && e.target.closest ? e.target.closest('[data-hit]') : null;
+    if (ht) g0.timer = setTimeout(() => {
+      if (gest === g0 && g0.type === 'tap') { g0.type = 'long'; longPress(ht.getAttribute('data-hit'), ht.getAttribute('data-id')); }
+    }, 650);
   } else if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()];
     gest = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, m0: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, v0: { ...view } };
@@ -1178,6 +1237,7 @@ svg.addEventListener('pointermove', e => {
 function endPtr(e) {
   if (!ptrs.has(e.pointerId)) return;
   ptrs.delete(e.pointerId);
+  if (gest && gest.timer) clearTimeout(gest.timer);
   if (gest && gest.type === 'tap' && ptrs.size === 0 && e.type === 'pointerup') {
     const t = gest.target && gest.target.closest ? gest.target.closest('[data-hit]') : null;
     if (t) onTap(t.getAttribute('data-hit'), t.getAttribute('data-id'));
