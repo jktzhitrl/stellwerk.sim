@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.14">
+<meta name="app-version" content="2026-11-17.15">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -650,38 +650,35 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
   if (BF === 'falkenberg') {
-    // Vier zusätzliche Bahnhofsgleise über eigene Abzweiggruppen in den
-    // Bahnhofsköpfen, statt diagonaler Verbindungen mitten im Bahnsteig.
-    // Die Weichenleitern liegen jeweils vor dem Bahnsteigbereich X0..X1.
-    const splitLeg = (id, first, second) => {
-      delete LEGS[id];
-      LEGS[id+'a'] = {pts:first};
-      LEGS[id+'b'] = {pts:second};
-    };
-    // Oberer Westkopf: Abzweig aus dem Zulauf zu Gleis 1.
-    splitLeg('wK4d', [[550,170],[610,110]], [[610,110],[650,110]]);
-    // Oberer Ostkopf: Abzweig aus dem östlichen Zulauf zu Gleis 1.
-    splitLeg('eK6db', [[1040,110],[1070,140]], [[1070,140],[1100,170]]);
-    // Unterer Westkopf: Abzweig aus dem Zulauf zu Gleis 6.
-    splitLeg('wK6db', [[560,410],[590,440]], [[590,440],[620,470]]);
-    // Unterer Ostkopf: Abzweig aus dem Zulauf zu Gleis 6.
-    splitLeg('eK4d', [[1010,470],[1050,470]], [[1050,470],[1110,410]]);
-    Object.assign(TRACK_Y, {7:50,8:530,9:-10,10:590});
-    Object.assign(LEGS, {
-      wG7:{pts:[[610,110],[650,50]]},
-      wG9:{pts:[[650,50],[690,-10]]},
+    // Separate Einfahr-Abzweige zu den vier zusätzlichen Gleisen.
+    const split=(id,p)=>{const q=LEGS[id].pts;delete LEGS[id];LEGS[id+'a']={pts:[q[0],p]};LEGS[id+'b']={pts:[p,q[q.length-1]]};};
+    split('wU1a',[170,250]);split('wU1ab',[190,250]);split('eU1a',[1470,330]);split('eU1ab',[1490,330]);
+    Object.assign(TRACK_Y,{7:50,8:530,9:-10,10:590});
+    Object.assign(LEGS,{
+      fTopW0:{pts:[[170,250],[350,50]]},
+      fTopW1:{pts:[[350,50],[440,50]]},
+      fTopW9:{pts:[[350,50],[410,-10]]},
+      fTopW7:{pts:[[440,50],[650,50]]},
+      fTopW9b:{pts:[[410,-10],[690,-10]]},
+      fTopE0:{pts:[[1200,50],[1490,330]]},
+      fTopE7:{pts:[[1010,50],[1200,50]]},
+      fTopE9:{pts:[[970,-10],[1040,-10],[1100,50]]},
+      fTopE9b:{pts:[[1100,50],[1200,50]]},
       G7:{pts:[[650,50],[1010,50]]},
       G9:{pts:[[690,-10],[970,-10]]},
-      eG7:{pts:[[1010,50],[1070,140]]},
-      eG9:{pts:[[970,-10],[1010,50]]},
-      wG8:{pts:[[590,440],[650,530]]},
-      wG10:{pts:[[650,530],[690,590]]},
+      fBotW0:{pts:[[190,250],[250,590]]},
+      fBotW1:{pts:[[250,590],[440,590]]},
+      fBotW8:{pts:[[440,590],[510,530]]},
+      fBotW8b:{pts:[[510,530],[650,530]]},
+      fBotW10:{pts:[[440,590],[690,590]]},
+      fBotE0:{pts:[[1200,590],[1470,330]]},
+      fBotE10:{pts:[[970,590],[1200,590]]},
+      fBotE8:{pts:[[1010,530],[1070,590]]},
+      fBotE8b:{pts:[[1070,590],[1200,590]]},
       G8:{pts:[[650,530],[1010,530]]},
       G10:{pts:[[690,590],[970,590]]},
-      eG8:{pts:[[1010,530],[1050,470]]},
-      eG10:{pts:[[970,590],[1010,530]]},
     });
-    for (const [g,xw,xe] of [[7,650,1010],[8,650,1010],[9,690,970],[10,690,970]]) {
+    for(const [g,xw,xe] of [[7,650,1010],[8,650,1010],[9,690,970],[10,690,970]]){
       SIGNALS['P'+g]={x:xw,y:TRACK_Y[g],dir:-1,kind:'Ausfahrsignal'};
       SIGNALS['N'+g]={x:xe,y:TRACK_Y[g],dir:1,kind:'Ausfahrsignal'};
     }
