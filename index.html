@@ -15,10 +15,10 @@
 <title>Stellwerk</title>
 <style>
   :root {
-    --bg: #2f3337;
-    --panel: #24272a;
-    --panel2: #1b1d1f;
-    --border: #44494e;
+    --bg: #202c33;
+    --panel: #222b32;
+    --panel2: #172027;
+    --border: #40505a;
     --text: #e6e8ea;
     --muted: #9aa1a8;
     --accent: #4fc3f7;
@@ -64,6 +64,9 @@
   /* ---------- Hauptbereich ---------- */
   #main { flex: 1; display: flex; min-height: 0; position: relative; }
   #board { flex: 1; position: relative; background: var(--bg); min-width: 0; overflow: hidden; }
+  #board::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .16; background-image: linear-gradient(rgba(155,190,204,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(155,190,204,.14) 1px, transparent 1px); background-size: 32px 32px; }
+  #boardHead { position: absolute; top: 10px; right: 12px; z-index: 2; pointer-events: none; color: #b6cbd7; background: rgba(14,23,29,.87); border: 1px solid #425866; border-radius: 6px; padding: 6px 10px; font-size: 11px; letter-spacing: .12em; font-weight: 700; }
+  #sideClose { display: none; }
   #svg { width: 100%; height: 100%; display: block; touch-action: none; }
   #legend {
     position: absolute; left: 8px; bottom: 8px; font-size: 12px; color: var(--muted);
@@ -124,6 +127,12 @@
   tr.act td { background: rgba(255,210,31,.10); }
   tr.act td.st { color: var(--route); font-weight: 700; }
   tr.warn td.st { color: #ff8a7a; font-weight: 700; }
+  tr.priority td { background: rgba(255,210,31,.09); }
+  tr.priority td:first-child { box-shadow: inset 4px 0 #ffd21f; }
+  tr.urgent td { background: rgba(255,90,80,.14); }
+  tr.urgent td:first-child { box-shadow: inset 4px 0 #ff6b5b; }
+  .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
+  .priority-tag.urgent { color: #ff8a7a; }
   tr.stop td.st { color: #8fd3ff; }
   .late { color: #ff6b5b; font-weight: 700; }
   .ontime { color: var(--ok); }
@@ -145,6 +154,9 @@
       transform: translateX(105%); transition: transform .25s ease; box-shadow: -6px 0 18px rgba(0,0,0,.5);
     }
     #side.open { transform: none; }
+    #sideClose { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 20px; cursor: pointer; }
+    #sideBackdrop { display: none; position: absolute; inset: 0; background: rgba(4,11,17,.48); z-index: 9; }
+    #main:has(#side.open) #sideBackdrop { display: block; }
   }
   @media (min-width: 1151px) {
     #side.closed { display: none; }
@@ -159,6 +171,19 @@
     .sep { margin: 0 2px; }
   }
   @media (max-width: 700px) {
+    #side { width: 100%; top: auto; height: min(70dvh, 620px); border-left: 0; border-top: 2px solid var(--accent); border-radius: 16px 16px 0 0; transform: translateY(105%); box-shadow: 0 -10px 35px rgba(0,0,0,.65); }
+    #side.open { transform: translateY(0); }
+    #side h2 { min-height: 52px; font-size: 14px; }
+    #boardHead { top: 8px; right: 8px; font-size: 10px; }
+    #legend { font-size: 11px; gap: 6px; }
+    #alerts { max-width: 72%; }
+    #top { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    #top::-webkit-scrollbar { display: none; }
+    #top > div[style*="flex:1"] { min-width: 4px; }
+    .btn { min-height: 48px; min-width: 48px; }
+    #planWrap { min-height: 0; }
+    td { padding: 10px 6px; }
+    #side .sub { font-size: 12px; }
     .hide-s { display: none; }
     #clock { font-size: 20px; }
   }
@@ -251,6 +276,7 @@
       <svg id="svg" xmlns="http://www.w3.org/2000/svg">
         <g id="world"></g>
       </svg>
+      <div id="boardHead">ESTW · GLEISBILD</div>
       <div id="toast"></div>
       <div id="alerts"></div>
       <div id="legend">
@@ -264,8 +290,9 @@
       </div>
     </div>
 
-    <aside id="side">
-      <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span></h2>
+    <div id="sideBackdrop" aria-hidden="true"></div>
+    <aside id="side" aria-label="Fahrplan und Zugmeldungen">
+      <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span><button id="sideClose" type="button" aria-label="Fahrplan schließen">✕</button></h2>
       <div id="planWrap"><table id="plan"></table></div>
       <div id="ticker" title="Neueste Meldung – alle Meldungen im Menü"></div>
     </aside>
@@ -775,6 +802,9 @@ const TYPES = {
 };
 // ---------- Fahrplan-Regeln je Bahnhof ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
+// Unterschiedliche Beschleunigung und Bremsung je Zuggattung (Spiel-Einheiten/s²).
+const DYNAMICS = { ICE: [5.0, 7.0], IC: [4.2, 6.0], RE: [3.5, 5.0], RB: [3.8, 5.2], RBN: [3.2, 4.5], GC: [1.8, 3.0], RG: [1.2, 2.2], LOK: [2.5, 3.5] };
+const trainDynamics = tr => DYNAMICS[tr.type] || DYNAMICS.RE;
 const CFG = BF === 'neustadt' ? {
   townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
@@ -943,8 +973,10 @@ function routeLegs() {
 }
 function activeFrom(id) { return S.routes.find(ar => ar.r.from === id && !ar.passed); }
 function switchLocked(id) {
-  const w = SWITCHES[id], sec = LEGS[w.trunk].sec;
-  return S.routes.some(ar => ar.r.sw[id] && !ar.released.has(sec));
+  // Eine Fahrstrasse haelt ihre Weichen verschlossen, solange noch ein
+  // Abschnitt dieser Fahrstrasse verriegelt ist. Die Freigabe des
+  // Stammgleises allein darf die Weiche nicht entriegeln.
+  return S.routes.some(ar => ar.r.sw[id] && ar.r.secs.some(sec => !ar.released.has(sec)));
 }
 function switchOccupied(id) {
   const w = SWITCHES[id];
@@ -1032,7 +1064,7 @@ function signalGo(id, quiet) {
   toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
   return true;
 }
-function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * DEC) <= off - 3; }
+function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * trainDynamics(tr)[1]) <= off - 3; }
 function truncate(tr, ar) {
   const idx = tr.segs.indexOf(ar.segRefs[0]);
   if (idx >= 0) tr.segs.splice(idx);
@@ -1363,10 +1395,13 @@ function addTrain(type, dir, spawn) {
   const from = pick(dir > 0 ? CFG.townsW : CFG.townsE), to = pick(dir > 0 ? CFG.townsE : CFG.townsW);
   const track = CFG.trackFor(type, dir);
   const arr = T.stops ? spawn + 300 : null;
+  // Vorlaufverspaetungen entstehen ausserhalb des Stellwerks und verschieben
+  // nur die tatsaechliche Ankunft, niemals den veroeffentlichten Fahrplan.
+  const inboundDelay = type === 'RG' ? 0 : Math.random() < 0.28 ? (1 + Math.floor(Math.random() * 5)) * 60 : 0;
   const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : Math.ceil((spawn + (type === 'ICE' ? 210 : 300)) / 60) * 60;
   S.schedule.push({
     id: ++S.uid, type, num: `${T.name || type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
-    plan: { spawn, arr, dep, track },
+    plan: { spawn, arr, dep, track }, inboundDelay,
     spawned: false, announced: false, done: false,
     segs: [], pts: [], cum: [], total: 0, s: 0, v: 0,
     endSig: null, stopAt: null, stopTrack: null, dwellUntil: null, served: false,
@@ -1382,17 +1417,18 @@ function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
     if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround || tr.shunter) continue;
-    if (!tr.announced && S.t >= tr.plan.spawn - 60) {
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (!tr.announced && S.t >= actualSpawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
-      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(tr.plan.spawn)}, Plangleis ${tr.plan.track}.`, 'info');
+      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(actualSpawn)}${tr.inboundDelay ? ' (+' + Math.round(tr.inboundDelay / 60) + ' Min. Zulauf)' : ''}, Plangleis ${tr.plan.track}.`, 'info');
     }
     let ek = tr.entry || String(tr.dir);
     if (S.closure && S.closure.active) {
       if (ek === '1' && S.closure.side === 'W') ek = 'A2';
       if (ek === '-1' && S.closure.side === 'E') ek = 'F2';
     }
-    if (S.t < tr.plan.spawn || blocked.has(ek)) continue;
+    if (S.t < actualSpawn || blocked.has(ek)) continue;
     const ent = ENTRY[ek], sec = ent.sec;
     if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(ek); continue; }
     blocked.add(ek);
@@ -1459,29 +1495,47 @@ function assignRoutes() {
     }
   }
 }
+// Mindestabstand fuer nachfolgende Zuege auf demselben Gleisabschnitt.
+function followingLimit(tr) {
+  if (!tr.segs.length) return Infinity;
+  const here = segAt(tr, tr.s);
+  if (!here) return Infinity;
+  const pos = here.d > 0 ? tr.s - here.a : here.b - tr.s;
+  let limit = Infinity;
+  for (const other of S.trains) {
+    if (other === tr || other.done || !other.segs || !other.segs.length) continue;
+    const ahead = segAt(other, other.s);
+    if (!ahead || ahead.leg !== here.leg || ahead.d !== here.d) continue;
+    const otherPos = ahead.d > 0 ? other.s - ahead.a : ahead.b - other.s;
+    const gap = otherPos - other.len - pos;
+    if (gap >= 0) limit = Math.min(limit, tr.s + Math.max(0, gap - 12));
+  }
+  return limit;
+}
 function endLimit(tr) {
   let E = EXITS[tr.endSig] ? Infinity : tr.total - 8;
   if (tr.stopAt != null && !tr.served) E = Math.min(E, tr.stopAt);
   if (tr.coupleAt != null) E = Math.min(E, tr.coupleAt);
   // nach dem Halt am Bahnsteig stehen bleiben, bis das Ausfahrsignal Fahrt zeigt (nicht bis vors Signal vorziehen)
   if (tr.stopAt != null && tr.served && tr.s <= tr.stopAt + 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) E = Math.min(E, tr.stopAt);
-  return E;
+  return Math.min(E, followingLimit(tr));
 }
 function stepTrain(tr, dt) {
   if (tr.frozen) { tr.v = 0; return; }
   const E = endLimit(tr);
+  const [acc, dec] = trainDynamics(tr);
   let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
   if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
   for (const sg of tr.segs) {
     if (sg.a > tr.s && sg.a - tr.s < 260) {
       const lv = Math.min(tr.vmax, LEGS[sg.leg].v);
-      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * DEC * 0.8 * (sg.a - tr.s)));
+      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * dec * 0.8 * (sg.a - tr.s)));
     }
   }
   const d = E - tr.s;
   if (d <= 0.05) vT = 0;
-  else vT = Math.max(Math.min(vT, Math.sqrt(2 * DEC * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
-  if (tr.v < vT) tr.v = Math.min(vT, tr.v + ACC * dt); else tr.v = Math.max(vT, tr.v - DEC * 1.6 * dt);
+  else vT = Math.max(Math.min(vT, Math.sqrt(2 * dec * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
+  if (tr.v < vT) tr.v = Math.min(vT, tr.v + acc * dt); else tr.v = Math.max(vT, tr.v - dec * 1.6 * dt);
   tr.s += tr.v * dt;
   if (tr.s >= E) { tr.s = E; tr.v = 0; }
   if (tr.v < 0.5) tr.halted = true;
@@ -1538,9 +1592,15 @@ function trainEvents(tr) {
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
     if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
-    if (tr.overtake && tr.link && tr.link.actDep == null) {
-      S.score -= 10; tr.link.extraDelay = 240;
-      log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, der ICE hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+    if (tr.overtake && tr.link) {
+      if (tr.link.actDep == null) {
+        S.score -= 10; tr.link.extraDelay = 240;
+        log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, ${tr.link.num} hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+      } else if (!tr.overtakeRewarded) {
+        tr.overtakeRewarded = true;
+        S.score += 10;
+        log(`Überholung gelungen: ${tr.link.num} vor ${tr.num} durchgelassen (+10 Punkte).`, 'good');
+      }
     }
   }
 }
@@ -1905,7 +1965,27 @@ function runStep(L) {
   if (L.endSig === 'RB') return 'Lok umsetzen: ③ RB antippen (an die Wagen)';
   return 'Lok fährt (Umsetzen) …';
 }
+function trainPriority(tr) {
+  if (tr.done || tr.actDep != null || tr.shunter) return null;
+  if (tr.overtake && tr.link && tr.link.actDep == null) {
+    if (tr.served && tr.spawned) return { level: 'priority', label: 'WARTEN', hint: `${tr.link.num} zuerst durchlassen` };
+    return null;
+  }
+  if (tr.overtakes && tr.overtakes.actDep == null) {
+    const slow = tr.overtakes;
+    if (slow.served && slow.spawned && tr.spawned && S.t >= tr.plan.dep - 120)
+      return { level: 'urgent', label: 'ÜBERHOLUNG', hint: `${tr.num} jetzt vor ${slow.num} durchlassen` };
+    if (slow.spawned && tr.spawned) return { level: 'priority', label: 'VORRANG', hint: `${tr.num} vor ${slow.num}` };
+  }
+  if (tr.spawned && tr.plan.dep != null && S.t > tr.plan.dep + 120)
+    return { level: 'urgent', label: 'VERSPÄTET', hint: `${tr.num} ist mehr als 2 Min. über Plan` };
+  return null;
+}
 function trainStatus(tr) {
+  if (tr.overtake && tr.link && !tr.done && tr.link.actDep != null && tr.actDep == null && tr.spawned && tr.served)
+    return { txt: `Überholung durch ${tr.link.num} erfolgt – Ausfahrt freigeben`, cls: 'act' };
+  if (tr.overtakes && !tr.done && tr.overtakes.actDep == null && tr.spawned && tr.v < 0.5)
+    return { txt: `Vorrang vor ${tr.overtakes.num} – Durchfahrt ermöglichen`, cls: 'act' };
   if (tr.shunter) {
     if (tr.done) return { txt: tr.aborted ? 'abgebrochen' : 'erledigt', cls: 'done' };
     if (!tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: ${tr.from} belegt`, cls: 'warn' };
@@ -1927,8 +2007,9 @@ function trainStatus(tr) {
   if (tr.turn && (tr.served || !tr.stops) && tr.v < 0.5 && tr.endSig === SIDINGS[tr.siding].inSig && !isGo(tr.endSig))
     return { txt: `endet – abstellen: ${tr.endSig} → ${SIDINGS[tr.siding].short}`, cls: 'act' };
   if (!tr.spawned) {
-    if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
-    if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (S.t < actualSpawn - 60) return { txt: tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'geplant', cls: tr.inboundDelay ? 'warn' : '' };
+    if (S.t < actualSpawn) return { txt: 'angeboten', cls: 'stop' };
     return { txt: 'wartet auf freie Strecke', cls: 'warn' };
   }
   if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
@@ -1952,13 +2033,14 @@ function renderPanel() {
         + '<thead><tr><th>Zug</th><th>Fahrt</th><th>An / Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
+    const priority = trainPriority(tr);
     let del = '';
     if (tr.delay != null) del = tr.delay > 1 ? `<span class="late">+${tr.delay}</span>` : `<span class="ontime">±0</span>`;
     else if (S.t > tr.plan.dep + 60) del = `<span class="late">+${Math.floor((S.t - tr.plan.dep) / 60)}</span>`;
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
-    h += `<tr class="${st.cls}">
-      <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+    h += `<tr class="${priority ? priority.level : st.cls}">
+      <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
@@ -1969,11 +2051,15 @@ function renderPanel() {
   for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
   if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
   if (S.queue.length) al += `<div class="q">Speicher: ${S.queue.map(rName).join(' · ')}</div>`;
+  for (const tr of S.schedule) {
+    const p = trainPriority(tr);
+    if (p && p.level === 'urgent' && tr.overtakes) al += `<div class="b">⚠ Überholung gefährdet: ${p.hint}</div>`;
+  }
   if ($('#alerts')._h !== al) { $('#alerts').innerHTML = al; $('#alerts')._h = al; }
   $('#scoreVal').textContent = S.score;
   $('#punct').textContent = `pünktlich ${S.ontime}/${S.departed}`;
-  const nxt = S.schedule.find(t => !t.spawned);
-  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn) : '';
+  const nxt = S.schedule.filter(t => !t.spawned && !t.done).sort((a, b) => (a.plan.spawn + (a.inboundDelay || 0)) - (b.plan.spawn + (b.inboundDelay || 0)))[0];
+  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn + (nxt.inboundDelay || 0)) : '';
   if (S.logDirty) {
     S.logDirty = false;
     $('#log').innerHTML = S.log.map(l => `<li class="${l.cls}"><span class="t">${fmt(l.t)}</span>${l.text}</li>`).join('');
@@ -2069,6 +2155,8 @@ $('#btnPanel').addEventListener('click', () => {
   if (narrow.matches) side.classList.toggle('open'); else side.classList.toggle('closed');
   setTimeout(fit, 30);
 });
+$('#sideClose').addEventListener('click', () => $('#side').classList.remove('open'));
+$('#sideBackdrop').addEventListener('click', () => $('#side').classList.remove('open'));
 function setMenu(open) { $('#menu').classList.toggle('open', open); $('#menuBack').classList.toggle('open', open); $('#btnMenu').classList.toggle('on', open); }
 $('#btnMenu').addEventListener('click', () => setMenu(!$('#menu').classList.contains('open')));
 $('#btnMenuClose').addEventListener('click', () => setMenu(false));
