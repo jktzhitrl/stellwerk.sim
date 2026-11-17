@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.3">
+<meta name="app-version" content="2026-11-17.4">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -307,6 +307,7 @@
     <div class="cols">
       <div class="box"><h2>Schicht &amp; Verkehr</h2>
         <div class="optRow"><span>Schicht</span><span class="seg" data-opt="shift"></span></div>
+        <div class="sub" id="shiftInfo" style="font-size:12px;margin:-2px 0 6px"></div>
         <div class="optRow"><span>Zugdichte</span><span class="seg" data-opt="density"></span></div>
         <div class="optRow"><span>Störungen</span><span class="seg" data-opt="disrupt"></span></div>
       </div>
@@ -785,15 +786,16 @@ const CFG = BF === 'neustadt' ? {
     return dir > 0 ? pick([4, 5, 5, 6]) : pick([3, 2, 2, 1]);                    // Ost: Gleise 4–6, West: 1–3
   },
   gen(t, dir) {
-    const r = Math.random();
-    if (r < 0.12) addBranch(t, dir);
-    else if (r < 0.21) addOvertake(t, dir);
-    else if (r < 0.29) addTrain('ICE', dir, t);
-    else if (r < 0.36) { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }
-    else if (r < 0.45) addTrain('IC', dir, t);
-    else if (r < 0.70) { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }
-    else if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8');
-    else addTrain('RB', dir, t);
+    pickWeighted(t, [
+      [0.12, 'P', () => addBranch(t, dir)],
+      [0.09, 'X', () => addOvertake(t, dir)],     // X = neutral (GC + ICE)
+      [0.08, 'P', () => addTrain('ICE', dir, t)],
+      [0.07, 'F', () => { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
+      [0.07, 'F', () => addTrain('GC', dir, t)],
+      [0.09, 'P', () => addTrain('IC', dir, t)],
+      [0.25, 'P', () => { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }],
+      [0.30, 'P', () => { if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8'); else addTrain('RB', dir, t); }],
+    ]);
   },
 } : {
   townsW: ['Röblingen am See', 'Eisleben', 'Sangerhausen'], townsE: ['Halle (Saale)', 'Angersdorf'],
@@ -805,16 +807,38 @@ const CFG = BF === 'neustadt' ? {
     return dir > 0 ? 1 : 2;                                                       // Haltepunkt: Gleis 1 Richtung Halle, Gleis 2 Richtung Röblingen
   },
   gen(t, dir) {
-    const r = Math.random();
-    if (r < 0.13) addTrain('RB', dir, t);                 // weniger Reisezüge …
-    else if (r < 0.20) addTrain('RE', dir, t);
-    else if (r < 0.38) addTrain('GC', dir, t);            // … mehr Güterverkehr
-    else if (r < 0.58) addBranch(t, dir);
-    else if (r < 0.66) addOvertake(t, dir);
-    else if (r < 0.74 && dir > 0 && sidingFree('AN', t) && !anBusyByShunts()) addTurnPair(t, 'AN', 'GC');
-    else addGbfEnd(t, dir);                                // Güterzug endet im Gbf und wird aufgelöst
+    pickWeighted(t, [
+      [0.13, 'P', () => addTrain('RB', dir, t)],          // wenige Reisezüge …
+      [0.07, 'P', () => addTrain('RE', dir, t)],
+      [0.18, 'F', () => addTrain('GC', dir, t)],          // … viel Güterverkehr
+      [0.20, 'F', () => addBranch(t, dir)],
+      [0.08, 'P', () => addOvertake(t, dir)],             // Güterzug wartet auf RE
+      [0.08, 'F', () => { if (dir > 0 && sidingFree('AN', t) && !anBusyByShunts()) addTurnPair(t, 'AN', 'GC'); else addGbfEnd(t, dir); }],
+      [0.26, 'F', () => addGbfEnd(t, dir)],               // Güterzug endet im Gbf und wird aufgelöst
+    ]);
   },
 };
+
+// ---------- Tageszeit: Berufsverkehr, Tag, Nacht ----------
+const DAYPARTS = {
+  rush:  { name: 'Berufsverkehr', p: 1.5,  f: 0.7, mean: 0.85, msg: 'Berufsverkehr: mehr Reisezüge' },
+  day:   { name: 'Tagesverkehr',  p: 1,    f: 1,   mean: 1,    msg: 'Tagesverkehr' },
+  night: { name: 'Nachtverkehr',  p: 0.2,  f: 1.6, mean: 1.15, msg: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' },
+};
+function dayPart(t) {
+  const h = Math.floor(t / 3600) % 24;
+  if ((h >= 6 && h < 9) || (h >= 15 && h < 19)) return 'rush';
+  if (h >= 22 || h < 5) return 'night';
+  return 'day';
+}
+// gewichtete Zufallsauswahl: P = Reiseverkehr, F = Güterverkehr – je nach Tageszeit gewichtet
+function pickWeighted(t, list) {
+  const D = DAYPARTS[dayPart(t)];
+  const w = list.map(([x, k]) => x * (k === 'P' ? D.p : k === 'F' ? D.f : 1));
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < list.length; i++) { r -= w[i]; if (r <= 0) return list[i][2](); }
+  return list[list.length - 1][2]();
+}
 
 // ---------- Spielzustand ----------
 let S;
@@ -1124,7 +1148,7 @@ function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on
 
 // ---------- Fahrplan ----------
 function genNext() {
-  const mean = DENSITY[S.density];
+  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean;
   let t = S.genT + mean * (0.55 + Math.random() * 0.9);
   const dir = Math.random() < 0.5 ? 1 : -1;
   if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
@@ -1274,7 +1298,7 @@ const anBusyByTurns = () => S.t < (S.turnBusy.AN || 0) || S.trains.some(x => x.s
 function handleShunts() {
   if (!CFG.shunting) return;
   if (S.t >= S.nextShunt) {              // neue Aufträge für bereitstehende Wagen
-    S.nextShunt = S.t + (6 + Math.random() * 6) * 60;
+    S.nextShunt = S.t + (dayPart(S.t) === 'night' ? 4 + Math.random() * 4 : 6 + Math.random() * 6) * 60;
     const open = S.schedule.filter(t => t.shunter && !t.done).length;
     if (open < 3) addShuntTask(Math.random() < 0.15 && !anBusyByTurns() ? 'AN' : pick(anBusyByTurns() ? GBF.filter(g => g !== 12) : GBF), S.t + 60);
   }
@@ -1586,6 +1610,8 @@ function disruptions() {
 }
 function update(dt) {
   S.t += dt * GAME_RATE;
+  const dp = dayPart(S.t);
+  if (dp !== S.dp) { S.dp = dp; log('🕒 ' + DAYPARTS[dp].msg, 'info'); toast('🕒 ' + DAYPARTS[dp].msg); }
   ensureSchedule();
   computeOcc();
   disruptions();
@@ -2086,6 +2112,7 @@ function startGame() {
   S.genT = START_T + 180; S.lastDir = { '1': START_T + 60, '-1': START_T + 180 };
   ensureSchedule();
   log(`Dienstbeginn im ${ST.stw}. Gute Schicht!`, 'good');
+  S.dp = dayPart(S.t); log('🕒 ' + DAYPARTS[S.dp].msg, 'info');
   syncOptions(); setCancel(false);
   computeOcc(); render(); renderPanel();
 }
@@ -2147,6 +2174,9 @@ function renderStart() {
     b.addEventListener('click', () => { for (const k in L) if (k !== 'name') P[k] = L[k]; savePrefs(); renderStart(); });
     lv.appendChild(b);
   }
+  $('#shiftInfo').textContent = { frueh: 'Beginnt mit dem Berufsverkehr (viele Reisezüge bis 9 Uhr), danach Tagesverkehr.',
+    spaet: 'Tagesverkehr, ab 15 Uhr Berufsverkehr, abends ruhiger, ab 22 Uhr Nachtverkehr.',
+    nacht: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' + (pickBF === 'teutschenthal' ? ' und Rangieraufträge' : '') + '. Ab 5 Uhr wird es wieder lebhafter.' }[P.shift];
   const resume = played && pickBF === BF;
   $('#stResume').style.display = resume ? '' : 'none';
   $('#stGo').textContent = played ? 'Neues Spiel beginnen ▶' : 'Dienst beginnen ▶';
