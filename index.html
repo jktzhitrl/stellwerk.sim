@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.7">
+<meta name="app-version" content="2026-11-17.8">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -144,6 +144,9 @@
   .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
 .priority-tag.urgent { color: #ff8a7a; }
   #network { padding:8px 10px; background:#17232c; border-bottom:1px solid #3d505b; font-size:12px; }
+  #network .netlines { margin-top:6px; display:grid; gap:3px; }
+  #network .netline { display:flex; justify-content:space-between; gap:8px; padding:4px 7px; border:1px solid #41525c; border-radius:3px; background:#22333e; }
+  #network .netline span:first-child { color:#c5d6df; }
   #network .netlinks { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
   #network button { padding:5px 8px; min-height:30px; }
   #network .netactive { color:#f4d77e; font-weight:700; }
@@ -398,7 +401,7 @@
     </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte.</p>
-    <p><b>Streckennetz:</b> Falkenberg ist über die freie Strecke mit der Blockstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind zunächst nur dargestellte Bereitstellungsgleise ohne Fahrstraßen.</p>
+    <p><b>Streckennetz:</b> Falkenberg ist über eine zweigleisige freie Strecke mit getrennten Richtungsgleisen und der Blockstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind zunächst nur dargestellte Bereitstellungsgleise ohne Fahrstraßen.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -854,7 +857,7 @@ const CFG = BF === 'neustadt' || BF === 'falkenberg' ? {
   townsW: BF === 'falkenberg' ? ['Neustadt', 'Heidekreuz'] : ['Altdorf', 'Bergheim', 'Lindenau'], townsE: BF === 'falkenberg' ? ['Teutschenthal', 'Heidekreuz'] : ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
   overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [5, 6] : [1, 2] },
-  closure: true, fit: { by: BF === 'falkenberg' ? 0 : 38, bh: BF === 'falkenberg' ? 660 : 480 }, shunting: false,
+  closure: true, fit: { by: BF === 'falkenberg' ? 0 : 38, bh: BF === 'falkenberg' ? 700 : 480 }, shunting: false,
   trackFor(type, dir) {
     if (type === 'IC' || type === 'ICE') return dir > 0 ? 4 : 3;                 // Hauptgleise
     if (type === 'GC') return dir > 0 ? pick([4, 6]) : pick([3, 1]);
@@ -1478,6 +1481,13 @@ function readNetwork() {
   catch(e) { return []; }
 }
 function writeNetwork(a) { try { localStorage.setItem(NETWORK_KEY, JSON.stringify(a.slice(-80))); } catch(e) {} }
+// Die beiden Richtungsgleise sind voneinander unabhängig (kein eingleisiger Gegenverkehr).
+const NETWORK_TRAVEL_MS = 90000;
+function networkTrack(from, to) {
+  if ((from === 'neustadt' && to === 'falkenberg') || (from === 'falkenberg' && to === 'teutschenthal')) return 'R1';
+  if ((from === 'teutschenthal' && to === 'falkenberg') || (from === 'falkenberg' && to === 'neustadt')) return 'R2';
+  return null;
+}
 function networkDest(tr) {
   if (BF === 'falkenberg') return tr.dir > 0 ? 'teutschenthal' : 'neustadt';
   if (BF === 'neustadt' && tr.dir > 0) return 'falkenberg';
@@ -1490,15 +1500,23 @@ function transferTrain(tr) {
   if (!dest) return;
   tr.networkTransferred = true;
   const queue = readNetwork();
-  queue.push({ from:BF, to:dest, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num,
-    ready:Date.now() + 90000, delay:tr.delay || 0 });
+  const track = networkTrack(BF, dest);
+  if (!track) return;
+  const now = Date.now();
+  // Zugfolge auf demselben Richtungsgleis: mindestens 45 Sekunden Blockabstand.
+  const last = queue.filter(x => x.track === track && x.from === BF && x.to === dest)
+    .reduce((m,x) => Math.max(m, Number(x.entered) || 0), 0);
+  const entered = Math.max(now, last + 45000);
+  queue.push({ from:BF, to:dest, track, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num,
+    entered, ready:entered + NETWORK_TRAVEL_MS, delay:tr.delay || 0 });
   writeNetwork(queue);
   log(tr.num + ' über freie Strecke / Bk Heidekreuz nach ' + STATIONS[dest].short + ' übergeben.', 'info');
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
   for (const transfer of queue) {
-    if (transfer.to !== BF) { remain.push(transfer); continue; }
+    // Zug bleibt bis zum Ablauf der Streckenfahrzeit auf dem Richtungsgleis.
+    if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
     const dir = BF === 'falkenberg' ? (transfer.from === 'neustadt' ? 1 : -1) : BF === 'neustadt' ? -1 : 1;
     const tr = addTrain(transfer.type, dir, S.t + 150);
     tr.num = transfer.num;
@@ -1513,8 +1531,19 @@ function renderNetwork() {
   const q = readNetwork();
   const waiting = q.filter(x => x.to === BF).length;
   const outbound = q.filter(x => x.from === BF).length;
-  $('#network').innerHTML = '<span class="netactive">🚦 Netz: ' + ST.short + '</span> · Bk Heidekreuz · ' +
+  const line = (id, caption, from, to) => {
+    const trains = q.filter(x => x.track === id && x.from === from && x.to === to && Date.now() < x.ready);
+    return '<div class="netline"><span>' + caption + '</span><span>' +
+      (trains.length ? '🚆 ' + trains.map(x => x.num).join(', ') : 'frei') + '</span></div>';
+  };
+  const netLines = BF === 'falkenberg'
+    ? line('R1','Gleis 1 → Teutschenthal','falkenberg','teutschenthal') + line('R2','Gleis 2 → Neustadt','falkenberg','neustadt')
+    : BF === 'neustadt'
+      ? line('R1','Gleis 1 → Falkenberg','neustadt','falkenberg') + line('R2','Gleis 2 ← Falkenberg','falkenberg','neustadt')
+      : line('R1','Gleis 1 ← Falkenberg','falkenberg','teutschenthal') + line('R2','Gleis 2 → Falkenberg','teutschenthal','falkenberg');
+  $('#network').innerHTML = '<span class="netactive">🚦 Zweigleisige Strecke · ' + ST.short + '</span> · Bk Heidekreuz · ' +
     waiting + ' Zugmeldung(en) eingehend · ' + outbound + ' ausgehend' +
+    '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id]) => id !== BF).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
 }
@@ -1904,7 +1933,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: BF === 'falkenberg' ? -20 : 0, width: WID, height: BF === 'falkenberg' ? 690 : 600 }, cp);
+  el('rect', { x: 0, y: BF === 'falkenberg' ? -20 : 0, width: WID, height: BF === 'falkenberg' ? 710 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -1916,7 +1945,14 @@ function buildStatic() {
   (BF === 'neustadt' || BF === 'falkenberg' ? decorNeustadt : decorTeutschenthal)(W, txt, arrow, buffer);
   if (BF === 'falkenberg') {
     txt(WID/2, 66, 'BF FALKENBERG · NETZKNOTEN', { 'text-anchor':'middle', fill:'#f4d77e','font-size':20,'font-weight':800 });
-    txt(WID/2, 84, 'Freie Strecke über Bk Heidekreuz · Übergaben nach Neustadt / Teutschenthal', { 'text-anchor':'middle','font-size':12 });
+    txt(WID/2, 84, 'Zweigleisige freie Strecke über Bk Heidekreuz · Neustadt / Teutschenthal', { 'text-anchor':'middle','font-size':12 });
+    // Schematische zweigleisige freie Strecke rechts des Bahnhofsgleisbilds.
+    for (const [y, label, direction] of [[610, 'Streckengleis 1 →', 1],[650, '← Streckengleis 2', -1]]) {
+      el('line', { x1: 90, y1:y, x2:WID-90, y2:y, stroke:'#a9bbc5','stroke-width':4 }, W);
+      txt(100,y-9,label,{'font-size':12,fill:'#e1e9ee'});
+      arrow(WID-120,y,direction);
+    }
+    txt(WID/2, 635, 'Bk HEIDEKREUZ · Richtungsgleise (Netzschema)', {'text-anchor':'middle','font-size':13,fill:'#f4d77e'});
     txt(820, 626, 'Gleis 7–10: Ergänzungs- und Bereitstellungsgleise', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
   }
 
