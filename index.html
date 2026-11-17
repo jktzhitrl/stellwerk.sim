@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.2">
+<meta name="app-version" content="2026-11-17.3">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -165,7 +165,7 @@
 
   /* ---------- Hilfe ---------- */
   #help {
-    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50; display: flex;
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 70; display: flex;
     align-items: center; justify-content: center; padding: 16px;
   }
   #help.hidden { display: none; }
@@ -180,6 +180,37 @@
   .stationPick { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .stationPick .btn { margin: 4px 4px 0 0; }
   #help li { margin: 3px 0; }
+  /* ---------- Startmenü ---------- */
+  #start {
+    position: fixed; inset: 0; z-index: 60; overflow-y: auto; padding: 16px;
+    background: radial-gradient(ellipse at top, #2c343b 0%, #15171a 70%); display: flex; justify-content: center;
+  }
+  #start.hidden { display: none; }
+  #start .wrap { width: 100%; max-width: 900px; margin: auto 0; }
+  #start .logo { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; }
+  #start .logo svg { flex: none; }
+  #start .logo h1 { margin: 0; font-size: 28px; letter-spacing: .5px; }
+  #start .logo .sub { font-size: 14px; }
+  #start .box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+  #start .box h2 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600; }
+  #stCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .stCard { text-align: left; background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    color: var(--text); font: inherit; cursor: pointer; min-height: 96px; }
+  .stCard b { font-size: 17px; display: block; margin-bottom: 3px; }
+  .stCard .sub { font-size: 13px; line-height: 1.35; display: block; }
+  .stCard .tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .stCard .tags span { font-size: 11px; background: #33393f; border-radius: 4px; padding: 2px 6px; }
+  .stCard.on { border-color: var(--accent); background: #1b3442; box-shadow: 0 0 0 1px var(--accent) inset; }
+  #start .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+  #start .cols .box { margin-bottom: 0; }
+  .optRow { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
+  .optRow > span:first-child { flex: 1 1 120px; font-size: 14px; }
+  .seg { display: inline-flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .seg .btn { border: 0; border-radius: 0; min-height: 40px; font-size: 14px; padding: 0 12px; }
+  .seg .btn + .btn { border-left: 1px solid var(--border); }
+  #start .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
+  #start .actions .big { min-height: 56px; font-size: 19px; padding: 0 26px; font-weight: 600; }
+  #start .hint { font-size: 12px; margin-top: 8px; }
   .sw { display: inline-block; width: 22px; height: 5px; vertical-align: middle; border-radius: 2px; }
   .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; border: 1px solid #000; }
 
@@ -258,22 +289,49 @@
     <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
     <button class="btn" id="btnHelp">? Hilfe</button>
     <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
-    <button class="btn" id="btnNew" style="grid-column: span 2">Neues Spiel</button>
+    <button class="btn" id="btnHome" style="grid-column: span 2">🏠 Startmenü – Bahnhof, Schicht, neues Spiel</button>
   </div>
-  <h2><span>Bahnhof</span></h2>
-  <div id="menuStations" style="padding:10px;display:flex;flex-wrap:wrap;gap:8px"></div>
   <h2><span>Meldungen</span></h2>
   <div id="logWrap"><ul id="log"></ul></div>
+</div>
+
+<div id="start">
+  <div class="wrap">
+    <div class="logo">
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="12" fill="#2f3337"/>
+        <path d="M6 38 H50 M6 38 L22 24 H50" stroke="#ffd21f" stroke-width="3" fill="none"/>
+        <rect x="36" y="8" width="10" height="20" rx="3" fill="#111"/><circle cx="41" cy="13" r="3" fill="#ff2d2d"/><circle cx="41" cy="22" r="3" fill="#33ff77"/></svg>
+      <div><h1>Stellwerk</h1><div class="sub">Fahrdienstleiter-Simulation fürs Tablet</div></div>
+    </div>
+    <div class="box"><h2>Bahnhof</h2><div id="stCards"></div></div>
+    <div class="cols">
+      <div class="box"><h2>Schicht &amp; Verkehr</h2>
+        <div class="optRow"><span>Schicht</span><span class="seg" data-opt="shift"></span></div>
+        <div class="optRow"><span>Zugdichte</span><span class="seg" data-opt="density"></span></div>
+        <div class="optRow"><span>Störungen</span><span class="seg" data-opt="disrupt"></span></div>
+      </div>
+      <div class="box"><h2>Schwierigkeit</h2>
+        <div class="optRow"><span>Voreinstellung</span><span class="seg" id="segLevel"></span></div>
+        <div class="optRow"><span>Weichen</span><span class="seg" data-opt="autoSwitch"></span></div>
+        <div class="optRow"><span>Signale</span><span class="seg" data-opt="autoSignal"></span></div>
+        <div class="optRow"><span>Fahrstraßenspeicher</span><span class="seg" data-opt="useQueue"></span></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn on big" id="stGo">Dienst beginnen ▶</button>
+      <button class="btn big" id="stResume" style="display:none">Weiterspielen</button>
+      <span style="flex:1"></span>
+      <button class="btn" id="stHelp">📖 Anleitung</button>
+      <button class="btn" id="stInstall">📲 Als App installieren</button>
+    </div>
+    <div class="sub hint" id="stHint"></div>
+  </div>
 </div>
 
 <div id="help">
   <div class="card">
     <h1 id="helpTitle">🚦 Stellwerk</h1>
-    <div class="stationPick">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><b>Bahnhof:</b> <span id="stationBtns"></span>
-        <span style="flex:1"></span><button class="btn on" id="btnStart">Dienst beginnen ▶</button></div>
-      <div class="sub" id="stationInfo" style="margin-top:4px"></div>
-    </div>
+    <div style="display:flex;justify-content:flex-end;margin:-4px 0 6px"><button class="btn on" id="btnStart">Verstanden ✓</button></div>
     <div class="only-teutschenthal">Du bist Fahrdienstleiter im <b>Bahnhof Teutschenthal</b> (Stellwerk B1). Durch den Bahnhof führt die <b>zweigleisige Strecke 6343 Halle – Hann. Münden</b> mit dem Haltepunkt an <b>Gleis 1</b> (Richtung Halle) und <b>Gleis 2</b> (Richtung Röblingen). Nördlich davon liegt <b>Gleis 3</b>, über das die <b>eingleisige Strecke 6840</b> nach Osten führt, und der <b>Güterbahnhof (Gleise 5–10, 12)</b> mit dem Anschlussgleis zum Glaswerk.
       <ul>
         <li>RB/RE halten am Haltepunkt: von Westen (A) auf Gleis 1, von Osten (F) auf Gleis 2.</li>
@@ -398,16 +456,18 @@
 const GAME_RATE = 6;        // Spielsekunden pro Echtzeitsekunde bei 1×
 const ACC = 8;              // Beschleunigung  [px/s²]
 const DEC = 10;             // Bremsverzögerung [px/s²]
-const START_T = 6 * 3600;   // Dienstbeginn 06:00
+let START_T = 6 * 3600;     // Dienstbeginn (Startmenü: Früh/Spät/Nacht)
 const COL = { bg: '#2f3337', track: '#b4bbc2', route: '#ffd21f', occ: '#ff3b30', red: '#ff2d2d', green: '#33ff77', yellow: '#ffc400', dim: '#555b61' };
 const DENSITY = { ruhig: 260, normal: 170, dicht: 115 };  // mittlerer Zugabstand [Spielsekunden]
 
 // ---------- Bahnhofsauswahl ----------
 const STATIONS = {
   neustadt: { name: 'Bf Neustadt', short: 'Neustadt', stw: 'Stw Neustadt',
-    info: 'Fiktiver Knotenbahnhof: 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen' },
+    info: 'Fiktiver Knotenbahnhof: 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen',
+    tags: ['viel Reiseverkehr', 'ICE-Durchfahrten', 'Nebenbahn', 'Lok umsetzen'] },
   teutschenthal: { name: 'Bf Teutschenthal', short: 'Teutschenthal', stw: 'Stw Teutschenthal B1',
-    info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis' },
+    info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
+    tags: ['viel Güterverkehr', 'Rangieraufträge', 'Anschluss Glaswerk', 'reales Vorbild'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -415,6 +475,11 @@ function chooseStation(id) {
   try { localStorage.setItem('stw_bf', id); } catch (e) {}
   const u = new URL(location.href); u.searchParams.set('bf', id); location.href = u.toString();
 }
+// ---------- Einstellungen (Startmenü, gespeichert) ----------
+const SHIFTS = { frueh: { t: 6 * 3600, name: 'Früh 06:00' }, spaet: { t: 14 * 3600, name: 'Spät 14:00' }, nacht: { t: 22 * 3600, name: 'Nacht 22:00' } };
+const PREF_DEF = { shift: 'frueh', density: 'normal', disrupt: true, autoSwitch: true, autoSignal: true, useQueue: true };
+const P = (() => { let p = {}; try { p = JSON.parse(localStorage.getItem('stw_prefs') || '{}') || {}; } catch (e) {} return { ...PREF_DEF, ...p }; })();
+function savePrefs() { try { localStorage.setItem('stw_prefs', JSON.stringify(P)); } catch (e) {} }
 
 // ---------- Gleistopologie (je Bahnhof) ----------
 let WID, X0, X1, TRACK_Y, NTRACKS, MAIN_Y, THROUGH;
@@ -760,12 +825,12 @@ function newState() {
     sw: Object.fromEntries(Object.keys(SWITCHES).map(k => [k, '+'])),
     sig: Object.fromEntries(Object.keys(SIGNALS).map(k => [k, 'Hp0'])),
     sel: null, cancelMode: false,
-    autoSwitch: S ? S.autoSwitch : true,
-    autoSignal: S ? S.autoSignal : true,
-    density: S ? S.density : 'normal',
+    autoSwitch: P.autoSwitch,
+    autoSignal: P.autoSignal,
+    density: P.density,
     occLegs: new Set(), occSecs: new Set(),
     swFault: {}, sigFault: {}, closure: null, nextShunt: START_T + 4 * 60, rfNo: 0, nextDisrupt: START_T + 12 * 60, queue: [], turnBusy: {},
-    disrupt: S ? S.disrupt : true, useQueue: S ? S.useQueue : true,
+    disrupt: P.disrupt, useQueue: P.useQueue,
     cnt: Object.fromEntries(Object.keys(TYPES).map(k => [k, 0])), genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
     uid: 0,
   };
@@ -1982,9 +2047,17 @@ function setMenu(open) { $('#menu').classList.toggle('open', open); $('#menuBack
 $('#btnMenu').addEventListener('click', () => setMenu(!$('#menu').classList.contains('open')));
 $('#btnMenuClose').addEventListener('click', () => setMenu(false));
 $('#menuBack').addEventListener('click', () => setMenu(false));
-$('#btnHelp').addEventListener('click', () => { setMenu(false); $('#help').classList.remove('hidden'); setSpeed(0); });
-$('#btnStart').addEventListener('click', () => { $('#help').classList.add('hidden'); setSpeed(1); });
+let helpFromStart = false, pausedSpeed = 1;
+function openHelp(fromStart) {
+  helpFromStart = fromStart;
+  if (!fromStart && S.speed > 0) { pausedSpeed = S.speed; setSpeed(0); }
+  $('#help').classList.remove('hidden'); $('#help .card').scrollTop = 0;
+}
+$('#btnHelp').addEventListener('click', () => { setMenu(false); openHelp(false); });
+$('#btnStart').addEventListener('click', () => { $('#help').classList.add('hidden'); if (!helpFromStart) setSpeed(pausedSpeed || 1); });
 function syncOptions() {
+  for (const k of ['autoSwitch', 'autoSignal', 'density', 'disrupt', 'useQueue']) P[k] = S[k];
+  savePrefs();
   $('#optSwitch').classList.toggle('on', S.autoSwitch);
   $('#optSwitch').textContent = S.autoSwitch ? 'Weichen automatisch' : 'Weichen manuell';
   $('#optSignal').classList.toggle('on', S.autoSignal);
@@ -2000,12 +2073,13 @@ $('#optDensity').addEventListener('click', () => {
 });
 $('#optDisrupt').addEventListener('click', () => { S.disrupt = !S.disrupt; syncOptions(); });
 $('#optQueue').addEventListener('click', () => { S.useQueue = !S.useQueue; if (!S.useQueue) S.queue = []; syncOptions(); });
-$('#btnNew').addEventListener('click', () => { if (confirm('Neues Spiel beginnen?')) { setMenu(false); startGame(); } });
+$('#btnHome').addEventListener('click', () => { setMenu(false); showStart(); });
 window.addEventListener('resize', () => setTimeout(fit, 50));
 window.addEventListener('orientationchange', () => setTimeout(fit, 250));
 
 // ---------- Start & Hauptschleife ----------
 function startGame() {
+  START_T = (SHIFTS[P.shift] || SHIFTS.frueh).t;
   S = newState();
   addTrain('RE', 1, START_T + 60);
   addTrain('RB', -1, START_T + 180);
@@ -2032,18 +2106,72 @@ document.title = ST.stw;
 $('.title').textContent = ST.stw;
 $('#planTitle').textContent = 'Fahrplan · ' + ST.name;
 $('#helpTitle').textContent = '🚦 ' + ST.stw;
-$('#stationInfo').textContent = ST.info;
-function stationButtons(el0, ask) {
-  el0.innerHTML = '';
+// ---------- Startmenü ----------
+let pickBF = BF, played = false, homeSpeed = 1;
+const OPTS = {
+  shift: Object.entries(SHIFTS).map(([k, v]) => [k, v.name]),
+  density: [['ruhig', 'ruhig'], ['normal', 'normal'], ['dicht', 'dicht']],
+  disrupt: [[false, 'aus'], [true, 'an']],
+  autoSwitch: [[true, 'automatisch'], [false, 'manuell']],
+  autoSignal: [[true, 'automatisch'], [false, 'von Hand']],
+  useQueue: [[true, 'an'], [false, 'aus']],
+};
+const LEVELS = {
+  leicht: { name: 'Einsteiger', density: 'ruhig', disrupt: false, autoSwitch: true, autoSignal: true, useQueue: true },
+  normal: { name: 'Normal', density: 'normal', disrupt: true, autoSwitch: true, autoSignal: true, useQueue: true },
+  profi:  { name: 'Profi', density: 'dicht', disrupt: true, autoSwitch: false, autoSignal: false, useQueue: false },
+};
+function renderStart() {
+  const cards = $('#stCards'); cards.innerHTML = '';
   for (const id in STATIONS) {
-    const b = document.createElement('button');
-    b.className = 'btn' + (id === BF ? ' on' : ''); b.textContent = STATIONS[id].name;
-    b.addEventListener('click', () => { if (id === BF) return; if (!ask || confirm(`Zu ${STATIONS[id].name} wechseln? Das laufende Spiel endet.`)) chooseStation(id); });
-    el0.appendChild(b);
+    const st = STATIONS[id], b = document.createElement('button');
+    b.className = 'stCard' + (id === pickBF ? ' on' : '');
+    b.innerHTML = `<b>${id === pickBF ? '✓ ' : ''}${st.name}</b><span class="sub">${st.info}</span><span class="tags">${(st.tags || []).map(t => `<span>${t}</span>`).join('')}</span>`;
+    b.addEventListener('click', () => { pickBF = id; renderStart(); });
+    cards.appendChild(b);
   }
+  document.querySelectorAll('#start .seg[data-opt]').forEach(seg => {
+    const k = seg.dataset.opt; seg.innerHTML = '';
+    for (const [v, label] of OPTS[k]) {
+      const b = document.createElement('button');
+      b.className = 'btn' + (P[k] === v ? ' on' : ''); b.textContent = label;
+      b.addEventListener('click', () => { P[k] = v; savePrefs(); renderStart(); });
+      seg.appendChild(b);
+    }
+  });
+  const lv = $('#segLevel'); lv.innerHTML = '';
+  for (const id in LEVELS) {
+    const L = LEVELS[id], b = document.createElement('button');
+    const match = Object.keys(L).every(k => k === 'name' || P[k] === L[k]);
+    b.className = 'btn' + (match ? ' on' : ''); b.textContent = L.name;
+    b.addEventListener('click', () => { for (const k in L) if (k !== 'name') P[k] = L[k]; savePrefs(); renderStart(); });
+    lv.appendChild(b);
+  }
+  const resume = played && pickBF === BF;
+  $('#stResume').style.display = resume ? '' : 'none';
+  $('#stGo').textContent = played ? 'Neues Spiel beginnen ▶' : 'Dienst beginnen ▶';
+  $('#stHint').textContent = played
+    ? (resume ? '„Weiterspielen“ setzt das laufende Spiel fort (Einstellungen der Bedienung werden übernommen, Schicht und Bahnhof erst bei einem neuen Spiel).'
+              : 'Beim Wechsel des Bahnhofs endet das laufende Spiel.')
+    : 'Deine Auswahl wird gespeichert. Alles lässt sich später über ☰ Menü → 🏠 Startmenü ändern.';
 }
-stationButtons($('#stationBtns'), false);
-stationButtons($('#menuStations'), true);
+function showStart() {
+  if (S && S.speed > 0) homeSpeed = S.speed;
+  if (S) setSpeed(0);
+  pickBF = BF; renderStart(); $('#start').classList.remove('hidden');
+}
+function hideStart() { $('#start').classList.add('hidden'); }
+$('#stGo').addEventListener('click', () => {
+  if (pickBF !== BF) { try { sessionStorage.setItem('stw_autostart', '1'); } catch (e) {} chooseStation(pickBF); return; }
+  hideStart(); startGame(); played = true; setSpeed(1); fit();
+});
+$('#stResume').addEventListener('click', () => {
+  for (const k of ['autoSwitch', 'autoSignal', 'disrupt', 'useQueue', 'density']) S[k] = P[k];
+  if (!S.useQueue) S.queue = [];
+  syncOptions(); hideStart(); setSpeed(homeSpeed || 1);
+});
+$('#stHelp').addEventListener('click', () => openHelp(true));
+$('#stInstall').addEventListener('click', () => $('#btnInstall').click());
 // ---------- Installierbare App (PWA) ----------
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
@@ -2052,7 +2180,7 @@ let installPrompt = null;
 const isStandalone = () => window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
 window.addEventListener('appinstalled', () => { installPrompt = null; toast('Stellwerk wurde als App installiert 🎉'); syncInstall(); });
-function syncInstall() { $('#btnInstall').style.display = isStandalone() ? 'none' : ''; }
+function syncInstall() { $('#btnInstall').style.display = $('#stInstall').style.display = isStandalone() ? 'none' : ''; }
 $('#btnInstall').addEventListener('click', async () => {
   if (installPrompt) { installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; return; }
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -2101,6 +2229,9 @@ setInterval(() => checkForUpdate(true), 5 * 60 * 1000);
 buildStatic();
 startGame();
 setSpeed(0);
+$('#help').classList.add('hidden');
+let autoStart = false; try { autoStart = sessionStorage.getItem('stw_autostart') === '1'; sessionStorage.removeItem('stw_autostart'); } catch (e) {}
+if (autoStart) { hideStart(); played = true; setSpeed(1); } else showStart();
 if (narrow.matches) $('#side').classList.remove('open');
 fit();
 setInterval(renderPanel, 500);
