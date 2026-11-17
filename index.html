@@ -206,11 +206,11 @@
 <div id="help">
   <div class="card">
     <h1>🚦 Stellwerk Neustadt</h1>
-    <div>Du bist Fahrdienstleiter im Bahnhof Neustadt. Beide Strecken (nach Altdorf im Westen und Neuhafen im Osten) sind <b>eingleisig</b>, hier im Bahnhof begegnen sich die Züge.</div>
+    <div>Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <h3>Fahrstraße stellen</h3>
     <ul>
-      <li><b>Einfahrt (A / F):</b> Einfahrsignal antippen (weißer Ring blinkt), dann das <b>Zielsignal</b> am gewünschten Gleis (N1–N3 bzw. P1–P3) antippen. Mögliche Ziele sind gestrichelt markiert.</li>
-      <li><b>Ausfahrt (N1–N3 / P1–P3):</b> Ausfahrsignal <b>einmal antippen</b> – die Fahrstraße zur Strecke wird direkt gestellt.</li>
+      <li><b>Einfahrt (A / F):</b> Einfahrsignal antippen (weißer Ring blinkt), dann das <b>Zielsignal</b> am gewünschten Gleis (N1–N6 bzw. P1–P6) antippen. Mögliche Ziele sind gestrichelt markiert.</li>
+      <li><b>Ausfahrt (N1–N6 / P1–P6):</b> Ausfahrsignal <b>einmal antippen</b> – die Fahrstraße zur Strecke wird direkt gestellt.</li>
       <li>Ist der Fahrweg frei, werden die Weichen umgestellt und verschlossen, die Fahrstraße leuchtet <span class="sw" style="background:var(--route)"></span> gelb und das Signal geht auf <span class="dot" style="background:#33ff77"></span> Fahrt.</li>
       <li>Signal antippen schaltet um: grün → <span class="dot" style="background:#ff2d2d"></span> Halt, rot (mit eingestellter Fahrstraße, gelb gestrichelter Ring) → grün. Ein Signal <b>ohne Fahrstraße</b> kann nicht auf Fahrt gehen.</li>
       <li>Wer jedes Signal von Hand auf Fahrt stellen will: Einstellung „Signal von Hand auf Fahrt“ unten in der Seitenleiste.</li>
@@ -218,19 +218,19 @@
     </ul>
     <h3>Weichen</h3>
     <ul>
-      <li>Weiche (W1–W4) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
+      <li>Weiche (W1–W16) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
       <li>Im Modus <b>„Weichen manuell“</b> (Einstellungen unten im Fahrplan) musst du sie selbst richtig legen, bevor die Fahrstraße eingestellt werden kann.</li>
     </ul>
     <h3>Züge</h3>
     <ul>
-      <li>Einfahrsignale: <b>A</b> (von Westen) und <b>F</b> (von Osten), davor die Vorsignale VA/VF. Ausfahrsignale: <b>N1–N3</b> (nach Osten) und <b>P1–P3</b> (nach Westen).</li>
+      <li>Einfahrsignale: <b>A</b> (von Westen) und <b>F</b> (von Osten), davor die Vorsignale VA/VF. Ausfahrsignale: <b>N1–N6</b> (nach Osten, rechts) und <b>P1–P6</b> (nach Westen, links). Plangleise: Richtung Ost meist 4–6, Richtung West meist 1–3.</li>
       <li>Reisezüge (RE, RB, IC) halten am Bahnsteig und fahren frühestens zur Plan-Abfahrt. Güterzüge (GC) fahren durch.</li>
       <li><span class="sw" style="background:var(--occ)"></span> rot = Gleisabschnitt besetzt. Ein neuer Zug kommt erst, wenn die Strecke frei ist.</li>
     </ul>
     <h3>Punkte</h3>
     <ul>
       <li>+10 für pünktliche Abfahrt (≤ 1 Min.), Abzug pro Verspätungsminute, −5 für Abweichung vom Plangleis.</li>
-      <li><b>Achtung Verklemmung:</b> Belegst du alle drei Gleise mit Zügen derselben Richtung, kann der Gegenzug nicht mehr einfahren. Halte ein Gleis frei!</li>
+      <li><b>Tipp:</b> Fahrstraßen, die über die Gleisverbindungen die Gegenrichtung kreuzen, sperren sich gegenseitig. Plangleise nutzen = mehr parallele Fahrten.</li>
     </ul>
     <h3>Bedienung am Tablet</h3>
     <ul>
@@ -252,82 +252,127 @@ const ACC = 8;              // Beschleunigung  [px/s²]
 const DEC = 10;             // Bremsverzögerung [px/s²]
 const START_T = 6 * 3600;   // Dienstbeginn 06:00
 const COL = { bg: '#2f3337', track: '#b4bbc2', route: '#ffd21f', occ: '#ff3b30', red: '#ff2d2d', green: '#33ff77', yellow: '#ffc400', dim: '#555b61' };
-const DENSITY = { ruhig: 360, normal: 250, dicht: 175 };  // mittlerer Zugabstand [Spielsekunden]
+const DENSITY = { ruhig: 260, normal: 170, dicht: 115 };  // mittlerer Zugabstand [Spielsekunden]
 
 // ---------- Gleistopologie ----------
-// Jeder "Leg" ist ein Gleisstück (Polylinie, von West nach Ost definiert).
-// sec = Gleisfreimeldeabschnitt, v = zulässige Geschwindigkeit [px/s]
-const LEGS = {
-  XW:  { pts: [[-300,250],[0,250]],                  sec: null, v: 45 },   // virtuell (außerhalb)
-  SW:  { pts: [[0,250],[240,250]],                   sec: 'SW', v: 45 },   // Strecke West
-  WA:  { pts: [[240,250],[300,250]],                 sec: 'WW', v: 25 },
-  W1s: { pts: [[300,250],[370,250]],                 sec: 'WW', v: 25 },
-  W1d: { pts: [[300,250],[380,170],[460,170]],       sec: 'WW', v: 20 },
-  W2s: { pts: [[370,250],[460,250]],                 sec: 'WW', v: 25 },
-  W2d: { pts: [[370,250],[450,330],[460,330]],       sec: 'WW', v: 20 },
-  G1:  { pts: [[460,170],[840,170]],                 sec: 'G1', v: 30 },
-  G2:  { pts: [[460,250],[840,250]],                 sec: 'G2', v: 30 },
-  G3:  { pts: [[460,330],[840,330]],                 sec: 'G3', v: 30 },
-  W4s: { pts: [[840,250],[930,250]],                 sec: 'EW', v: 25 },
-  W4d: { pts: [[840,330],[850,330],[930,250]],       sec: 'EW', v: 20 },
-  W3s: { pts: [[930,250],[1000,250]],                sec: 'EW', v: 25 },
-  W3d: { pts: [[840,170],[920,170],[1000,250]],      sec: 'EW', v: 20 },
-  EA:  { pts: [[1000,250],[1060,250]],               sec: 'EW', v: 25 },
-  SE:  { pts: [[1060,250],[1300,250]],               sec: 'SE', v: 45 },   // Strecke Ost
-  XE:  { pts: [[1300,250],[1600,250]],               sec: null, v: 45 },   // virtuell
+// Bahnhof mit 6 Bahnsteiggleisen, zweigleisige Strecke mit Rechtsverkehr:
+//   Richtung Ost (▸) fährt auf dem unteren Streckengleis (y=330), Richtung West (◂) auf dem oberen (y=250).
+// Der westliche Weichenbereich wird definiert; der östliche entsteht durch Punktspiegelung (x,y) → (WID−x, CY−y).
+const WID = 1660, CY = 580;
+const X0 = 650, X1 = 1010;                 // Anfang / Ende der Bahnsteiggleise
+const TRACK_Y = { 1: 110, 2: 170, 3: 250, 4: 330, 5: 410, 6: 470 };
+const NTRACKS = 6;
+const WEST_LEGS = {
+  L0:  [[0,330],[130,330]],   L1: [[130,330],[200,330]], L2: [[200,330],[420,330]], L3: [[420,330],[480,330]], L4: [[480,330],[650,330]],
+  U0:  [[0,250],[130,250]],   U1: [[130,250],[280,250]], U2: [[280,250],[340,250]], U3: [[340,250],[470,250]], U4: [[470,250],[650,250]],
+  XA:  [[200,330],[280,250]], XB: [[340,250],[420,330]],              // Gleisverbindungen zwischen den Streckengleisen
+  K3d: [[470,250],[550,170]], K4s: [[550,170],[650,170]], K4d: [[550,170],[610,110],[650,110]],
+  K5d: [[480,330],[560,410]], K6s: [[560,410],[650,410]], K6d: [[560,410],[620,470],[650,470]],
 };
+const LEGS = {};
+const mirror = p => [WID - p[0], CY - p[1]];
+for (const k in WEST_LEGS) {
+  LEGS['w' + k] = { pts: WEST_LEGS[k] };
+  LEGS['e' + k] = { pts: WEST_LEGS[k].map(mirror).reverse() };
+}
+for (let g = 1; g <= NTRACKS; g++) LEGS['G' + g] = { pts: [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]] };
+const VIRTUAL = {
+  XWi: [[-300,330],[0,330]], XWo: [[-300,250],[0,250]],               // außerhalb West (ein / aus)
+  XEi: [[WID,250],[WID+300,250]], XEo: [[WID,330],[WID+300,330]],     // außerhalb Ost  (ein / aus)
+};
+for (const k in VIRTUAL) LEGS[k] = { pts: VIRTUAL[k], virtual: true };
 for (const k in LEGS) {
-  const p = LEGS[k].pts; let l = 0;
-  for (let i = 1; i < p.length; i++) l += Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]);
-  LEGS[k].len = l;
+  const L = LEGS[k], p = L.pts; let l = 0, curved = false;
+  for (let i = 1; i < p.length; i++) { l += Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]); if (p[i][1] !== p[i-1][1]) curved = true; }
+  L.len = l;
+  L.sec = L.virtual ? null : k;                       // jeder Gleisabschnitt hat eigene Freimeldung
+  L.v = L.virtual || /L0$|U0$/.test(k) ? 45 : /^G/.test(k) ? 30 : curved ? 20 : 30;
 }
 
-const SWITCHES = {
-  W1: { x: 300,  y: 250, s: 'W1s', d: 'W1d', trunk: 'WA',  ly:  32 },
-  W2: { x: 370,  y: 250, s: 'W2s', d: 'W2d', trunk: 'W1s', ly: -16 },
-  W4: { x: 930,  y: 250, s: 'W4s', d: 'W4d', trunk: 'W3s', ly: -16 },
-  W3: { x: 1000, y: 250, s: 'W3s', d: 'W3d', trunk: 'EA',  ly:  32 },
-};
+// Knoten & Weichen automatisch aus der Geometrie ableiten
+const key = p => p[0] + ',' + p[1];
+const NODES = {};
+for (const id in LEGS) {
+  if (LEGS[id].virtual) continue;
+  const p = LEGS[id].pts;
+  (NODES[key(p[0])] = NODES[key(p[0])] || []).push({ leg: id, at: 0 });
+  (NODES[key(p[p.length-1])] = NODES[key(p[p.length-1])] || []).push({ leg: id, at: 1 });
+}
+function legVec(leg, at) {
+  const p = LEGS[leg].pts, a = at === 0 ? p[0] : p[p.length-1], b = at === 0 ? p[1] : p[p.length-2];
+  const L = Math.hypot(b[0]-a[0], b[1]-a[1]); return [(b[0]-a[0]) / L, (b[1]-a[1]) / L];
+}
+const SWITCHES = {}, SW_AT = {};
+Object.keys(NODES).filter(k => NODES[k].length === 3)
+  .sort((a, b) => { const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number); return ax - bx || ay - by; })
+  .forEach((k, i) => {
+    const es = NODES[k], vs = es.map(e => legVec(e.leg, e.at));
+    const dot = (a, b) => a[0]*b[0] + a[1]*b[1];
+    const ti = [0, 1, 2].find(i => [0, 1, 2].every(j => j === i || dot(vs[i], vs[j]) < -0.1));
+    const others = [0, 1, 2].filter(j => j !== ti);
+    others.sort((a, b) => dot(vs[ti], vs[a]) - dot(vs[ti], vs[b]));   // geradeste Fortsetzung zuerst
+    const [x, y] = k.split(',').map(Number);
+    const id = 'W' + (i + 1);
+    const up = others.some(j => vs[j][1] < -0.1);
+    SWITCHES[id] = { x, y, trunk: es[ti].leg, s: es[others[0]].leg, d: es[others[1]].leg, ly: up ? 32 : -16 };
+    SW_AT[k] = id;
+  });
 
 // Hauptsignale: dir +1 = gilt für Fahrt nach Osten, −1 = nach Westen
 const SIGNALS = {
-  A:  { x: 240,  y: 250, dir:  1, kind: 'Einfahrsignal' },
-  F:  { x: 1060, y: 250, dir: -1, kind: 'Einfahrsignal' },
-  N1: { x: 840,  y: 170, dir:  1, kind: 'Ausfahrsignal' },
-  N2: { x: 840,  y: 250, dir:  1, kind: 'Ausfahrsignal' },
-  N3: { x: 840,  y: 330, dir:  1, kind: 'Ausfahrsignal' },
-  P1: { x: 460,  y: 170, dir: -1, kind: 'Ausfahrsignal' },
-  P2: { x: 460,  y: 250, dir: -1, kind: 'Ausfahrsignal' },
-  P3: { x: 460,  y: 330, dir: -1, kind: 'Ausfahrsignal' },
+  A: { x: 130,       y: 330, dir:  1, kind: 'Einfahrsignal' },
+  F: { x: WID - 130, y: 250, dir: -1, kind: 'Einfahrsignal' },
 };
+for (let g = 1; g <= NTRACKS; g++) {
+  SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
+  SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
+}
 for (const id in SIGNALS) { const s = SIGNALS[id]; s.lx = s.x; s.ly = s.y + (s.dir > 0 ? 18 : -18); }
 
 const DISTANT = {
-  VA: { x: 90,   y: 250, dir:  1, main: 'A' },
-  VF: { x: 1210, y: 250, dir: -1, main: 'F' },
+  VA: { x: 40,       y: 330, dir:  1, main: 'A' },
+  VF: { x: WID - 40, y: 250, dir: -1, main: 'F' },
 };
-
 const EXITS = {
-  WEST: { label: '◀ WEST', town: 'Altdorf',  box: [6, 204, 72, 30] },
-  OST:  { label: 'OST ▶',  town: 'Neuhafen', box: [1222, 266, 72, 30] },
+  WEST: { label: '◀ WEST', town: 'Altdorf',  node: '0,250',        dir: -1, virt: 'XWo', box: [6, 212, 72, 28] },
+  OST:  { label: 'OST ▶',  town: 'Neuhafen', node: WID + ',330',   dir:  1, virt: 'XEo', box: [WID - 78, 344, 72, 28] },
+};
+const ENTRY = {
+  '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
+  '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eL0', d: -1 }], sec: 'eL0', sig: 'F' },
 };
 
-// Fahrstraßen: Start → Ziel, befahrene Legs (mit Richtung) und Weichenlagen
+// Fahrstraßen automatisch suchen: vom Startsignal in Fahrtrichtung bis zum nächsten gleichgerichteten Signal / Streckenausgang
 const R = (from, to, legs, sw) => ({ id: from + '-' + to, from, to, legs, sw });
-const ROUTES = [
-  R('A',  'N1',   [['WA',1],['W1d',1],['G1',1]],                         { W1: '-' }),
-  R('A',  'N2',   [['WA',1],['W1s',1],['W2s',1],['G2',1]],               { W1: '+', W2: '+' }),
-  R('A',  'N3',   [['WA',1],['W1s',1],['W2d',1],['G3',1]],               { W1: '+', W2: '-' }),
-  R('N1', 'OST',  [['W3d',1],['EA',1],['SE',1],['XE',1]],                { W3: '-' }),
-  R('N2', 'OST',  [['W4s',1],['W3s',1],['EA',1],['SE',1],['XE',1]],      { W4: '+', W3: '+' }),
-  R('N3', 'OST',  [['W4d',1],['W3s',1],['EA',1],['SE',1],['XE',1]],      { W4: '-', W3: '+' }),
-  R('F',  'P1',   [['EA',-1],['W3d',-1],['G1',-1]],                      { W3: '-' }),
-  R('F',  'P2',   [['EA',-1],['W3s',-1],['W4s',-1],['G2',-1]],           { W3: '+', W4: '+' }),
-  R('F',  'P3',   [['EA',-1],['W3s',-1],['W4d',-1],['G3',-1]],           { W3: '+', W4: '-' }),
-  R('P1', 'WEST', [['W1d',-1],['WA',-1],['SW',-1],['XW',-1]],            { W1: '-' }),
-  R('P2', 'WEST', [['W2s',-1],['W1s',-1],['WA',-1],['SW',-1],['XW',-1]], { W2: '+', W1: '+' }),
-  R('P3', 'WEST', [['W2d',-1],['W1s',-1],['WA',-1],['SW',-1],['XW',-1]], { W2: '-', W1: '+' }),
-];
+const ROUTES = [];
+(function buildRoutes() {
+  const sigAt = (k, dir) => Object.keys(SIGNALS).find(id => key([SIGNALS[id].x, SIGNALS[id].y]) === k && SIGNALS[id].dir === dir);
+  const exitAt = (k, dir) => Object.keys(EXITS).find(id => EXITS[id].node === k && EXITS[id].dir === dir);
+  for (const from in SIGNALS) {
+    const s0 = SIGNALS[from], dir = s0.dir, best = {};
+    (function dfs(k, incoming, legs, sw, cost) {
+      if (legs.length > 25) return;
+      if (legs.length) {
+        const to = sigAt(k, dir) || exitAt(k, dir);
+        if (to) {
+          if (!best[to] || cost < best[to].cost) best[to] = { legs: EXITS[to] ? [...legs, [EXITS[to].virt, dir]] : legs, sw, cost };
+          return;
+        }
+      }
+      const swId = SW_AT[k];
+      for (const e of NODES[k] || []) {
+        if (e.leg === incoming) continue;
+        if (legVec(e.leg, e.at)[0] * dir <= 0.1) continue;          // nur in Fahrtrichtung weiter
+        const req = { ...sw };
+        if (swId) { const w = SWITCHES[swId]; const br = incoming === w.trunk ? e.leg : incoming; req[swId] = br === w.s ? '+' : '-'; }
+        const p = LEGS[e.leg].pts, other = key(e.at === 0 ? p[p.length-1] : p[0]);
+        const c = LEGS[e.leg].len + (LEGS[e.leg].v < 25 ? 150 : 0);   // Abzweige "kosten" mehr → direkteste Fahrstraße
+        dfs(other, e.leg, [...legs, [e.leg, e.at === 0 ? 1 : -1]], req, cost + c);
+      }
+    })(key([s0.x, s0.y]), null, [], {}, 0);
+    for (const to in best) ROUTES.push(R(from, to, best[to].legs, best[to].sw));
+  }
+})();
 ROUTES.forEach(r => { r.secs = [...new Set(r.legs.map(l => LEGS[l[0]].sec).filter(Boolean))]; });
 
 // Zuggattungen
@@ -346,7 +391,7 @@ function newState() {
   return {
     t: START_T, speed: 1, score: 0, ontime: 0, departed: 0,
     trains: [], schedule: [], routes: [], log: [], logDirty: true,
-    sw: { W1: '+', W2: '+', W3: '+', W4: '+' },
+    sw: Object.fromEntries(Object.keys(SWITCHES).map(k => [k, '+'])),
     sig: Object.fromEntries(Object.keys(SIGNALS).map(k => [k, 'Hp0'])),
     sel: null, cancelMode: false,
     autoSwitch: S ? S.autoSwitch : true,
@@ -441,7 +486,7 @@ function routeLegs() {
 }
 function activeFrom(id) { return S.routes.find(ar => ar.r.from === id && !ar.passed); }
 function switchLocked(id) {
-  const w = SWITCHES[id], sec = LEGS[w.s].sec;
+  const w = SWITCHES[id], sec = LEGS[w.trunk].sec;
   return S.routes.some(ar => ar.r.sw[id] && !ar.released.has(sec));
 }
 function switchOccupied(id) {
@@ -474,7 +519,9 @@ function trySetRoute(r) {
   return true;
 }
 function secName(sec) {
-  return { SW: 'Strecke West', SE: 'Strecke Ost', WW: 'Weichenbereich West', EW: 'Weichenbereich Ost', G1: 'Gleis 1', G2: 'Gleis 2', G3: 'Gleis 3' }[sec] || sec;
+  if (/^G\d$/.test(sec)) return 'Gleis ' + sec[1];
+  if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
+  return 'Weichenbereich ' + (sec[0] === 'w' ? 'West' : 'Ost') + ' (' + sec.slice(1) + ')';
 }
 function signalGo(id, quiet) {
   const ar = activeFrom(id);
@@ -570,7 +617,7 @@ function genNext() {
   const mean = DENSITY[S.density];
   let t = S.genT + mean * (0.55 + Math.random() * 0.9);
   const dir = Math.random() < 0.5 ? 1 : -1;
-  if (t - S.lastDir[dir] < 220) t = S.lastDir[dir] + 220;
+  if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
   t = Math.round(t / 60) * 60;
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
   const rnd = Math.random();
@@ -583,9 +630,11 @@ function addTrain(type, dir, spawn) {
   const from = dir > 0 ? TOWNS_W[Math.floor(Math.random() * TOWNS_W.length)] : TOWNS_E[Math.floor(Math.random() * TOWNS_E.length)];
   const to = dir > 0 ? TOWNS_E[Math.floor(Math.random() * TOWNS_E.length)] : TOWNS_W[Math.floor(Math.random() * TOWNS_W.length)];
   let track;
-  if (type === 'IC') track = 2;
-  else if (dir > 0) track = Math.random() < 0.6 ? 3 : 2;
-  else track = Math.random() < 0.6 ? 1 : 2;
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  if (type === 'IC') track = dir > 0 ? 4 : 3;                       // Hauptgleise
+  else if (type === 'GC') track = dir > 0 ? pick([4, 6]) : pick([3, 1]);
+  else if (dir > 0) track = pick([4, 5, 5, 6]);                     // Richtung Ost: Gleise 4–6
+  else track = pick([3, 2, 2, 1]);                                  // Richtung West: Gleise 1–3
   const arr = T.stops ? spawn + 300 : null;
   const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : spawn + 300;
   S.schedule.push({
@@ -610,14 +659,14 @@ function spawnTrains() {
       log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
     }
     if (S.t < tr.plan.spawn || blocked.has(tr.dir)) continue;
-    const sec = tr.dir > 0 ? 'SW' : 'SE';
+    const ent = ENTRY[tr.dir], sec = ent.sec;
     if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(tr.dir); continue; }
     blocked.add(tr.dir);
     tr.spawned = true;
-    tr.segs = tr.dir > 0 ? [{ leg: 'XW', d: 1 }, { leg: 'SW', d: 1 }] : [{ leg: 'XE', d: -1 }, { leg: 'SE', d: -1 }];
+    tr.segs = ent.segs.map(x => ({ ...x }));
     rebuild(tr);
-    tr.s = LEGS.XW.len; tr.v = Math.min(tr.vmax, 40);
-    tr.endSig = tr.dir > 0 ? 'A' : 'F';
+    tr.s = LEGS[ent.segs[0].leg].len; tr.v = Math.min(tr.vmax, 40);
+    tr.endSig = ent.sig;
     S.trains.push(tr);
     computeOcc();
   }
@@ -749,35 +798,34 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: 1300, height: 500 }, cp);
+  el('rect', { x: 0, y: 0, width: WID, height: 600 }, cp);
+  const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   // Rahmen / Beschriftung
-  el('rect', { x: -14, y: 86, width: 1328, height: 318, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
-  const t1 = el('text', { x: 650, y: 112, 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 }, W); t1.textContent = 'Bf NEUSTADT';
-  const t2 = el('text', { x: 650, y: 130, 'text-anchor': 'middle', fill: '#8b9298', 'font-size': 11, 'letter-spacing': 1 }, W); t2.textContent = 'Gleisbildstellwerk Ns · Fahrdienstleiter';
-  const lw = el('text', { x: 6, y: 296, fill: '#8b9298', 'font-size': 12 }, W); lw.textContent = '◀ eingleisig nach Altdorf';
-  const le = el('text', { x: 1294, y: 214, 'text-anchor': 'end', fill: '#8b9298', 'font-size': 12 }, W); le.textContent = 'eingleisig nach Neuhafen ▶';
+  el('rect', { x: -14, y: 40, width: WID + 28, height: 474, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  txt(WID / 2, 66, 'Bf NEUSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
+  txt(WID / 2, 83, 'Gleisbildstellwerk Ns · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
+  txt(6, 372, '◀ zweigleisig nach Altdorf');
+  txt(WID - 6, 206, 'zweigleisig nach Neuhafen ▶', { 'text-anchor': 'end' });
 
-  // Bahnsteige
-  el('rect', { x: 490, y: 194, width: 320, height: 32, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
-  el('rect', { x: 490, y: 352, width: 320, height: 26, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
-  const pb1 = el('text', { x: 650, y: 214, 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 }, W); pb1.textContent = 'BAHNSTEIG 1/2';
-  const pb2 = el('text', { x: 650, y: 369, 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 }, W); pb2.textContent = 'BAHNSTEIG 3';
-  [[1, 162], [2, 244], [3, 324]].forEach(([n, y]) => {
-    const t = el('text', { x: 808, y, 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 }, W); t.textContent = 'Gl ' + n;
+  // Bahnsteige (Mittelbahnsteige zwischen 1/2, 3/4, 5/6)
+  [[1, 2], [3, 4], [5, 6]].forEach(([a, b]) => {
+    const y0 = TRACK_Y[a] + 17, y1 = TRACK_Y[b] - 17;
+    el('rect', { x: X0 + 30, y: y0, width: X1 - X0 - 60, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
+    txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, `BAHNSTEIG ${a}/${b}`, { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
   });
+  for (let g = 1; g <= NTRACKS; g++) txt(X1 - 22, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
 
   // Gleise
   E_.legs = {};
   for (const id in LEGS) {
-    if (!LEGS[id].sec) continue;
+    if (LEGS[id].virtual) continue;
     const d = 'M' + LEGS[id].pts.map(p => p.join(',')).join(' L');
     E_.legs[id] = el('path', { d, fill: 'none', stroke: COL.track, 'stroke-width': 5, 'stroke-linejoin': 'round', 'stroke-linecap': 'butt' }, W);
   }
-  // Isolierstöße (Abschnittsgrenzen)
-  [[240,250],[460,170],[460,250],[460,330],[840,170],[840,250],[840,330],[1060,250],[0,250],[1300,250]].forEach(([x, y]) => {
-    el('line', { x1: x, y1: y - 6, x2: x, y2: y + 6, stroke: '#1d2023', 'stroke-width': 2 }, W);
-  });
+  // Isolierstöße an Signalen und Streckenenden
+  const ticks = Object.values(SIGNALS).map(s => [s.x, s.y]).concat([[130, 250], [WID - 130, 330], [0, 250], [0, 330], [WID, 250], [WID, 330]]);
+  ticks.forEach(([x, y]) => el('line', { x1: x, y1: y - 6, x2: x, y2: y + 6, stroke: '#1d2023', 'stroke-width': 2 }, W));
 
   // Weichen (Lücke im nicht eingestellten Strang)
   E_.gaps = {}; E_.swl = {};
@@ -790,8 +838,7 @@ function buildStatic() {
       const L = Math.hypot(q[0] - w.x, q[1] - w.y), ux = (q[0] - w.x) / L, uy = (q[1] - w.y) / L;
       E_.gaps[id + br] = el('line', { x1: w.x + ux * 7, y1: w.y + uy * 7, x2: w.x + ux * 19, y2: w.y + uy * 19, stroke: COL.bg, 'stroke-width': 9 }, W);
     }
-    const t = el('text', { x: w.x, y: w.y + w.ly, 'text-anchor': 'middle', fill: '#9aa1a8', 'font-size': 12, 'font-weight': 700 }, W);
-    t.textContent = id; E_.swl[id] = t;
+    E_.swl[id] = txt(w.x, w.y + w.ly, id, { 'text-anchor': 'middle', fill: '#9aa1a8', 'font-weight': 700 });
   }
 
   // Vorsignale
@@ -803,8 +850,7 @@ function buildStatic() {
     const a = el('circle', { cx: v.x - 5, cy: ly + 3 * v.dir, r: 3.6 }, W);
     const b = el('circle', { cx: v.x + 5, cy: ly - 3 * v.dir, r: 3.6 }, W);
     E_.dist[id] = [a, b];
-    const t = el('text', { x: v.x + (v.dir > 0 ? -14 : 14), y: ly + 4, 'text-anchor': v.dir > 0 ? 'end' : 'start', fill: '#9aa1a8', 'font-size': 11 }, W);
-    t.textContent = id;
+    txt(v.x + (v.dir > 0 ? 14 : -14), ly + 4, id, { 'text-anchor': v.dir > 0 ? 'start' : 'end', 'font-size': 11 });
   }
 
   // Hauptsignale
@@ -812,14 +858,11 @@ function buildStatic() {
   for (const id in SIGNALS) {
     const s = SIGNALS[id];
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
-    el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 12, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
+    el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 13, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
     E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
-    const t = el('text', {
-      x: s.x + (s.dir > 0 ? -16 : 16), y: s.ly + (s.dir > 0 ? 9 : -2),
-      'text-anchor': s.dir > 0 ? 'end' : 'start', fill: '#e6e8ea', 'font-size': 12, 'font-weight': 700,
-    }, W);
-    t.textContent = id;
+    txt(s.x + (s.dir > 0 ? -18 : 18), s.ly + (s.dir > 0 ? 9 : -2), id,
+      { 'text-anchor': s.dir > 0 ? 'end' : 'start', fill: '#e6e8ea', 'font-weight': 700 });
   }
 
   // Ausfahrziele
@@ -828,8 +871,7 @@ function buildStatic() {
     const [x, y, w, h] = EXITS[id].box;
     E_.exitRing[id] = el('rect', { x: x - 3, y: y - 3, width: w + 6, height: h + 6, rx: 6, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, 'stroke-dasharray': '5 4', display: 'none' }, W);
     el('rect', { x, y, width: w, height: h, rx: 4, fill: '#1d2023', stroke: '#6b7279' }, W);
-    const t = el('text', { x: x + w / 2, y: y + h / 2 + 5, 'text-anchor': 'middle', fill: '#e6e8ea', 'font-size': 13, 'font-weight': 700 }, W);
-    t.textContent = EXITS[id].label;
+    txt(x + w / 2, y + h / 2 + 5, EXITS[id].label, { 'text-anchor': 'middle', fill: '#e6e8ea', 'font-size': 13, 'font-weight': 700 });
   }
 
   // Züge
@@ -837,8 +879,8 @@ function buildStatic() {
 
   // Touch-Trefferflächen (unsichtbar, groß)
   const hit = el('g', {}, W);
-  for (const id in SIGNALS) { const s = SIGNALS[id]; el('circle', { cx: s.lx, cy: s.ly, r: 28, fill: '#000', 'fill-opacity': 0, 'data-hit': 'signal', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in SWITCHES) { const w = SWITCHES[id]; el('circle', { cx: w.x, cy: w.y + w.ly * 0.35, r: 24, fill: '#000', 'fill-opacity': 0, 'data-hit': 'switch', 'data-id': id, style: 'cursor:pointer' }, hit); }
+  for (const id in SIGNALS) { const s = SIGNALS[id]; el('circle', { cx: s.lx, cy: s.ly, r: 28, fill: '#000', 'fill-opacity': 0, 'data-hit': 'signal', 'data-id': id, style: 'cursor:pointer' }, hit); }
   for (const id in EXITS) { const [x, y, w, h] = EXITS[id].box; el('rect', { x: x - 8, y: y - 8, width: w + 16, height: h + 16, fill: '#000', 'fill-opacity': 0, 'data-hit': 'exit', 'data-id': id, style: 'cursor:pointer' }, hit); }
 }
 
@@ -939,7 +981,7 @@ function applyView() { world.setAttribute('transform', `translate(${view.x.toFix
 function fit() {
   const r = svg.getBoundingClientRect();
   if (!r.width || !r.height) return;
-  const bw = 1340, bh = 330, bx = -20, by = 84;
+  const bw = WID + 40, bh = 480, bx = -20, by = 38;
   view.k = Math.min(r.width / bw, r.height / bh);
   view.x = (r.width - bw * view.k) / 2 - bx * view.k;
   view.y = (r.height - bh * view.k) / 2 - by * view.k;
