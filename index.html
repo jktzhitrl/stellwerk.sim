@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.13">
+<meta name="app-version" content="2026-11-17.14">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -650,27 +650,40 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
   if (BF === 'falkenberg') {
-    // Gleise 7–10 sind über zusätzliche Weichen an die bestehenden
-    // Bahnhofsgleise 1 und 6 angebunden. Die vorhandenen Bahnhofsköpfe
-    // und die Hauptgleise 3/4 bleiben unverändert.
-    for (const [base, extras] of [
-      [1, [[7,50,710,950],[9,-10,760,990]]],
-      [6, [[8,530,710,950],[10,590,760,990]]],
-    ]) {
-      const y0 = TRACK_Y[base];
-      delete LEGS['G'+base];
-      const xs = [650,710,760,950,990,1010];
-      for (let i=0;i<xs.length-1;i++)
-        LEGS['G'+base+'_'+i]={pts:[[xs[i],y0],[xs[i+1],y0]]};
-      for (const [g,y,xw,xe] of extras) {
-        TRACK_Y[g]=y;
-        const left=xw+50, right=xe-30;
-        LEGS['wG'+g]={pts:[[xw,y0],[left,y]]};
-        LEGS['G'+g]={pts:[[left,y],[right,y]]};
-        LEGS['eG'+g]={pts:[[right,y],[xe,y0]]};
-        SIGNALS['P'+g]={x:left,y,dir:-1,kind:'Ausfahrsignal'};
-        SIGNALS['N'+g]={x:right,y,dir:1,kind:'Ausfahrsignal'};
-      }
+    // Vier zusätzliche Bahnhofsgleise über eigene Abzweiggruppen in den
+    // Bahnhofsköpfen, statt diagonaler Verbindungen mitten im Bahnsteig.
+    // Die Weichenleitern liegen jeweils vor dem Bahnsteigbereich X0..X1.
+    const splitLeg = (id, first, second) => {
+      delete LEGS[id];
+      LEGS[id+'a'] = {pts:first};
+      LEGS[id+'b'] = {pts:second};
+    };
+    // Oberer Westkopf: Abzweig aus dem Zulauf zu Gleis 1.
+    splitLeg('wK4d', [[550,170],[610,110]], [[610,110],[650,110]]);
+    // Oberer Ostkopf: Abzweig aus dem östlichen Zulauf zu Gleis 1.
+    splitLeg('eK6db', [[1040,110],[1070,140]], [[1070,140],[1100,170]]);
+    // Unterer Westkopf: Abzweig aus dem Zulauf zu Gleis 6.
+    splitLeg('wK6db', [[560,410],[590,440]], [[590,440],[620,470]]);
+    // Unterer Ostkopf: Abzweig aus dem Zulauf zu Gleis 6.
+    splitLeg('eK4d', [[1010,470],[1050,470]], [[1050,470],[1110,410]]);
+    Object.assign(TRACK_Y, {7:50,8:530,9:-10,10:590});
+    Object.assign(LEGS, {
+      wG7:{pts:[[610,110],[650,50]]},
+      wG9:{pts:[[650,50],[690,-10]]},
+      G7:{pts:[[650,50],[1010,50]]},
+      G9:{pts:[[690,-10],[970,-10]]},
+      eG7:{pts:[[1010,50],[1070,140]]},
+      eG9:{pts:[[970,-10],[1010,50]]},
+      wG8:{pts:[[590,440],[650,530]]},
+      wG10:{pts:[[650,530],[690,590]]},
+      G8:{pts:[[650,530],[1010,530]]},
+      G10:{pts:[[690,590],[970,590]]},
+      eG8:{pts:[[1010,530],[1050,470]]},
+      eG10:{pts:[[970,590],[1010,530]]},
+    });
+    for (const [g,xw,xe] of [[7,650,1010],[8,650,1010],[9,690,970],[10,690,970]]) {
+      SIGNALS['P'+g]={x:xw,y:TRACK_Y[g],dir:-1,kind:'Ausfahrsignal'};
+      SIGNALS['N'+g]={x:xe,y:TRACK_Y[g],dir:1,kind:'Ausfahrsignal'};
     }
     // Verbindungswege im Netz: Falkenberg ↔ Bk Heidekreuz ↔ Neustadt / Teutschenthal.
     EXITS.WEST.label = '◀ Bk Heidekreuz / Neustadt';
