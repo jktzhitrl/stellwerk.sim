@@ -232,6 +232,7 @@
       <li>Manche RB aus Altdorf <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7“). Plangleis ist Gleis 1 – nur von dort erreicht man das Abstellgleis.</li>
       <li>Nach dem Halt: <b>N1 antippen → „Abstellgl.“ antippen</b>. Der Zug fährt bis zum Prellbock (+5 Punkte).</li>
       <li>Zur Bereitstellungszeit wird er zum Gegenzug nach Altdorf: <b>L7 antippen</b> (fährt nach Gleis 1), dort halten, dann wie gewohnt <b>P1</b> für die Ausfahrt nach Westen.</li>
+      <li><b>Achtung:</b> Hole einen endenden Zug erst nach Gleis 1, wenn das Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
       <li>Fährt ein endender Zug stattdessen aus, kommt der Gegenzug als Ersatz von Osten (−10 Punkte).</li>
     </ul>
     <h3>Punkte</h3>
@@ -641,7 +642,7 @@ function genNext() {
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
   const rnd = Math.random();
   const type = rnd < 0.36 ? 'RE' : rnd < 0.72 ? 'RB' : rnd < 0.84 ? 'IC' : 'GC';
-  if (type === 'RB' && dir > 0 && Math.random() < 0.7) addTurnPair(t);
+  if (type === 'RB' && dir > 0 && t > (S.turnBusyUntil || 0) && Math.random() < 0.7) addTurnPair(t);
   else addTrain(type, dir, t);
 }
 // Wendezug: RB aus dem Westen endet auf Gleis 1 → Abstellgleis 7 → später als neuer RB zurück nach Westen
@@ -652,6 +653,7 @@ function addTurnPair(spawn) {
   B.fromSiding = true; B.from = 'Neustadt'; B.to = A.from; B.plan.track = 1;
   B.plan.arr = B.plan.spawn + 180; B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60;
   A.link = B; B.link = A;
+  S.turnBusyUntil = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug planen (nur ein Abstellgleis)
 }
 function handleTurns() {
   for (const B of S.schedule) {
