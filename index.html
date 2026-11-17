@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.12">
+<meta name="app-version" content="2026-11-17.13">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -402,7 +402,7 @@
     </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte.</p>
-    <p><b>Streckennetz:</b> Falkenberg ist über eine zweigleisige freie Strecke mit getrennten Richtungsgleisen und der Block- und Überleitstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind zunächst nur dargestellte Bereitstellungsgleise ohne Fahrstraßen.</p>
+    <p><b>Streckennetz:</b> Falkenberg ist über eine zweigleisige freie Strecke mit getrennten Richtungsgleisen und der Block- und Überleitstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind über zusätzliche Weichen an Gleis 1 bzw. 6 angeschlossen und besitzen eigene Ein- und Ausfahrstraßen.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -650,10 +650,27 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
   if (BF === 'falkenberg') {
-    // Vier zusätzliche, zunächst nur dargestellte Bereitstellungsgleise.
-    for (const [g,y] of [[7,50],[8,530],[9,590],[10,30]]) {
-      TRACK_Y[g] = y;
-      LEGS['G'+g] = { pts: [[650,y],[1010,y]] };
+    // Gleise 7–10 sind über zusätzliche Weichen an die bestehenden
+    // Bahnhofsgleise 1 und 6 angebunden. Die vorhandenen Bahnhofsköpfe
+    // und die Hauptgleise 3/4 bleiben unverändert.
+    for (const [base, extras] of [
+      [1, [[7,50,710,950],[9,-10,760,990]]],
+      [6, [[8,530,710,950],[10,590,760,990]]],
+    ]) {
+      const y0 = TRACK_Y[base];
+      delete LEGS['G'+base];
+      const xs = [650,710,760,950,990,1010];
+      for (let i=0;i<xs.length-1;i++)
+        LEGS['G'+base+'_'+i]={pts:[[xs[i],y0],[xs[i+1],y0]]};
+      for (const [g,y,xw,xe] of extras) {
+        TRACK_Y[g]=y;
+        const left=xw+50, right=xe-30;
+        LEGS['wG'+g]={pts:[[xw,y0],[left,y]]};
+        LEGS['G'+g]={pts:[[left,y],[right,y]]};
+        LEGS['eG'+g]={pts:[[right,y],[xe,y0]]};
+        SIGNALS['P'+g]={x:left,y,dir:-1,kind:'Ausfahrsignal'};
+        SIGNALS['N'+g]={x:right,y,dir:1,kind:'Ausfahrsignal'};
+      }
     }
     // Verbindungswege im Netz: Falkenberg ↔ Bk Heidekreuz ↔ Neustadt / Teutschenthal.
     EXITS.WEST.label = '◀ Bk Heidekreuz / Neustadt';
@@ -1984,7 +2001,7 @@ function buildStatic() {
       el('circle', { cx:x+28,cy:650,r:5,fill:'#20272c',stroke:'#e0b55b','stroke-width':2 }, W);
     }
     txt(WID/2, 595, 'Üst HEIDEKREUZ · WÜ1 / WÜ2', {'text-anchor':'middle','font-size':13,fill:'#f4d77e'});
-    txt(WID/2, 684, 'Gleis 7–10: Bereitstellung (noch ohne Fahrstraßen)', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
+    txt(WID/2, 684, 'Gleis 7–10: über Weichen an Gleis 1/6 angebunden', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
   }
 
   // Gleise
