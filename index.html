@@ -1961,7 +1961,7 @@ function renderTrainCard() {
   card.hidden = false;
   $('#trainCardTitle').textContent = `${tr.num} · ${tr.type}`;
   const delay = tr.delay != null ? `${tr.delay > 0 ? '+' : ''}${tr.delay} Min.` : tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'noch offen';
-  const fields = [['Von', tr.from], ['Ziel', tr.to], ['Geschwindigkeit', `${Math.round(tr.v || 0)} km/h`], ['Verspätung', delay], ['Plangleis', tr.plan.track || '–'], ['Planabfahrt', tr.plan.dep != null ? fmt(tr.plan.dep) : '–']];
+  const fields = [['Von', tr.from], ['Ziel', tr.to], ['Tempo (Spielwert)', `${Math.round(tr.v || 0)} / ${tr.vmax}`], ['Verspätung', delay], ['Plangleis', tr.plan.track || '–'], ['Planabfahrt', tr.plan.dep != null ? fmt(tr.plan.dep) : '–']];
   const grid = document.createElement('div'); grid.className = 'cardGrid';
   for (const [label, value] of fields) { const item = document.createElement('div'), small = document.createElement('small'); small.textContent = label; item.append(small, document.createTextNode(String(value))); grid.append(item); }
   const status = document.createElement('div'); status.className = 'cardStatus'; status.textContent = trainStatus(tr).txt;
