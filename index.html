@@ -142,7 +142,15 @@
   tr.urgent td { background: rgba(255,90,80,.14); }
   tr.urgent td:first-child { box-shadow: inset 4px 0 #ff6b5b; }
   .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
-  .priority-tag.urgent { color: #ff8a7a; }
+.priority-tag.urgent { color: #ff8a7a; }
+  #connections { padding: 8px; background: #202b32; font-size: 12px; max-height: 160px; overflow-y: auto; }
+  #connections:empty { display: none; }
+  .connRow { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:5px 0; }
+  .connRow strong { color:#f5d77a; }
+  .connRow .btn { min-height:32px; padding:5px 9px; }
+  .connRow .btn.on { background:#246c53; border-color:#53bd88; }
+  .connInfo { flex:1; min-width:180px; }
+  .connState { color:#b8cbd5; font-size:11px; }
   tr.stop td.st { color: #8fd3ff; }
   .late { color: #ff6b5b; font-weight: 700; }
   .ontime { color: var(--ok); }
@@ -305,6 +313,7 @@
     <div id="sideBackdrop" aria-hidden="true"></div>
     <aside id="side" aria-label="Fahrplan und Zugmeldungen">
       <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span><button id="sideClose" type="button" aria-label="Fahrplan schließen">✕</button></h2>
+      <div id="connections" aria-label="Anschlussmanagement"></div>
       <div id="planWrap"><table id="plan"></table></div>
       <div id="ticker" title="Neueste Meldung – alle Meldungen im Menü"></div>
     </aside>
@@ -383,6 +392,7 @@
       </ul>
     </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -888,7 +898,7 @@ let S;
 function newState() {
   return {
     t: START_T, speed: 1, score: 0, ontime: 0, departed: 0,
-    trains: [], schedule: [], routes: [], log: [], logDirty: true,
+    trains: [], schedule: [], connections: [], routes: [], log: [], logDirty: true,
     sw: Object.fromEntries(Object.keys(SWITCHES).map(k => [k, '+'])),
     sig: Object.fromEntries(Object.keys(SIGNALS).map(k => [k, 'Hp0'])),
     sel: null, cancelMode: false,
@@ -1201,6 +1211,17 @@ function genNext() {
   t = Math.round(t / 60) * 60;
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
   CFG.gen(t, dir);
+  const receiver = S.schedule.filter(x => x.stops && !x.turn && !x.runaround && !x.fromSiding && !x.fromRunaround && !x.overtake && !x.overtakes && !x.connectionIn && x.plan.spawn >= S.t + 9 * 60 && (x.type === 'RE' || x.type === 'RB')).slice(-1)[0];
+  if (receiver && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.38) {
+    const feederSpawn = receiver.plan.dep - 3 * 60 - 300;
+    if (feederSpawn >= S.t + 90) {
+      const feeder = addTrain('RB', -receiver.dir, feederSpawn);
+      feeder.inboundDelay = Math.random() < 0.65 ? (2 + Math.floor(Math.random() * 5)) * 60 : 0;
+      feeder.connectionOut = receiver.id;
+      receiver.connectionIn = feeder.id;
+      S.connections.push({ feeder: feeder.id, receiver: receiver.id, decision: 'hold', maxWait: 4 * 60, resolved: false });
+    }
+  }
 }
 // Überholung: Güterzug wartet auf einem Nebengleis, bis der nachfolgende ICE durchgefahren ist
 function addOvertake(t, dir) {
@@ -1426,6 +1447,38 @@ function addTrain(type, dir, spawn) {
 }
 function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 
+// ---------- Anschlussmanagement ----------
+function connectionTrain(id) { return S.schedule.find(t => t.id === id); }
+function connectionFor(tr) { return S.connections.find(c => c.receiver === tr.id && !c.resolved); }
+function connectionReady(c) {
+  const feeder = connectionTrain(c.feeder);
+  return !!(feeder && feeder.actArr != null && S.t >= feeder.actArr + 90);
+}
+function connectionBlocks(tr) {
+  const c = connectionFor(tr);
+  return !!(c && c.decision === 'hold' && !connectionReady(c) && S.t < tr.plan.dep + c.maxWait);
+}
+function resolveConnections() {
+  for (const c of S.connections) {
+    if (c.resolved) continue;
+    const receiver = connectionTrain(c.receiver), feeder = connectionTrain(c.feeder);
+    if (!receiver || !feeder) { c.resolved = true; continue; }
+    if (receiver.actDep != null || receiver.done || (S.t >= receiver.plan.dep + c.maxWait && !connectionReady(c))) {
+      c.resolved = true;
+      const saved = connectionReady(c) && receiver.actDep != null;
+      S.score += saved ? 12 : -8;
+      log('Anschluss ' + feeder.num + ' → ' + receiver.num + ': ' + (saved ? 'erreicht (+12 Punkte)' : 'verpasst (−8 Punkte)'), saved ? 'good' : 'bad');
+    }
+  }
+}
+function decideConnection(id, decision) {
+  const c = S.connections.find(x => x.receiver === id && !x.resolved);
+  if (!c || !['hold', 'release'].includes(decision)) return;
+  c.decision = decision;
+  const tr = connectionTrain(c.receiver);
+  log('Anschluss ' + connectionTrain(c.feeder).num + ' → ' + tr.num + ': ' + (decision === 'hold' ? 'warten bis maximal ' + fmt(tr.plan.dep + c.maxWait) : 'Abfahrt freigegeben'), 'info');
+  renderPanel();
+}
 // ---------- Simulation ----------
 function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
@@ -1572,6 +1625,7 @@ function trainEvents(tr) {
         for (const sg of ar.segRefs) { const sec = LEGS[sg.leg].sec; if (sec && sg.a <= tr.s) ar.released.add(sec); }
       }
     } else if (S.t >= tr.dwellUntil) {
+      if (connectionBlocks(tr)) return;
       tr.served = true;
       if (tr.runaround && !tr.split) { if (tr.stopTrack === 1) { splitLoco(tr); return; } abortRunaround(tr); }
       if (tr.endsGbf) { dissolveGbf(tr); return; }
@@ -1604,6 +1658,7 @@ function trainEvents(tr) {
     tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep + (tr.extraDelay || 0)) / 60));
     const pts = tr.delay <= 1 ? 10 : Math.max(-10, 10 - 2 * (tr.delay - 1));
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
+    resolveConnections();
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
     if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
     if (tr.overtake && tr.link) {
@@ -1687,6 +1742,7 @@ function update(dt) {
   const dp = dayPart(S.t);
   if (dp !== S.dp) { S.dp = dp; log('🕒 ' + DAYPARTS[dp].msg, 'info'); toast('🕒 ' + DAYPARTS[dp].msg); }
   ensureSchedule();
+  resolveConnections();
   computeOcc();
   disruptions();
   spawnTrains();
@@ -2012,6 +2068,9 @@ function runStep(L) {
   return 'Lok fährt (Umsetzen) …';
 }
 function trainPriority(tr) {
+  const c = connectionFor(tr);
+  if (c && c.decision === 'hold' && !connectionReady(c) && S.t >= tr.plan.dep - 60)
+    return { level: 'priority', label: 'ANSCHLUSS', hint: 'Warten auf ' + connectionTrain(c.feeder).num };
   if (tr.done || tr.actDep != null || tr.shunter) return null;
   if (tr.overtake && tr.link && tr.link.actDep == null) {
     if (tr.served && tr.spawned) return { level: 'priority', label: 'WARTEN', hint: `${tr.link.num} zuerst durchlassen` };
@@ -2028,6 +2087,9 @@ function trainPriority(tr) {
   return null;
 }
 function trainStatus(tr) {
+  const c = connectionFor(tr);
+  if (c && tr.dwellUntil != null && !tr.served && S.t >= tr.dwellUntil && connectionBlocks(tr))
+    return { txt: 'Anschluss sichern: wartet auf ' + connectionTrain(c.feeder).num + ' (bis ' + fmt(tr.plan.dep + c.maxWait) + ')', cls: 'stop' };
   if (tr.overtake && tr.link && !tr.done && tr.link.actDep != null && tr.actDep == null && tr.spawned && tr.served)
     return { txt: `Überholung durch ${tr.link.num} erfolgt – Ausfahrt freigeben`, cls: 'act' };
   if (tr.overtakes && !tr.done && tr.overtakes.actDep == null && tr.spawned && tr.v < 0.5)
@@ -2072,6 +2134,12 @@ function trainStatus(tr) {
   return { txt: `fährt → ${tr.endSig}`, cls: '' };
 }
 function renderPanel() {
+  $('#connections').innerHTML = S.connections.filter(c => !c.resolved).map(c => {
+    const feeder = connectionTrain(c.feeder), receiver = connectionTrain(c.receiver);
+    if (!feeder || !receiver) return '';
+    const state = connectionReady(c) ? 'Umstieg möglich' : feeder.actArr != null ? 'Zubringer da – Umstieg läuft' : 'Zubringer unterwegs';
+    return '<div class="connRow"><div class="connInfo"><strong>🔗 ' + feeder.num + ' → ' + receiver.num + '</strong><div class="connState">' + state + ' · ab ' + fmt(receiver.plan.dep) + ' · max. ' + fmt(receiver.plan.dep + c.maxWait) + '</div></div><button class="btn ' + (c.decision === 'hold' ? 'on' : '') + '" data-connection="' + c.receiver + '" data-decision="hold">Warten</button><button class="btn ' + (c.decision === 'release' ? 'on' : '') + '" data-connection="' + c.receiver + '" data-decision="release">Freigeben</button></div>';
+  }).join('');
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
   const rows = [...active.slice(0, 24), ...done];
@@ -2227,6 +2295,10 @@ function syncOptions() {
   $('#optDisrupt').classList.toggle('on', S.disrupt); $('#optDisrupt').textContent = S.disrupt ? 'Störungen an' : 'Störungen aus';
   $('#optQueue').classList.toggle('on', S.useQueue); $('#optQueue').textContent = S.useQueue ? 'Fahrstraßenspeicher an' : 'Fahrstraßenspeicher aus';
 }
+$('#connections').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-connection]');
+  if (btn) decideConnection(Number(btn.dataset.connection), btn.dataset.decision);
+});
 $('#optSwitch').addEventListener('click', () => { S.autoSwitch = !S.autoSwitch; syncOptions(); });
 $('#optSignal').addEventListener('click', () => { S.autoSignal = !S.autoSignal; syncOptions(); });
 $('#optDensity').addEventListener('click', () => {
