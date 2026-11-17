@@ -66,12 +66,16 @@
   }
   #legend i { display: inline-block; width: 18px; height: 4px; vertical-align: middle; margin-right: 4px; }
   #toast {
-    position: absolute; left: 50%; top: 12px; transform: translateX(-50%); max-width: 90%;
+    position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); max-width: 90%;
     background: rgba(15,16,17,.92); border: 1px solid var(--border); color: var(--text);
     padding: 10px 16px; border-radius: 8px; font-size: 15px; pointer-events: none;
     opacity: 0; transition: opacity .25s; text-align: center;
   }
   #toast.show { opacity: 1; }
+  #alerts { position: absolute; left: 8px; top: 8px; max-width: min(46%, 420px); display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+  #alerts div { background: rgba(20,22,24,.85); border-left: 4px solid #ff8a3d; padding: 5px 8px; border-radius: 4px; font-size: 13px; }
+  #alerts div.q { border-left-color: #5ad1ff; }
+  #alerts div.b { border-left-color: #c0703a; }
   #toast.err { border-color: #ff6b5b; color: #ffd0cb; }
 
   /* ---------- Seitenleiste (Fahrplan / Meldungen) ---------- */
@@ -179,6 +183,7 @@
         <g id="world"></g>
       </svg>
       <div id="toast"></div>
+      <div id="alerts"></div>
       <div id="legend">
         <span><i style="background:#b4bbc2"></i>frei</span>
         <span><i style="background:var(--route)"></i>Fahrstraße</span>
@@ -199,7 +204,9 @@
         <button class="btn on" id="optSwitch">Weichen automatisch</button>
         <button class="btn on" id="optSignal">Signal automatisch auf Fahrt</button>
         <button class="btn" id="optDensity">Zugdichte: normal</button>
-        <button class="btn" id="btnNew">Neues Spiel</button>
+        <button class="btn on" id="optDisrupt">Störungen an</button>
+        <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
+        <button class="btn" id="btnNew" style="grid-column: span 2">Neues Spiel</button>
       </div>
     </aside>
   </div>
@@ -252,12 +259,26 @@
       <li>Züge nach Waldheim: Ausfahrsignal P antippen und dann das Ziel <b>„◀ WALDHEIM“</b> (nicht „◀ WEST“).</li>
       <li>Eingleisig: Solange ein Zug nach Waldheim unterwegs ist, kann keiner von dort einfahren – und umgekehrt.</li>
     </ul>
+    <h3>Fahrstraßenspeicher (Voreinstellen)</h3>
+    <ul>
+      <li>Ist eine Fahrstraße noch belegt (Gleis besetzt, Weiche verschlossen, Signal hat schon eine Fahrstraße), wird sie <b>gespeichert</b> (blau gestrichelt) und <b>automatisch eingestellt</b>, sobald sie frei ist – das Startsignal geht dann selbst auf Fahrt.</li>
+      <li>So kannst du z. B. die Ausfahrt schon stellen, während der Zug noch einfährt, oder bei <b>grünem Signal mit herannahendem Zug</b> das Signal antippen und das Ziel für den <b>nächsten</b> Zug vorwählen.</li>
+      <li>Gespeicherte Fahrstraße löschen: Startsignal lange drücken (oder ✖ FS löschen → Startsignal). Ausschalten in den Einstellungen.</li>
+    </ul>
+    <h3>Störungen</h3>
+    <ul>
+      <li><b>Weichenstörung</b> (⚠ orange): Die Weiche bleibt einige Minuten in ihrer Lage – nimm Fahrstraßen, die sie so befahren, oder speichere die Fahrstraße.</li>
+      <li><b>Signalstörung</b>: Das Signal kann nicht auf Fahrt. Fahrstraße stellen und Signal antippen → <b>Ersatzsignal Zs1</b> (weißes Blinklicht). Der Zug fährt dann <b>auf Sicht</b> (langsam) bis zum nächsten Signal.</li>
+      <li><b>Bauarbeiten</b> 🚧: Ein Streckengleis wird angekündigt gesperrt (orange gestrichelt). Züge aus dieser Richtung kommen dann auf dem <b>Gegengleis</b> an <b>Signal A2</b> (West) bzw. <b>F2</b> (Ost) an – das Gleis teilen sie sich mit den ausfahrenden Zügen.</li>
+      <li>Abschaltbar in den Einstellungen unten in der Seitenleiste.</li>
+    </ul>
     <h3>Abstellgleis 7 &amp; Wendezüge</h3>
     <ul>
-      <li>Manche RB aus Altdorf <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7“). Plangleis ist Gleis 1 – nur von dort erreicht man das Abstellgleis.</li>
-      <li>Nach dem Halt: <b>N1 antippen → „Abstellgl.“ antippen</b>. Der Zug fährt bis zum Prellbock (+5 Punkte).</li>
-      <li>Zur Bereitstellungszeit wird er zum Gegenzug nach Altdorf: <b>L7 antippen</b> (fährt nach Gleis 1), dort halten, dann wie gewohnt <b>P1</b> für die Ausfahrt nach Westen.</li>
-      <li><b>Achtung:</b> Hole einen endenden Zug erst nach Gleis 1, wenn das Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
+      <li>Manche RB und Güterzüge <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7/8“).</li>
+      <li><b>Abstellgleis 7</b> (oben rechts) für Züge aus Altdorf: Plangleis 1, nach dem Halt <b>N1 → „Abstellgl.“</b>. Zurück mit <b>L7</b> nach Gleis 1, dann <b>P1</b> nach Westen.</li>
+      <li><b>Abstellgleis 8</b> (unten links) für Züge aus Neuhafen: Plangleis 6, nach dem Halt <b>P6 → „Abstellgl.“</b>. Zurück mit <b>L8</b> nach Gleis 6, dann <b>N6</b> nach Osten.</li>
+      <li>Abstellen bringt +5 Punkte. Zur Bereitstellungszeit wird der Zug zum Gegenzug.</li>
+      <li><b>Achtung:</b> Hole einen endenden Zug erst auf Gleis 1 bzw. 6, wenn das zugehörige Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
       <li>Fährt ein endender Zug stattdessen aus, kommt der Gegenzug als Ersatz von Osten (−10 Punkte).</li>
     </ul>
     <h3>Punkte</h3>
@@ -320,6 +341,12 @@ LEGS.eK6da = { pts: [[1010,110],[1040,110]] };
 LEGS.eK6db = { pts: [[1040,110],[1100,170]] };
 LEGS.AG0   = { pts: [[1040,110],[1100,110]] };
 LEGS.AG    = { pts: [[1100,110],[1260,110]] };
+// Abstellgleis 8: Stumpfgleis westlich von Gleis 6 (Punktspiegelung von Abstellgleis 7)
+delete LEGS.wK6d;                                     // (560,410)→(620,470)→(650,470)
+LEGS.wK6db = { pts: [[560,410],[620,470]] };
+LEGS.wK6da = { pts: [[620,470],[650,470]] };
+LEGS.AG80  = { pts: [[560,470],[620,470]] };
+LEGS.AG8   = { pts: [[400,470],[560,470]] };
 // Abzweig der eingleisigen Nebenbahn nach Waldheim (flache Einmündung ins obere Streckengleis West)
 LEGS.BR0   = { pts: [[0,170],[130,170]] };
 LEGS.BRd   = { pts: [[130,170],[210,250]] };
@@ -374,6 +401,10 @@ for (let g = 1; g <= NTRACKS; g++) {
   SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
 }
 SIGNALS.L7 = { x: 1100, y: 110, dir: -1, kind: 'Rangiersignal (Abstellgleis)' };
+SIGNALS.L8 = { x: 560,  y: 470, dir:  1, kind: 'Rangiersignal (Abstellgleis)' };
+// Einfahrsignale vom Gegengleis (nur bei Streckensperrung benutzt)
+SIGNALS.A2 = { x: 130,       y: 250, dir:  1, kind: 'Einfahrsignal' };
+SIGNALS.F2 = { x: WID - 130, y: 330, dir: -1, kind: 'Einfahrsignal' };
 for (const id in SIGNALS) { const s = SIGNALS[id]; s.lx = s.x; s.ly = s.y + (s.dir > 0 ? 18 : -18); }
 
 const DISTANT = {
@@ -387,13 +418,21 @@ const EXITS = {
   OST:  { label: 'OST ▶',  town: 'Neuhafen', node: WID + ',330',   dir:  1, virt: 'XEo', box: [WID - 78, 344, 72, 28] },
 };
 const ENDS = {   // Ziele ohne Weiterfahrt (Prellbock)
-  AG: { label: 'Abstellgl.', node: '1260,110', dir: 1, box: [1274, 96, 84, 28] },
+  AG:  { label: 'Abstellgl.', node: '1260,110', dir:  1, box: [1274, 96, 84, 28] },
+  AG8: { label: 'Abstellgl.', node: '400,470',  dir: -1, box: [306, 456, 84, 28] },
+};
+// Abstellgleise: über welches Bahnsteiggleis / Signal erreichbar, wie wieder heraus
+const SIDINGS = {
+  AG:  { no: 7, track: 1, inSig: 'N1', outSig: 'L7', outTarget: 'P1', dirIn:  1 },
+  AG8: { no: 8, track: 6, inSig: 'P6', outSig: 'L8', outTarget: 'N6', dirIn: -1 },
 };
 const TGT = { ...EXITS, ...ENDS };
 const ENTRY = {
   '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
   '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eL0', d: -1 }], sec: 'eL0', sig: 'F' },
   'C':  { segs: [{ leg: 'XB',  d:  1 }, { leg: 'BR0', d:  1 }], sec: 'BR0', sig: 'C' },
+  'A2': { segs: [{ leg: 'XWo', d:  1 }, { leg: 'wU0', d:  1 }], sec: 'wU0', sig: 'A2' },   // Gegengleis West
+  'F2': { segs: [{ leg: 'XEo', d: -1 }, { leg: 'eU0', d: -1 }], sec: 'eU0', sig: 'F2' },   // Gegengleis Ost
 };
 
 // Fahrstraßen automatisch suchen: vom Startsignal in Fahrtrichtung bis zum nächsten gleichgerichteten Signal / Streckenausgang
@@ -433,10 +472,11 @@ ROUTES.forEach(r => {
 });
 // Signalbegriff: Hp0 Halt, Hp1 Fahrt, Hp2 Langsamfahrt
 function aspect(id) {
-  if (!S.sig[id] || S.sig[id] === 'Hp0') return 'Hp0';
+  if (S.sig[id] !== 'Hp1') return 'Hp0';
   const ar = S.routes.find(a => a.r.from === id && !a.passed);
   return ar && ar.r.slow ? 'Hp2' : 'Hp1';
 }
+const isGo = id => S.sig[id] === 'Hp1' || S.sig[id] === 'Zs1';   // Zs1 = Ersatzsignal (Fahrt auf Sicht)
 // Vorsignalbegriff für ein Hauptsignal → Farben [unten links, oben rechts]
 function vrColors(mainId) {
   const a = aspect(mainId);
@@ -468,6 +508,8 @@ function newState() {
     autoSignal: S ? S.autoSignal : true,
     density: S ? S.density : 'normal',
     occLegs: new Set(), occSecs: new Set(),
+    swFault: {}, sigFault: {}, closure: null, nextDisrupt: START_T + 12 * 60, queue: [], turnBusy: {},
+    disrupt: S ? S.disrupt : true, useQueue: S ? S.useQueue : true,
     cnt: Object.fromEntries(Object.keys(TYPES).map(k => [k, 0])), genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
     uid: 0,
   };
@@ -566,30 +608,60 @@ function switchOccupied(id) {
 const posName = p => p === '+' ? 'gerade (Grundstellung)' : 'abzweigend';
 
 // ---------- Stellwerkslogik ----------
-function trySetRoute(r) {
-  if (activeFrom(r.from)) return fail(`Ab Signal ${r.from} ist bereits eine Fahrstraße eingestellt.`);
+const rName = r => `${r.from} → ${TGT[r.to] ? TGT[r.to].label : r.to}`;
+// Prüft, ob eine Fahrstraße jetzt eingestellt werden kann. queue = Hindernis ist vorübergehend (→ speicherbar)
+function checkRoute(r) {
+  if (activeFrom(r.from)) return { msg: `Ab Signal ${r.from} ist noch eine Fahrstraße eingestellt.`, queue: true };
   const locked = lockedSecs();
   for (const sec of r.secs) {
-    if (S.occSecs.has(sec)) return fail(`Fahrstraße ${r.from} → ${r.to} nicht möglich: Abschnitt ${secName(sec)} ist besetzt.`);
-    if (locked.has(sec)) return fail(`Fahrstraße ${r.from} → ${r.to} nicht möglich: Abschnitt ${secName(sec)} ist durch eine andere Fahrstraße verschlossen.`);
+    if (S.occSecs.has(sec)) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
+    if (locked.has(sec)) return { msg: `${secName(sec)} ist durch eine andere Fahrstraße verschlossen.`, queue: true };
   }
   const toThrow = [];
   for (const id in r.sw) {
     if (S.sw[id] !== r.sw[id]) {
-      if (!S.autoSwitch) return fail(`Weiche ${id} liegt falsch – benötigt: ${posName(r.sw[id])}. Bitte Weiche umstellen.`);
-      if (switchLocked(id) || switchOccupied(id)) return fail(`Weiche ${id} ist verschlossen oder besetzt.`);
+      if (!S.autoSwitch) return { msg: `Weiche ${id} liegt falsch – benötigt: ${posName(r.sw[id])}. Bitte Weiche umstellen.`, queue: false };
+      if (S.swFault[id]) return { msg: `Weiche ${id} ist gestört (bis ca. ${fmt(S.swFault[id])}).`, queue: true };
+      if (switchLocked(id) || switchOccupied(id)) return { msg: `Weiche ${id} ist verschlossen oder besetzt.`, queue: true };
       toThrow.push(id);
     }
   }
+  return { ok: true, toThrow };
+}
+function queueRoute(r, why) {
+  S.queue = S.queue.filter(q => q.from !== r.from);
+  S.queue.push(r);
+  log(`Fahrstraße ${rName(r)} gespeichert (${why}) – wird automatisch eingestellt, sobald frei.`, 'info');
+  toast(`${why} Fahrstraße ${rName(r)} ist gespeichert und wird automatisch gestellt.`);
+}
+function processQueue() {
+  for (const q of S.queue.slice()) {
+    if (trySetRoute(q, true)) {
+      S.queue = S.queue.filter(x => x !== q);
+      if (!isGo(q.from)) signalGo(q.from, true);
+    }
+  }
+}
+function trySetRoute(r, fromQueue) {
+  const c = checkRoute(r);
+  if (!c.ok) {
+    if (fromQueue) return false;
+    if (c.queue && S.useQueue) { queueRoute(r, c.msg); return false; }
+    return fail(`Fahrstraße ${rName(r)} nicht möglich: ${c.msg}`);
+  }
+  if (!fromQueue) S.queue = S.queue.filter(q => q.from !== r.from);
+  const toThrow = c.toThrow;
   toThrow.forEach(id => S.sw[id] = r.sw[id]);
   S.routes.push({ r, train: null, released: new Set(), segRefs: null, sigOff: 0, passed: false });
-  log(`Fahrstraße ${r.from} → ${r.to} eingestellt${toThrow.length ? ' (Weichen ' + toThrow.join(', ') + ' umgestellt)' : ''}.`);
+  log(`${fromQueue ? 'Gespeicherte ' : ''}Fahrstraße ${rName(r)} eingestellt${toThrow.length ? ' (Weichen ' + toThrow.join(', ') + ' umgestellt)' : ''}.`);
+  if (fromQueue) return true;
   if (S.autoSignal) signalGo(r.from, true);
-  if (S.sig[r.from] !== 'Hp1') toast(`Fahrstraße ${r.from} → ${r.to} eingestellt. Signal ${r.from} antippen für Fahrt.`);
+  if (!isGo(r.from)) toast(`Fahrstraße ${r.from} → ${r.to} eingestellt. Signal ${r.from} antippen für Fahrt.`);
   return true;
 }
 function secName(sec) {
   if (/^G\d$/.test(sec)) return 'Gleis ' + sec[1];
+  if (/^AG8/.test(sec)) return 'Abstellgleis 8';
   if (/^AG/.test(sec)) return 'Abstellgleis 7';
   if (/^BR/.test(sec)) return 'Nebenbahn Waldheim';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
@@ -600,6 +672,12 @@ function signalGo(id, quiet) {
   if (!ar) return fail(`Signal ${id}: keine Fahrstraße eingestellt.`);
   for (const sec of ar.r.secs) if (S.occSecs.has(sec)) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
   for (const sw in ar.r.sw) if (S.sw[sw] !== ar.r.sw[sw]) return fail(`Signal ${id} kann nicht auf Fahrt: Weiche ${sw} nicht in Endlage.`);
+  if (S.sigFault[id]) {
+    S.sig[id] = 'Zs1';
+    log(`Signal ${id} gestört – Ersatzsignal Zs1: Zug fährt auf Sicht (langsam).`, 'info');
+    toast(`Signal ${id} gestört: ERSATZSIGNAL Zs1 – Fahrt auf Sicht`);
+    return true;
+  }
   S.sig[id] = 'Hp1';
   const slow = ar.r.slow;
   log(`Signal ${id} zeigt ${slow ? 'Langsamfahrt (Hp2)' : 'Fahrt (Hp1)'}.`, 'info');
@@ -630,6 +708,12 @@ function signalStop(id) {
 }
 function cancelRoute(id) {
   const ar = activeFrom(id);
+  const q = S.queue.find(x => x.from === id);
+  if (q && (!ar || ar.train)) {
+    S.queue = S.queue.filter(x => x !== q);
+    toast(`Gespeicherte Fahrstraße ${rName(q)} gelöscht.`); log(`Gespeicherte Fahrstraße ${rName(q)} gelöscht.`);
+    return true;
+  }
   if (!ar) return fail(`Ab Signal ${id} ist keine auflösbare Fahrstraße eingestellt.`);
   if (ar.train) {
     if (!canStopBefore(ar.train, ar.sigOff)) return fail(`Auflösen nicht möglich: Zug ${ar.train.num} kann nicht mehr anhalten.`);
@@ -642,6 +726,7 @@ function cancelRoute(id) {
   return true;
 }
 function throwSwitch(id) {
+  if (S.swFault[id]) return fail(`Weiche ${id} ist gestört und lässt sich nicht umstellen (bis ca. ${fmt(S.swFault[id])}).`);
   if (switchLocked(id)) return fail(`Weiche ${id} ist durch eine Fahrstraße verschlossen.`);
   if (switchOccupied(id)) return fail(`Weiche ${id} ist besetzt – Umstellen nicht möglich.`);
   S.sw[id] = S.sw[id] === '+' ? '-' : '+';
@@ -671,6 +756,11 @@ function onTap(kind, id) {
   }
   const ar = activeFrom(id);
   if (ar) {
+    if (S.sig[id] !== 'Hp0' && ar.train && S.useQueue) {   // Zug schon unterwegs → nächste Fahrstraße vorwählen
+      S.sel = id;
+      toast(`Zug fährt schon auf Signal ${id} zu – Ziel für die NÄCHSTE Fahrstraße wählen (wird gespeichert).`);
+      return;
+    }
     S.sel = null;
     if (S.sig[id] === 'Hp0') signalGo(id); else signalStop(id);
     return;
@@ -688,7 +778,12 @@ function onTap(kind, id) {
 function routeOfLeg(leg) { return S.routes.find(ar => ar.r.legs.some(([l]) => l === leg) && !ar.released.has(LEGS[leg].sec)); }
 function tapLeg(leg) {
   const ar = routeOfLeg(leg);
-  if (!ar) { if (S.cancelMode) setCancel(false); return; }
+  if (!ar) {
+    const q = S.queue.find(x => x.legs.some(([l]) => l === leg));
+    if (q) toast(`Gespeicherte Fahrstraße ${rName(q)} – zum Löschen Signal ${q.from} lange drücken.`);
+    if (S.cancelMode) setCancel(false);
+    return;
+  }
   const name = `${ar.r.from} → ${TGT[ar.r.to] ? TGT[ar.r.to].label : ar.r.to}`;
   if (ar.passed) { setCancel(false); return fail(`Fahrstraße ${name} wird gerade befahren und löst sich hinter dem Zug selbst auf.`); }
   if (S.cancelMode || (S.pendingDel === ar && performance.now() - S.pendingAt < 4000)) {
@@ -698,7 +793,7 @@ function tapLeg(leg) {
   toast(`Fahrstraße ${name} löschen? Zum Bestätigen nochmal antippen.`);
 }
 function longPress(kind, id) {
-  if (kind === 'signal' && activeFrom(id)) { S.sel = null; cancelRoute(id); if (navigator.vibrate) navigator.vibrate(40); render(); }
+  if (kind === 'signal' && (activeFrom(id) || S.queue.some(q => q.from === id))) { S.sel = null; cancelRoute(id); if (navigator.vibrate) navigator.vibrate(40); render(); }
   else if (kind === 'leg') { const ar = routeOfLeg(id); if (ar) { S.sel = null; S.pendingDel = ar; S.pendingAt = performance.now(); tapLeg(id); render(); } }
 }
 function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on', on); if (on) toast('Fahrstraße löschen: Startsignal oder gelbe Fahrstraße antippen'); }
@@ -715,10 +810,10 @@ function genNext() {
   if (r < 0.12) addBranch(t, dir);
   else if (r < 0.21) addOvertake(t, dir);
   else if (r < 0.29) addTrain('ICE', dir, t);
-  else if (r < 0.36) addTrain('GC', dir, t);
+  else if (r < 0.36) { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }
   else if (r < 0.45) addTrain('IC', dir, t);
   else if (r < 0.70) addTrain('RE', dir, t);
-  else if (dir > 0 && t > (S.turnBusyUntil || 0) && Math.random() < 0.6) addTurnPair(t);
+  else if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8');
   else addTrain('RB', dir, t);
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -738,16 +833,20 @@ function addBranch(t, dir) {
   if (dir > 0) { B.from = 'Waldheim'; B.entry = 'C'; } else B.to = 'Waldheim';
   B.plan.track = pick([1, 2]);
 }
-// Wendezug: RB aus dem Westen endet auf Gleis 1 → Abstellgleis 7 → später als neuer RB zurück nach Westen
-function addTurnPair(spawn) {
-  const A = addTrain('RB', 1, spawn);
-  A.turn = true; A.to = 'Neustadt'; A.plan.track = 1;
-  const B = addTrain('RB', -1, A.plan.dep + 9 * 60);
-  B.fromSiding = true; B.from = 'Neustadt'; B.to = A.from; B.plan.track = 1;
-  B.plan.arr = B.plan.spawn + 180; B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60;
+// Wendezug: endet in Neustadt → Abstellgleis → später als neuer Zug zurück
+//   AG (Abstellgleis 7) über Gleis 1 für Züge aus dem Westen, AG8 (Abstellgleis 8) über Gleis 6 für Züge aus dem Osten
+function addTurnPair(spawn, sid, type) {
+  const sd = SIDINGS[sid]; type = type || 'RB';
+  const A = addTrain(type, sd.dirIn, spawn);
+  A.turn = true; A.siding = sid; A.to = 'Neustadt'; A.plan.track = sd.track;
+  const B = addTrain(type, -sd.dirIn, A.plan.dep + (type === 'GC' ? 12 : 9) * 60);
+  B.fromSiding = true; B.siding = sid; B.from = 'Neustadt'; B.to = A.from; B.plan.track = sd.track;
+  if (B.stops) { B.plan.arr = B.plan.spawn + 180; B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60; }
+  else { B.plan.arr = null; B.plan.dep = Math.ceil((B.plan.spawn + 180) / 60) * 60; }
   A.link = B; B.link = A;
-  S.turnBusyUntil = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug planen (nur ein Abstellgleis)
+  S.turnBusy[sid] = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug für dieses Abstellgleis planen
 }
+const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
 function handleTurns() {
   for (const B of S.schedule) {
     if (!B.fromSiding || B.spawned || B.done) continue;
@@ -761,11 +860,12 @@ function turnOut(A, B) {
   const b1 = span[span.length - 1].b;
   B.segs = span.reverse().map(sg => ({ leg: sg.leg, d: -sg.d, a: 0, b: 0 }));
   rebuild(B);
-  B.s = b1 - tail; B.v = 0; B.len = A.len; B.endSig = 'L7'; B.spawned = true; B.announced = true;
+  const sd = SIDINGS[B.siding];
+  B.s = b1 - tail; B.v = 0; B.len = A.len; B.endSig = sd.outSig; B.spawned = true; B.announced = true;
   for (const ar of S.routes) if (ar.train === A) { ar.passed = true; ar.r.secs.forEach(sc => ar.released.add(sc)); }
   A.done = true; A.actDep = S.t;
   S.trains = S.trains.filter(t => t !== A); S.trains.push(B);
-  log(`${A.num} wird zu ${B.num} nach ${B.to}: bereit im Abstellgleis 7 – Signal L7 stellen (→ Gleis 1).`, 'info');
+  log(`${A.num} wird zu ${B.num} nach ${B.to}: bereit im Abstellgleis ${sd.no} – Signal ${sd.outSig} stellen (→ Gleis ${sd.track}).`, 'info');
 }
 function addTrain(type, dir, spawn) {
   const T = TYPES[type];
@@ -802,7 +902,11 @@ function spawnTrains() {
       const ek0 = tr.entry || String(tr.dir);
       log(`Zugmeldung: ${tr.num} (${tr.from} → ${tr.to}) angeboten, Einfahrt ${ek0 === 'C' ? 'Nebenbahn, Signal C' : tr.dir > 0 ? 'West, Signal A' : 'Ost, Signal F'} ca. ${fmt(tr.plan.spawn)}.`, 'info');
     }
-    const ek = tr.entry || String(tr.dir);
+    let ek = tr.entry || String(tr.dir);
+    if (S.closure && S.closure.active) {
+      if (ek === '1' && S.closure.side === 'W') ek = 'A2';
+      if (ek === '-1' && S.closure.side === 'E') ek = 'F2';
+    }
     if (S.t < tr.plan.spawn || blocked.has(ek)) continue;
     const ent = ENTRY[ek], sec = ent.sec;
     if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(ek); continue; }
@@ -830,11 +934,12 @@ function appendRoute(tr, ar) {
     if (g) { tr.stopAt = g.b - 14; tr.stopTrack = +g.leg[1]; }
   }
   if (EXITS[ar.r.to]) tr.depOff = ar.sigOff;
+  if (S.sig[ar.r.from] === 'Zs1') tr.capUntil = tr.total;   // Fahrt auf Sicht bis zum Ende der Fahrstraße
 }
 function assignRoutes() {
   for (const tr of S.trains) {
     let guard = 0;
-    while (SIGNALS[tr.endSig] && S.sig[tr.endSig] === 'Hp1' && guard++ < 3) {
+    while (SIGNALS[tr.endSig] && isGo(tr.endSig) && guard++ < 3) {
       const ar = activeFrom(tr.endSig);
       if (!ar || ar.train) break;
       if (EXITS[ar.r.to]) {
@@ -844,7 +949,7 @@ function assignRoutes() {
           break;
         }
       }
-      if (ar.r.to === 'AG' && !tr.turn) {
+      if (ENDS[ar.r.to] && !(tr.turn && tr.siding === ar.r.to)) {
         if (!tr.agWarn) { tr.agWarn = true; log(`${tr.num} fährt weiter nach ${tr.to} und darf nicht abgestellt werden!`, 'bad'); toast(`${tr.num} endet nicht hier – nicht ins Abstellgleis!`, true); }
         break;
       }
@@ -860,6 +965,7 @@ function endLimit(tr) {
 function stepTrain(tr, dt) {
   const E = endLimit(tr);
   let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
+  if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
   for (const sg of tr.segs) {
     if (sg.a > tr.s && sg.a - tr.s < 260) {
       const lv = Math.min(tr.vmax, LEGS[sg.leg].v);
@@ -893,13 +999,13 @@ function trainEvents(tr) {
       }
     } else if (S.t >= tr.dwellUntil) {
       tr.served = true;
-      if (SIGNALS[tr.endSig] && S.sig[tr.endSig] !== 'Hp1') log(`${tr.num} in Gleis ${tr.stopTrack} abfahrbereit – Ausfahrt über Signal ${tr.endSig}.`, 'info');
+      if (SIGNALS[tr.endSig] && !isGo(tr.endSig)) log(`${tr.num} in Gleis ${tr.stopTrack} abfahrbereit – Ausfahrt über Signal ${tr.endSig}.`, 'info');
     }
   }
   // Im Abstellgleis angekommen
-  if (tr.endSig === 'AG' && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
+  if (ENDS[tr.endSig] && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
     tr.parked = true; S.score += 5;
-    log(`${tr.num} im Abstellgleis 7 abgestellt (+5 Punkte).`, 'good');
+    log(`${tr.num} im Abstellgleis ${SIDINGS[tr.endSig].no} abgestellt (+5 Punkte).`, 'good');
     for (const ar of S.routes) if (ar.train === tr && ar.segRefs) {
       for (const sg of ar.segRefs) { const sec = LEGS[sg.leg].sec; if (sec && sg.a <= tr.s) ar.released.add(sec); }
     }
@@ -945,9 +1051,9 @@ function removeTrains() {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
       tr.done = true;
       if (tr.turn && tr.link && !tr.link.spawned) {
-        const B = tr.link; B.fromSiding = false; B.from = 'Neuhafen (Ersatzzug)';
+        const B = tr.link; B.fromSiding = false; B.from = (B.dir < 0 ? 'Neuhafen' : 'Altdorf') + ' (Ersatzzug)';
         S.score -= 10; tr.notParked = true;
-        log(`${tr.num} endet in Neustadt, ist aber ausgefahren! ${B.num} kommt als Ersatzzug von Osten (−10 Punkte).`, 'bad');
+        log(`${tr.num} endet in Neustadt, ist aber ausgefahren! ${B.num} kommt als Ersatzzug (−10 Punkte).`, 'bad');
       }
       for (const ar of S.routes) if (ar.train === tr) { ar.passed = true; ar.r.secs.forEach(s => ar.released.add(s)); }
     }
@@ -955,12 +1061,49 @@ function removeTrains() {
   S.trains = S.trains.filter(tr => !tr.done);
   S.routes = S.routes.filter(ar => !(ar.passed && ar.r.secs.every(s => ar.released.has(s))));
 }
+// ---------- Störungen ----------
+function disruptions() {
+  for (const id in S.swFault) if (S.t >= S.swFault[id]) { delete S.swFault[id]; log(`Weiche ${id} repariert – wieder stellbar.`, 'good'); }
+  for (const id in S.sigFault) if (S.t >= S.sigFault[id]) { delete S.sigFault[id]; log(`Signal ${id} repariert.`, 'good'); }
+  const c = S.closure;
+  if (c) {
+    if (!c.active && S.t >= c.from && !S.occSecs.has(c.leg)) {
+      c.active = true;
+      log(`🚧 ${c.name} gesperrt bis ca. ${fmt(c.until)}. Züge kommen auf dem Gegengleis an Signal ${c.sig}.`, 'bad');
+      toast(`🚧 Streckengleis gesperrt – Züge kommen auf dem Gegengleis an Signal ${c.sig}`, true);
+    }
+    if (c.active && S.t >= c.until) { S.closure = null; log('Bauarbeiten beendet – Streckengleis wieder frei.', 'good'); }
+  }
+  if (!S.disrupt || S.t < S.nextDisrupt) return;
+  S.nextDisrupt = S.t + (18 + Math.random() * 20) * 60;
+  const r = Math.random();
+  if (r < 0.4) {
+    const id = pick(Object.keys(SWITCHES));
+    if (S.swFault[id]) return;
+    S.swFault[id] = S.t + (6 + Math.random() * 6) * 60;
+    log(`⚠ Weichenstörung ${id} (liegt ${posName(S.sw[id])}) bis ca. ${fmt(S.swFault[id])} – lässt sich nicht umstellen.`, 'bad');
+    toast(`⚠ Weichenstörung ${id} – andere Fahrstraßen nutzen!`, true);
+  } else if (r < 0.75) {
+    const id = pick(Object.keys(SIGNALS).filter(k => !/^L/.test(k) && k !== 'A2' && k !== 'F2'));
+    if (S.sigFault[id]) return;
+    S.sigFault[id] = S.t + (8 + Math.random() * 6) * 60;
+    log(`⚠ Signalstörung ${id} bis ca. ${fmt(S.sigFault[id])} – Signal antippen gibt Ersatzsignal Zs1 (Fahrt auf Sicht).`, 'bad');
+    toast(`⚠ Signalstörung ${id} – nur Ersatzsignal Zs1 möglich`, true);
+  } else if (!S.closure) {
+    const W = Math.random() < 0.5, from = S.t + 5 * 60;
+    S.closure = W ? { side: 'W', leg: 'wL0', sig: 'A2', name: 'Streckengleis von Altdorf', from, until: from + (20 + Math.random() * 10) * 60, active: false }
+                  : { side: 'E', leg: 'eL0', sig: 'F2', name: 'Streckengleis von Neuhafen', from, until: from + (20 + Math.random() * 10) * 60, active: false };
+    log(`🚧 Bauankündigung: ${S.closure.name} wird ab ${fmt(from)} gesperrt. Dann Einfahrt über das Gegengleis (Signal ${S.closure.sig}).`, 'info');
+  }
+}
 function update(dt) {
   S.t += dt * GAME_RATE;
   ensureSchedule();
   computeOcc();
+  disruptions();
   spawnTrains();
   handleTurns();
+  processQueue();
   assignRoutes();
   for (const tr of S.trains) { stepTrain(tr, dt); trainEvents(tr); }
   signalsAndRelease();
@@ -1046,12 +1189,18 @@ function buildStatic() {
       E_.vr = E_.vr || {};
       E_.vr[id] = [el('circle', { cx: vx - 2.5, cy: s.ly + 3.5, r: 2.6, fill: '#333' }, W), el('circle', { cx: vx + 2.5, cy: s.ly - 3.5, r: 2.6, fill: '#333' }, W)];
     }
-    txt(s.x + (s.dir > 0 ? -18 : 18), s.ly + (s.dir > 0 ? 9 : -2), id,
+    E_.sigl = E_.sigl || {};
+    E_.sigl[id] = txt(s.x + (s.dir > 0 ? -18 : 18), s.ly + (s.dir > 0 ? 9 : -2), id,
       { 'text-anchor': s.dir > 0 ? 'end' : 'start', fill: '#e6e8ea', 'font-weight': 700 });
   }
 
   // Ausfahrziele
   E_.exitRing = {};
+  // Abstellgleis 8 (West)
+  txt(480, 497, 'Abstellgleis 8', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
+  el('line', { x1: 398, y1: 460, x2: 398, y2: 480, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
+  el('line', { x1: 398, y1: 464, x2: 392, y2: 464, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+  el('line', { x1: 398, y1: 476, x2: 392, y2: 476, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   // Abstellgleis: Beschriftung und Prellbock
   txt(1185, 131, 'Abstellgleis 7', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
   el('line', { x1: 1262, y1: 100, x2: 1262, y2: 120, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
@@ -1064,6 +1213,8 @@ function buildStatic() {
     txt(x + w / 2, y + h / 2 + 5, TGT[id].label, { 'text-anchor': 'middle', fill: '#e6e8ea', 'font-size': 13, 'font-weight': 700 });
   }
 
+  // gespeicherte Fahrstraßen (gestrichelt)
+  E_.queue = el('g', {}, W);
   // Züge
   E_.trains = el('g', { 'clip-path': 'url(#clipW)' }, W);
 
@@ -1082,14 +1233,19 @@ function render() {
   const rl = routeLegs();
   for (const id in E_.legs) {
     const pend = S.pendingDel && performance.now() - S.pendingAt < 4000 && S.routes.includes(S.pendingDel) && S.pendingDel.r.legs.some(([l]) => l === id);
-    const c = S.occLegs.has(id) ? COL.occ : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
+    const closed = S.closure && S.closure.active && S.closure.leg === id;
+    const c = S.occLegs.has(id) ? COL.occ : closed ? '#c0703a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
+    if (E_.legs[id]._d !== closed) { E_.legs[id].setAttribute('stroke-dasharray', closed ? '10 6' : 'none'); E_.legs[id]._d = closed; }
     if (E_.legs[id]._c !== c) { E_.legs[id].setAttribute('stroke', c); E_.legs[id]._c = c; }
   }
   const targets = new Set(S.sel ? ROUTES.filter(r => r.from === S.sel).map(r => r.to) : []);
   for (const id in SIGNALS) {
     const asp = aspect(id);
     E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : COL.green);
-    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' ? COL.yellow : '#2a2d30');
+    const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
+    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
+    E_.sigl[id].setAttribute('fill', S.sigFault[id] ? '#ff8a3d' : '#e6e8ea');
+    E_.sigl[id].textContent = id + (S.sigFault[id] ? ' ⚠' : '');
     if (E_.vr && E_.vr[id]) {
       const ar = S.routes.find(a => a.r.from === id && !a.passed);
       const c = S.sig[id] === 'Hp1' && ar && SIGNALS[ar.r.to] ? vrColors(ar.r.to) : ['#333', '#333'];
@@ -1098,6 +1254,7 @@ function render() {
     const ring = E_.ring[id];
     if (S.sel === id) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'blink'); ring.removeAttribute('stroke-dasharray'); }
     else if (targets.has(id)) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'pulse'); ring.setAttribute('stroke-dasharray', '4 3'); }
+    else if (S.queue.some(q => q.from === id) && !activeFrom(id)) { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'pulse'); ring.setAttribute('stroke-dasharray', '3 3'); ring.setAttribute('stroke', '#5ad1ff'); continue; }
     else if (activeFrom(id) && S.sig[id] === 'Hp0') { ring.setAttribute('display', 'inline'); ring.setAttribute('class', 'pulse'); ring.setAttribute('stroke-dasharray', '2 2'); ring.setAttribute('stroke', COL.route); continue; }
     else ring.setAttribute('display', 'none');
     ring.setAttribute('stroke', '#fff');
@@ -1111,9 +1268,16 @@ function render() {
     const pos = S.sw[id];
     E_.gaps[id + 's'].setAttribute('display', pos === '-' ? 'inline' : 'none');
     E_.gaps[id + 'd'].setAttribute('display', pos === '+' ? 'inline' : 'none');
-    E_.swl[id].setAttribute('fill', switchLocked(id) ? COL.route : '#9aa1a8');
-    E_.swl[id].textContent = id + (pos === '-' ? ' ⟋' : '');
+    E_.swl[id].setAttribute('fill', S.swFault[id] ? '#ff8a3d' : switchLocked(id) ? COL.route : '#9aa1a8');
+    E_.swl[id].textContent = id + (pos === '-' ? ' ⟋' : '') + (S.swFault[id] ? ' ⚠' : '');
   }
+  // gespeicherte Fahrstraßen
+  let qh = '';
+  for (const q of S.queue) for (const [l] of q.legs) {
+    if (LEGS[l].virtual) continue;
+    qh += `<path d="M${LEGS[l].pts.map(p => p.join(',')).join(' L')}" fill="none" stroke="#5ad1ff" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+  }
+  if (E_.queue._h !== qh) { E_.queue.innerHTML = qh; E_.queue._h = qh; }
   // Züge
   let h = '';
   for (const tr of S.trains) {
@@ -1135,10 +1299,11 @@ function trainStatus(tr) {
   if (tr.done) return { txt: tr.turn ? (tr.notParked ? 'ausgefahren (nicht abgestellt!)' : `gewendet → ${tr.link.num}`) : 'ausgefahren', cls: 'done' };
   if (tr.fromSiding && !tr.spawned) {
     if (!tr.link.parked && S.t >= tr.plan.spawn) return { txt: `wartet: ${tr.link.num} noch nicht abgestellt`, cls: 'warn' };
-    return { txt: tr.link.parked ? 'steht im Abstellgleis 7' : 'Bereitstellung aus Abstellgl.', cls: '' };
+    return { txt: tr.link.parked ? `steht im Abstellgleis ${SIDINGS[tr.siding].no}` : 'Bereitstellung aus Abstellgl.', cls: '' };
   }
-  if (tr.parked) return { txt: `abgestellt in Gl 7 (wendet ${fmt(tr.link.plan.spawn)})`, cls: 'stop' };
-  if (tr.turn && tr.served && tr.v < 0.5 && tr.endSig === 'N1' && S.sig.N1 !== 'Hp1') return { txt: 'endet – abstellen: N1 → Abstellgl.', cls: 'act' };
+  if (tr.parked) return { txt: `abgestellt in Gl ${SIDINGS[tr.siding].no} (wendet ${fmt(tr.link.plan.spawn)})`, cls: 'stop' };
+  if (tr.turn && (tr.served || !tr.stops) && tr.v < 0.5 && tr.endSig === SIDINGS[tr.siding].inSig && !isGo(tr.endSig))
+    return { txt: `endet – abstellen: ${tr.endSig} → Abstellgl. ${SIDINGS[tr.siding].no}`, cls: 'act' };
   if (!tr.spawned) {
     if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
     if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
@@ -1146,7 +1311,7 @@ function trainStatus(tr) {
   }
   if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
   if (tr.dwellUntil != null && !tr.served) return { txt: `hält Gl ${tr.stopTrack} bis ${fmt(tr.dwellUntil)}`, cls: 'stop' };
-  if (tr.v < 0.5 && SIGNALS[tr.endSig] && S.sig[tr.endSig] !== 'Hp1') {
+  if (tr.v < 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) {
     if (tr.served) return { txt: `abfahrbereit Gl ${tr.stopTrack} – Sig ${tr.endSig}`, cls: 'act' };
     if (tr.s >= tr.total - 9) return { txt: `Halt vor Sig ${tr.endSig}`, cls: 'act' };
   }
@@ -1168,11 +1333,17 @@ function renderPanel() {
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
       <td>${tr.from}<div class="sub">→ ${tr.to}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono">${tr.plan.arr != null ? fmt(tr.plan.arr) : '—'}</td>
-      <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. 7</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
+      <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. ${SIDINGS[tr.siding].no}</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
   $('#plan').innerHTML = h + '</tbody>';
+  let al = '';
+  for (const id in S.swFault) al += `<div>⚠ Weiche ${id} gestört bis ${fmt(S.swFault[id])}</div>`;
+  for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
+  if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
+  if (S.queue.length) al += `<div class="q">Speicher: ${S.queue.map(rName).join(' · ')}</div>`;
+  if ($('#alerts')._h !== al) { $('#alerts').innerHTML = al; $('#alerts')._h = al; }
   $('#scoreVal').textContent = S.score;
   $('#punct').textContent = `pünktlich ${S.ontime}/${S.departed}`;
   const nxt = S.schedule.find(t => !t.spawned);
@@ -1277,12 +1448,16 @@ function syncOptions() {
   $('#optSignal').classList.toggle('on', S.autoSignal);
   $('#optSignal').textContent = S.autoSignal ? 'Signal automatisch auf Fahrt' : 'Signal von Hand auf Fahrt';
   $('#optDensity').textContent = 'Zugdichte: ' + S.density;
+  $('#optDisrupt').classList.toggle('on', S.disrupt); $('#optDisrupt').textContent = S.disrupt ? 'Störungen an' : 'Störungen aus';
+  $('#optQueue').classList.toggle('on', S.useQueue); $('#optQueue').textContent = S.useQueue ? 'Fahrstraßenspeicher an' : 'Fahrstraßenspeicher aus';
 }
 $('#optSwitch').addEventListener('click', () => { S.autoSwitch = !S.autoSwitch; syncOptions(); });
 $('#optSignal').addEventListener('click', () => { S.autoSignal = !S.autoSignal; syncOptions(); });
 $('#optDensity').addEventListener('click', () => {
   const keys = Object.keys(DENSITY); S.density = keys[(keys.indexOf(S.density) + 1) % keys.length]; syncOptions();
 });
+$('#optDisrupt').addEventListener('click', () => { S.disrupt = !S.disrupt; syncOptions(); });
+$('#optQueue').addEventListener('click', () => { S.useQueue = !S.useQueue; if (!S.useQueue) S.queue = []; syncOptions(); });
 $('#btnNew').addEventListener('click', () => { if (confirm('Neues Spiel beginnen?')) startGame(); });
 window.addEventListener('resize', () => setTimeout(fit, 50));
 window.addEventListener('orientationchange', () => setTimeout(fit, 250));

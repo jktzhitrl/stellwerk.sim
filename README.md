@@ -1,6 +1,6 @@
 # Stellwerk Neustadt
 
-Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnhof mit 6 Gleisen, Abstellgleis, Nebenbahn-Abzweig und zweigleisiger Strecke; ICE-Durchfahrten und Überholungen – in einer einzigen Datei: `index.html`.
+Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnhof mit 6 Gleisen, zwei Abstellgleisen, Nebenbahn-Abzweig und zweigleisiger Strecke; ICE-Durchfahrten, Überholungen, Störungen und Fahrstraßenspeicher – in einer einzigen Datei: `index.html`.
 
 ## Starten
 - **Lokal:** `index.html` im Browser öffnen (Doppelklick) – keine Installation, keine externen Abhängigkeiten.
