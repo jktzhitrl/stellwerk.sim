@@ -18,7 +18,7 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 ## Bahnhöfe
 - **Bf Neustadt** (fiktiv): 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen.
 - **Bf Teutschenthal** (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis.
-- **Burgstadt Hbf** (fiktiv, groß): 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, zweigleisige Hauptstrecke Altheim – Hafenau, zweigleisiger Abzweig nach Talburg, eingleisiges Güter-Einfahrgleis.
+- **Burgstadt Hbf** (fiktiv, groß): 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, Richtungsbetrieb mit vier zweigleisigen Strecken (Altheim, Westerburg, Hafenau, Abzweig Talburg), Güter-Einfahrgleise West und Ost.
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 

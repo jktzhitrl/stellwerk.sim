@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.17">
+<meta name="app-version" content="2026-11-17.18">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -401,12 +401,13 @@
         <li>Vereinfachtes Gleisbild nach OpenRailwayMap – Lage und Zahl der Weichen entsprechen nicht genau dem Original.</li>
       </ul>
     </div>
-    <div class="only-burgstadt">Du bist Fahrdienstleiter im <b>Burgstadt Hbf</b> (fiktiv) mit <b>10 Bahnsteiggleisen</b> und einem <b>Güterbahnhof (Gleise 11–16)</b>.
+    <div class="only-burgstadt">Du bist Fahrdienstleiter im <b>Burgstadt Hbf</b> (fiktiv) mit <b>10 Bahnsteiggleisen</b> und einem <b>Güterbahnhof (Gleise 11–16)</b>. Der Bahnhof arbeitet im <b>Richtungsbetrieb</b>: Jede Strecke hat ihre eigenen Gleise, Ein- und Ausfahrten kreuzen sich im Normalfall nicht.
       <ul>
-        <li><b>Hauptstrecke Altheim – Hafenau</b> (zweigleisig, Rechtsverkehr): ▶ kommt von Westen unten an <b>A</b>, ◀ von Osten oben an <b>F</b>. Diese Züge nutzen die <b>Gleise 5–10</b> (5/6 sind die Hauptgleise für ICE und IC).</li>
-        <li><b>Abzweig Talburg</b> (zweigleisig, oben rechts): Züge von Talburg kommen an <b>T</b> und fahren auf <b>Gleis 1/2</b>; Züge nach Talburg fahren von Westen auf <b>Gleis 3/4</b> und dann <b>N… → „nach Talburg ▶“</b>. Im Osten erreichen nur die Gleise 1–4 die Strecke nach Talburg, nur die Gleise 5–16 die Strecke nach Hafenau.</li>
-        <li><b>Güter-Einfahrgleis</b> (unten links, eingleisig): Güterzüge vom Rbf Altheim kommen an <b>G</b> und fahren direkt in den Gbf. Güterzüge dorthin: aus dem Gbf <b>P11–P16 → „◀ Güterstrecke“</b>.</li>
-        <li><b>Güter-Einfahrgleis Ost</b> (rechts, eingleisig, zusätzlich): Güterzüge vom Rbf Hafenau kommen an <b>H</b> und erreichen über die Weiche im Ostfächer die Gleise <b>8–10</b> und den <b>Gbf</b>. Güterzüge dorthin: aus Gl 8–10 / Gbf <b>N… → „Güterstrecke ▶“</b>.</li>
+        <li><b>Hauptstrecke Altheim – Hafenau</b> (unten, zweigleisig): ▶ kommt von Westen an <b>A</b> auf die <b>Gleise 8–10</b>, ◀ kommt von Osten an <b>F</b> auf die <b>Gleise 5–7</b>.</li>
+        <li><b>Westerburg – Abzweig Talburg</b> (oben, je zweigleisig): ▶ von Westerburg an <b>B</b> auf <b>Gleis 3/4</b> → „nach Talburg ▶“; ◀ von Talburg an <b>T</b> auf <b>Gleis 1/2</b> → „◀ nach Westerburg“.</li>
+        <li>Über die Weichenverbindungen in jedem Kopf kannst du bei Bedarf auch das andere Gleis der Gruppe nehmen – dann kreuzt die Fahrt aber die Gegenrichtung.</li>
+        <li><b>Güter-Einfahrgleis West</b> (unten links): Güterzüge vom Rbf Altheim kommen an <b>G</b> direkt in den Gbf; dorthin aus dem Gbf <b>P11–P16 → „◀ Güterstrecke“</b>.</li>
+        <li><b>Güter-Einfahrgleis Ost</b> (unten rechts): Güterzüge vom Rbf Hafenau kommen an <b>H</b> auf <b>Gleis 9/10</b> oder in den <b>Gbf</b>; dorthin aus Gl 9/10 / Gbf <b>N… → „Güterstrecke ▶“</b>.</li>
         <li>Im Gbf <b>enden</b> manche Güterzüge (werden aufgelöst, +5), andere <b>beginnen</b> dort: sie stehen bereit und ziehen bis vor das Ausfahrsignal.</li>
       </ul>
     </div>
@@ -543,8 +544,8 @@ const STATIONS = {
     info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
     tags: ['viel Güterverkehr', 'Rangieraufträge', 'Anschluss Glaswerk', 'reales Vorbild'] },
   burgstadt: { name: 'Burgstadt Hbf', short: 'Burgstadt', stw: 'Stw Burgstadt Hbf',
-    info: 'Großer fiktiver Hauptbahnhof: 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, zweigleisiger Abzweig nach Talburg, zwei Güter-Einfahrgleise (West und Ost)',
-    tags: ['10 Bahnsteiggleise', 'Abzweig zweigleisig', 'Güterbahnhof', '2 Güter-Einfahrgleise', 'groß'] },
+    info: 'Großer fiktiver Hauptbahnhof: 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, Richtungsbetrieb mit vier zweigleisigen Strecken (Altheim, Westerburg, Hafenau, Talburg), zwei Güter-Einfahrgleise',
+    tags: ['10 Bahnsteiggleise', '4 Strecken', 'Richtungsbetrieb', 'Güterbahnhof', '2 Güter-Einfahrgleise', 'groß'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -703,56 +704,55 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
     NTRACKS = 10;
   }
 } else if (BF === 'burgstadt') {
-  // Burgstadt Hbf (fiktiv): 10 Bahnsteiggleise, Güterbahnhof Gl 11–16, zweigleisige Hauptstrecke Altheim – Hafenau,
-  // zweigleisiger Abzweig nach Talburg (Ostkopf, Gleise 1–4) und eingleisiges Güter-Einfahrgleis von Westen in den Gbf.
-  // Rechtsverkehr: Richtung Ost (▸) unten (y=350), Richtung West (◂) oben (y=300).
-  // Der untere Teil des Westkopfs (Hauptgleise, Fächer Gl 5–10, Gbf-Leiter) wird für den Ostkopf gespiegelt (x → WID−x).
-  WID = 2200; X0 = 850; X1 = 1350; NTRACKS = 10; MAIN_Y = [300, 350]; THROUGH = ['G5', 'G6'];
+  // Burgstadt Hbf (fiktiv): 10 Bahnsteiggleise, Güterbahnhof Gl 11–16. Richtungsbetrieb mit zwei zweigleisigen Strecken je Seite:
+  //   Westen: Westerburg (oben, y 150/200) und Altheim (unten, y 350/450); Osten: Talburg (oben) und Hafenau (unten).
+  //   Gruppe Nord: Gl 1/2 Richtung West (◀), Gl 3/4 Richtung Ost (▶)  – Westerburg ↔ Talburg
+  //   Gruppe Süd:  Gl 5–7 Richtung West (◀), Gl 8–10 Richtung Ost (▶) – Altheim ↔ Hafenau, Gbf über den unteren Fächer
+  //   Ein- und Ausfahrten kreuzen sich im Regelbetrieb nicht; Gleiswechsel über Weichenverbindungen (dann mit Kreuzung).
+  // Der Westkopf wird für den Ostkopf gespiegelt (x → WID−x).
+  WID = 2200; X0 = 850; X1 = 1350; NTRACKS = 10; MAIN_Y = [150, 200, 350, 450]; THROUGH = ['G2', 'G3', 'G6', 'G8'];
   TRACK_Y = { 1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500, 10: 550, 11: 640, 12: 680, 13: 720, 14: 760, 15: 800, 16: 840 };
   const add = (k, pts) => { LEGS[k] = { pts }; };
-  const LOW = {   // wird gespiegelt
-    L0: [[0,350],[110,350]], L1: [[110,350],[170,350]], L2: [[170,350],[310,350]], L3: [[310,350],[370,350]], L4: [[370,350],[850,350]],
-    U0: [[0,300],[110,300]], U1: [[110,300],[220,300]], U2: [[220,300],[260,300]], U3: [[260,300],[350,300]], U4: [[350,300],[850,300]],
-    XA: [[170,350],[220,300]], XB: [[260,300],[310,350]],
-    f1: [[370,350],[420,400]], f2: [[420,400],[470,450]], f3: [[470,450],[520,500]], f4: [[520,500],[570,550]], f5: [[570,550],[620,600]],
-    h7: [[420,400],[850,400]], h8: [[470,450],[850,450]], h9: [[520,500],[850,500]], h10: [[570,550],[850,550]],
-    q1: [[620,600],[660,640]], q2: [[660,640],[700,680]], q3: [[700,680],[740,720]], q4: [[740,720],[780,760]], q5: [[780,760],[820,800]], q6: [[820,800],[860,840]],
-    b11: [[660,640],[900,640]], b12: [[700,680],[900,680]], b13: [[740,720],[900,720]], b14: [[780,760],[900,760]], b15: [[820,800],[900,800]], b16: [[860,840],[900,840]],
+  const LOW = {   // Westkopf, wird gespiegelt
+    // Strecke Westerburg / Talburg (Gruppe Nord): NU = Richtung West, NL = Richtung Ost
+    NU0: [[0,150],[110,150]], NU1: [[110,150],[200,150]], NU2: [[200,150],[250,150]], NU3: [[250,150],[550,150]], NU4: [[550,150],[850,150]],
+    NL0: [[0,200],[110,200]], NL1: [[110,200],[150,200]], NL2: [[150,200],[300,200]], NL3: [[300,200],[600,200]], NL4: [[600,200],[850,200]],
+    XNa: [[150,200],[200,150]], XNb: [[250,150],[300,200]],
+    m1: [[550,150],[600,100]], h1: [[600,100],[850,100]], m4: [[600,200],[650,250]], h4: [[650,250],[850,250]],
+    // Strecke Altheim / Hafenau (Gruppe Süd): U = Richtung West, L = Richtung Ost
+    U0: [[0,350],[110,350]], U1: [[110,350],[250,350]], U2: [[250,350],[300,350]], U3: [[300,350],[550,350]], U4: [[550,350],[650,350]], U5: [[650,350],[850,350]],
+    m5: [[550,350],[600,300]], h5: [[600,300],[850,300]], m7: [[650,350],[700,400]], h7: [[700,400],[850,400]],
+    L0: [[0,450],[110,450]], L1: [[110,450],[150,450]], L2: [[150,450],[400,450]], L3: [[400,450],[450,450]], L4: [[450,450],[850,450]],
+    XA: [[150,450],[250,350]], XB: [[300,350],[400,450]],
+    f1: [[450,450],[500,500]], h9: [[500,500],[850,500]], f2: [[500,500],[550,550]], h10: [[550,550],[850,550]], f3: [[550,550],[600,600]],
+    q1: [[600,600],[640,640]], q2: [[640,640],[680,680]], q3: [[680,680],[720,720]], q4: [[720,720],[760,760]], q5: [[760,760],[800,800]], q6: [[800,800],[840,840]],
+    b11: [[640,640],[900,640]], b12: [[680,680],[900,680]], b13: [[720,720],[900,720]], b14: [[760,760],[900,760]], b15: [[800,800],[900,800]], b16: [[840,840],[900,840]],
   };
   const mir = p => [WID - p[0], p[1]];
   for (const k in LOW) { add('w' + k, LOW[k]); add('e' + k, LOW[k].map(mir).reverse()); }
-  // Westkopf oben: Weichenfächer vom Hauptgleis Richtung West zu den Gleisen 4 … 1
-  add('wd1', [[350,300],[400,250]]); add('wd2', [[400,250],[450,200]]); add('wd3', [[450,200],[500,150]]); add('wd4', [[500,150],[550,100]]);
-  add('wh1', [[550,100],[850,100]]); add('wh2', [[500,150],[850,150]]); add('wh3', [[450,200],[850,200]]); add('wh4', [[400,250],[850,250]]);
-  // Güter-Einfahrgleis von Westen (eingleisig) – mündet in die Weichenleiter des Gbf
-  add('wGZ0', [[0,600],[110,600]]); add('wGZ1', [[110,600],[620,600]]);
-  // Zusätzliches Güter-Einfahrgleis von Osten (eingleisig) – mündet unterhalb von Gl 7 in den Ostfächer (Gl 8–10, Gbf)
-  { const q = LEGS.ef2.pts; delete LEGS.ef2; add('ef2a', [q[0], [1760,420]]); add('ef2b', [[1760,420], q[1]]); }
-  add('eGZ1', [[1760,420],[2090,420]]); add('eGZ0', [[2090,420],[2200,420]]);
+  // Güter-Einfahrgleis West (eingleisig) – mündet in die Weichenleiter des Gbf
+  add('wGZ0', [[0,600],[110,600]]); add('wGZ1', [[110,600],[600,600]]);
+  // Güter-Einfahrgleis Ost (eingleisig) – mündet mit eigener Weiche in den unteren Ostfächer (Gl 9/10, Gbf)
+  { const q = LEGS.ef1.pts; delete LEGS.ef1; add('ef1a', [q[0], [1725,475]]); add('ef1b', [[1725,475], q[1]]); }
+  add('eGZ2', [[1725,475],[1800,475]]); add('eGZ1b', [[1800,475],[1860,535]]); add('eGZ1', [[1860,535],[2090,535]]); add('eGZ0', [[2090,535],[2200,535]]);
   // Bahnsteig- und Gbf-Gleise
   for (let g = 1; g <= 10; g++) add('G' + g, [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]]);
   for (let g = 11; g <= 16; g++) add('G' + g, [[900, TRACK_Y[g]], [1300, TRACK_Y[g]]]);
-  // Ostkopf oben: Gleise 1–4 → zweigleisiger Abzweig Talburg (oben = Richtung West, unten = Richtung Ost)
-  add('t1a', [[1350,100],[1400,100]]); add('t1d', [[1400,100],[1450,150]]); add('t2a', [[1350,150],[1450,150]]);
-  add('t4a', [[1350,250],[1450,250]]); add('t4d', [[1450,250],[1500,200]]); add('t3a', [[1350,200],[1500,200]]);
-  add('tu1', [[1450,150],[1500,150]]); add('tu2', [[1500,150],[1650,150]]); add('tu3', [[1650,150],[1700,150]]);
-  add('tl1', [[1500,200],[1550,200]]); add('tl2', [[1550,200],[1600,200]]); add('tl3', [[1600,200],[1700,200]]);
-  add('tD1', [[1500,150],[1550,200]]); add('tD2', [[1600,200],[1650,150]]);
-  add('tub', [[1700,150],[1800,50]]); add('tU1', [[1800,50],[2090,50]]); add('tU0', [[2090,50],[2200,50]]);
-  add('tlb', [[1700,200],[1800,100]]); add('tL1', [[1800,100],[2090,100]]); add('tL0', [[2090,100],[2200,100]]);
   Object.assign(LEGS, {
-    XWi: { pts: [[-300,350],[0,350]], virtual: true }, XWo: { pts: [[-300,300],[0,300]], virtual: true },
-    XEi: { pts: [[2200,300],[2500,300]], virtual: true }, XEo: { pts: [[2200,350],[2500,350]], virtual: true },
-    XTi: { pts: [[2200,50],[2500,50]], virtual: true },  XTo: { pts: [[2200,100],[2500,100]], virtual: true },
+    XWi: { pts: [[-300,450],[0,450]], virtual: true }, XWo: { pts: [[-300,350],[0,350]], virtual: true },
+    XBi: { pts: [[-300,200],[0,200]], virtual: true }, XBo: { pts: [[-300,150],[0,150]], virtual: true },
     XG:  { pts: [[-300,600],[0,600]], virtual: true },
-    XH:  { pts: [[2200,420],[2500,420]], virtual: true },
+    XEi: { pts: [[2200,350],[2500,350]], virtual: true }, XEo: { pts: [[2200,450],[2500,450]], virtual: true },
+    XTi: { pts: [[2200,150],[2500,150]], virtual: true }, XTo: { pts: [[2200,200],[2500,200]], virtual: true },
+    XH:  { pts: [[2200,535],[2500,535]], virtual: true },
   });
   Object.assign(SIGNALS, {
-    A: { x: 110,  y: 350, dir:  1, kind: 'Einfahrsignal' },                // von Altheim
-    F: { x: 2090, y: 300, dir: -1, kind: 'Einfahrsignal' },                // von Hafenau
-    T: { x: 2090, y: 50,  dir: -1, kind: 'Einfahrsignal' },                // von Talburg
+    A: { x: 110,  y: 450, dir:  1, kind: 'Einfahrsignal' },                // von Altheim
+    B: { x: 110,  y: 200, dir:  1, kind: 'Einfahrsignal' },                // von Westerburg
     G: { x: 110,  y: 600, dir:  1, kind: 'Einfahrsignal (Güter)' },        // Güter-Einfahrgleis West
-    H: { x: 2090, y: 420, dir: -1, kind: 'Einfahrsignal (Güter)' },        // Güter-Einfahrgleis Ost
+    F: { x: 2090, y: 350, dir: -1, kind: 'Einfahrsignal' },                // von Hafenau
+    T: { x: 2090, y: 150, dir: -1, kind: 'Einfahrsignal' },                // von Talburg
+    H: { x: 2090, y: 535, dir: -1, kind: 'Einfahrsignal (Güter)' },        // Güter-Einfahrgleis Ost
   });
   for (let g = 1; g <= 16; g++) {
     const gb = g > 10;
@@ -760,21 +760,23 @@ if (BF === 'neustadt' || BF === 'falkenberg') {
     SIGNALS['P' + g] = { x: gb ? 900 : X0,  y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
   }
   Object.assign(DISTANT, {
-    VA: { x: 40, y: 350, dir: 1, main: 'A' }, VG: { x: 40, y: 600, dir: 1, main: 'G' },
-    VF: { x: 2160, y: 300, dir: -1, main: 'F' }, VH: { x: 2160, y: 420, dir: -1, main: 'H' }, VT: { x: 2160, y: 50, dir: -1, main: 'T' },
+    VA: { x: 40, y: 450, dir: 1, main: 'A' }, VB: { x: 40, y: 200, dir: 1, main: 'B' }, VG: { x: 40, y: 600, dir: 1, main: 'G' },
+    VF: { x: 2160, y: 350, dir: -1, main: 'F' }, VT: { x: 2160, y: 150, dir: -1, main: 'T' }, VH: { x: 2160, y: 535, dir: -1, main: 'H' },
   });
   Object.assign(EXITS, {
-    WEST: { label: '◀ nach Altheim',   town: 'Altheim',     node: '0,300',    dir: -1, virt: 'XWo', box: [6, 254, 122, 26] },
-    GZ:   { label: '◀ Güterstrecke',   town: 'Rbf Altheim', node: '0,600',    dir: -1, virt: 'XG',  box: [6, 554, 122, 26] },
-    OST:  { label: 'nach Hafenau ▶',   town: 'Hafenau',     node: '2200,350', dir:  1, virt: 'XEo', box: [2074, 364, 120, 26] },
-    GZO:  { label: 'Güterstrecke ▶',   town: 'Rbf Hafenau', node: '2200,420', dir:  1, virt: 'XH',  box: [2074, 434, 120, 26] },
-    TAL:  { label: 'nach Talburg ▶',   town: 'Talburg',     node: '2200,100', dir:  1, virt: 'XTo', box: [2074, 114, 120, 26] },
+    WEST: { label: '◀ nach Altheim',    town: 'Altheim',     node: '0,350',    dir: -1, virt: 'XWo', box: [6, 304, 130, 26] },
+    WB:   { label: '◀ nach Westerburg', town: 'Westerburg',  node: '0,150',    dir: -1, virt: 'XBo', box: [6, 104, 130, 26] },
+    GZ:   { label: '◀ Güterstrecke',    town: 'Rbf Altheim', node: '0,600',    dir: -1, virt: 'XG',  box: [6, 554, 130, 26] },
+    OST:  { label: 'nach Hafenau ▶',    town: 'Hafenau',     node: '2200,450', dir:  1, virt: 'XEo', box: [2066, 464, 128, 26] },
+    TAL:  { label: 'nach Talburg ▶',    town: 'Talburg',     node: '2200,200', dir:  1, virt: 'XTo', box: [2066, 214, 128, 26] },
+    GZO:  { label: 'Güterstrecke ▶',    town: 'Rbf Hafenau', node: '2200,535', dir:  1, virt: 'XH',  box: [2066, 549, 128, 26] },
   });
   Object.assign(ENTRY, {
     '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0',  d:  1 }], sec: 'wL0',  sig: 'A' },
-    '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0',  d: -1 }], sec: 'eU0',  sig: 'F' },
-    'T':  { segs: [{ leg: 'XTi', d: -1 }, { leg: 'tU0',  d: -1 }], sec: 'tU0',  sig: 'T' },
+    'B':  { segs: [{ leg: 'XBi', d:  1 }, { leg: 'wNL0', d:  1 }], sec: 'wNL0', sig: 'B' },
     'G':  { segs: [{ leg: 'XG',  d:  1 }, { leg: 'wGZ0', d:  1 }], sec: 'wGZ0', sig: 'G' },
+    '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0',  d: -1 }], sec: 'eU0',  sig: 'F' },
+    'T':  { segs: [{ leg: 'XTi', d: -1 }, { leg: 'eNU0', d: -1 }], sec: 'eNU0', sig: 'T' },
     'H':  { segs: [{ leg: 'XH',  d: -1 }, { leg: 'eGZ0', d: -1 }], sec: 'eGZ0', sig: 'H' },
   });
 } else {
@@ -1013,28 +1015,28 @@ const CFG = BF === 'neustadt' || BF === 'falkenberg' ? {
     ]);
   },
 } : {
-  townsW: ['Altheim', 'Kreuzfeld', 'Westerburg'], townsE: ['Hafenau', 'Seehausen', 'Marienhof'],
-  // Abzweig Talburg (zweigleisig, Ostkopf): Züge von/nach Westen über die Gleise 1–4
-  branch: { inDir: -1, town: 'Talburg', entry: 'T', exitE: 'TAL', exitW: 'WEST',
+  townsW: ['Altheim', 'Kreuzfeld'], townsE: ['Hafenau', 'Seehausen', 'Marienhof'],
+  // Strecke Westerburg ↔ Abzweig Talburg (je zweigleisig): Gruppe Nord, Gl 1/2 Richtung West, Gl 3/4 Richtung Ost
+  branch: { inDir: -1, town: 'Talburg', entry: 'T', exitE: 'TAL', exitW: 'WB', townOut: 'Westerburg', entryOut: 'B',
     type: () => pick(['RE', 'RB', 'RB', 'IC', 'GC']), tracks: dir => dir > 0 ? [3, 4] : [1, 2] },
-  overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [7, 8] : [9, 10] },
+  overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [9, 10] : [5, 7] },
   closure: false, fit: { by: -50, bh: 950 }, shunting: false, branchLabel: 'Abzweig Talburg',
   gbf: [11, 12, 13, 14, 15, 16], gbfTracks: () => [11, 12, 13, 14, 15, 16],
-  trackFor(type, dir) {   // Hauptstrecke Altheim – Hafenau: Gleise 5–10 (Gleise 1–4 erreichen im Osten nur Talburg)
-    if (type === 'ICE') return dir > 0 ? 6 : 5;
-    if (type === 'IC') return dir > 0 ? pick([6, 7]) : 5;
-    if (type === 'GC') return dir > 0 ? pick([6, 10]) : pick([5, 10]);
-    if (type === 'RE') return dir > 0 ? pick([7, 8]) : pick([5, 9]);
-    return dir > 0 ? pick([7, 8, 9]) : pick([9, 10]);
+  trackFor(type, dir) {   // Hauptstrecke Altheim – Hafenau (Gruppe Süd): Richtung Ost Gl 8–10, Richtung West Gl 5–7
+    if (type === 'ICE') return dir > 0 ? 8 : 6;
+    if (type === 'IC') return dir > 0 ? pick([8, 9]) : pick([6, 5]);
+    if (type === 'GC') return dir > 0 ? pick([10, 9]) : pick([7, 5]);
+    if (type === 'RE') return dir > 0 ? pick([8, 9]) : pick([5, 6]);
+    return dir > 0 ? pick([9, 10]) : pick([5, 7]);
   },
   gen(t, dir) {
     pickWeighted(t, [
-      [0.14, 'P', () => addBranch(t, dir)],                // Talburg
+      [0.20, 'P', () => addBranch(t, dir)],                // Westerburg ↔ Talburg
       [0.07, 'X', () => addOvertake(t, dir)],
       [0.08, 'P', () => addTrain('ICE', dir, t)],
       [0.10, 'P', () => addTrain('IC', dir, t)],
       [0.17, 'P', () => addTrain('RE', dir, t)],
-      [0.17, 'P', () => addTrain('RB', dir, t)],
+      [0.13, 'P', () => addTrain('RB', dir, t)],
       [0.07, 'F', () => addTrain('GC', dir, t)],
       [0.08, 'F', () => addFreightLine(t, dir)],           // über das Güter-Einfahrgleis
       [0.07, 'F', () => addGbfEnd(t, dir)],                // endet im Gbf
@@ -1236,7 +1238,8 @@ function secName(sec) {
   if (/^AG8/.test(sec)) return 'Abstellgleis 8';
   if (/^AG/.test(sec)) return 'Abstellgleis 7';
   if (/^BR/.test(sec)) return 'Nebenbahn Waldheim';
-  if (/^t[UL]0$/.test(sec)) return 'Strecke Talburg';
+  if (/^eN[UL]0$/.test(sec)) return 'Strecke Talburg';
+  if (/^wN[UL]0$/.test(sec)) return 'Strecke Westerburg';
   if (/^wGZ/.test(sec)) return 'Güter-Einfahrgleis West';
   if (/^eGZ/.test(sec)) return 'Güter-Einfahrgleis Ost';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
@@ -1411,7 +1414,8 @@ function addOvertake(t, dir) {
 function addBranch(t, dir) {
   const BR = CFG.branch, B = addTrain(typeof BR.type === 'function' ? BR.type() : BR.type, dir, t);
   B.branch = true;
-  if (dir === BR.inDir) { B.from = BR.town; B.entry = BR.entry || 'C'; } else B.to = BR.town;
+  if (dir === BR.inDir) { B.from = BR.town; B.entry = BR.entry || 'C'; if (BR.townOut) B.to = BR.townOut; }
+  else { B.to = BR.town; if (BR.entryOut) { B.entry = BR.entryOut; B.from = BR.townOut; } }
   B.plan.track = pick(BR.tracks(dir));
 }
 // Wendezug: endet in Neustadt → Abstellgleis → später als neuer Zug zurück
@@ -2135,15 +2139,17 @@ function decorBurgstadt(W, txt, arrow, buffer) {
   txt(WID / 2, -18, 'BURGSTADT HBF', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 22, 'font-weight': 800, 'letter-spacing': 3 });
   txt(WID / 2, -2, 'Zentralstellwerk Bf · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
   txt(8, -20, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(8, -4, 'Altheim · Rbf Altheim', { 'font-size': 11 });
+  txt(8, -4, 'Westerburg · Altheim · Rbf Altheim', { 'font-size': 11 });
   txt(WID - 150, -20, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(WID - 150, -4, 'Talburg · Hafenau', { 'text-anchor': 'end', 'font-size': 11 });
-  txt(6, 410, '▶ von Altheim (Einfahrt an A)', { fill: '#c9ced3' });
-  txt(WID - 125, 268, '◀ von Hafenau (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
-  txt(WID - 6, 150, '◀ von Talburg (Einfahrt an T)', { 'text-anchor': 'end', fill: '#c9ced3' });
-  txt(1880, 76, '⇄ Abzweig Talburg (zweigleisig)', { 'font-size': 11, fill: '#c9ced3' });
+  txt(WID - 150, -4, 'Talburg · Hafenau · Rbf Hafenau', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(6, 516, '▶ von Altheim (Einfahrt an A)', { fill: '#c9ced3' });
+  txt(6, 266, '▶ von Westerburg (Einfahrt an B)', { fill: '#c9ced3' });
+  txt(WID - 125, 322, '◀ von Hafenau (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  txt(WID - 125, 122, '◀ von Talburg (Einfahrt an T)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  txt(340, 226, '⇄ Strecke Westerburg (zweigleisig)', { 'font-size': 11, fill: '#c9ced3' });
+  txt(1660, 226, '⇄ Abzweig Talburg (zweigleisig)', { 'font-size': 11, fill: '#c9ced3' });
   txt(6, 656, '⇄ Güter-Einfahrgleis West (eingleisig, Einfahrt an G)', { fill: '#c9ced3' });
-  txt(WID - 6, 478, 'Güter-Einfahrgleis Ost (eingleisig, Einfahrt an H) ⇄', { 'text-anchor': 'end', fill: '#c9ced3' });
+  txt(WID - 6, 594, 'Güter-Einfahrgleis Ost (eingleisig, Einfahrt an H) ⇄', { 'text-anchor': 'end', fill: '#c9ced3' });
   // Bahnsteige
   [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]].forEach(([a, b], i) => {
     const y0 = TRACK_Y[a] + 12, y1 = TRACK_Y[b] - 12;
@@ -2157,7 +2163,7 @@ function decorBurgstadt(W, txt, arrow, buffer) {
   el('rect', { x: 1000, y: 62, width: 200, height: 18, rx: 2, fill: '#6b5a3a', stroke: '#a08a5c' }, W);
   txt(1100, 75, 'EMPFANGSGEBÄUDE', { 'text-anchor': 'middle', 'font-size': 10, fill: '#e0cfa8', 'letter-spacing': 1 });
   // Fahrtrichtungspfeile (Rechtsverkehr)
-  [[75, 350, 1], [75, 300, -1], [2125, 300, -1], [2125, 350, 1], [2125, 50, -1], [2125, 100, 1], [170, 600, 1], [200, 600, -1], [2000, 420, 1], [2030, 420, -1]].forEach(a => arrow(...a));
+  [[75, 450, 1], [75, 350, -1], [75, 200, 1], [75, 150, -1], [2125, 350, -1], [2125, 450, 1], [2125, 150, -1], [2125, 200, 1], [170, 600, 1], [200, 600, -1], [2000, 535, 1], [2030, 535, -1]].forEach(a => arrow(...a));
 }
 function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
