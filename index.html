@@ -80,7 +80,7 @@
 
   /* ---------- Seitenleiste (Fahrplan / Meldungen) ---------- */
   #side {
-    width: 400px; background: var(--panel); border-left: 1px solid #000;
+    width: 480px; background: var(--panel); border-left: 1px solid #000;
     display: flex; flex-direction: column; min-height: 0;
     padding-bottom: env(safe-area-inset-bottom); padding-right: env(safe-area-inset-right);
   }
@@ -89,9 +89,23 @@
     padding: 8px 10px; background: var(--panel2); border-bottom: 1px solid #000;
     display: flex; justify-content: space-between; align-items: center;
   }
-  #planWrap { flex: 1.4; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 120px; }
-  #logWrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 90px; border-top: 1px solid #000; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  #planWrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 120px; }
+  #ticker { padding: 8px 10px; font-size: 13px; border-top: 1px solid #000; background: var(--panel2); color: #cfe8ff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 36px; }
+  #ticker .t { color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-right: 6px; }
+  #logWrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 90px; }
+  #menu { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 94vw); z-index: 40; background: var(--panel);
+          border-left: 1px solid #000; box-shadow: -8px 0 24px rgba(0,0,0,.6); display: flex; flex-direction: column;
+          transform: translateX(105%); transition: transform .25s ease;
+          padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-right: env(safe-area-inset-right); }
+  #menu.open { transform: none; }
+  #menu h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+             padding: 8px 10px; background: var(--panel2); border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; }
+  #menuBack { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,.35); display: none; }
+  #menuBack.open { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+  td, th { overflow-wrap: anywhere; }
+  .nw { white-space: nowrap; }
   th { position: sticky; top: 0; background: #2c3034; color: var(--muted); font-weight: 600; text-align: left; padding: 6px 5px; font-size: 12px; z-index: 1; }
   td { padding: 7px 5px; border-bottom: 1px solid #33383c; vertical-align: top; }
   td.mono, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
@@ -107,21 +121,31 @@
   #log { list-style: none; margin: 0; padding: 0; font-size: 13px; }
   #log li { padding: 6px 10px; border-bottom: 1px solid #33383c; }
   #log li .t { color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-right: 6px; }
-  #log li.good { color: #a8f0c0; }
+  #log li.good, #ticker.good { color: #a8f0c0; }
+  #ticker.bad { color: #ffb3a8; }
   #log li.bad { color: #ffb3a8; }
   #log li.info { color: #cfe8ff; }
-  #settings { padding: 8px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-top: 1px solid #000; background: var(--panel2); }
+  #settings { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-bottom: 1px solid #000; }
   #settings .btn { font-size: 13px; min-height: 44px; padding: 0 8px; white-space: normal; line-height: 1.1; }
 
   @media (max-width: 1150px) {
     #side {
-      position: absolute; right: 0; top: 0; bottom: 0; z-index: 10; width: min(400px, 92vw);
+      position: absolute; right: 0; top: 0; bottom: 0; z-index: 10; width: min(480px, 94vw);
       transform: translateX(105%); transition: transform .25s ease; box-shadow: -6px 0 18px rgba(0,0,0,.5);
     }
     #side.open { transform: none; }
   }
   @media (min-width: 1151px) {
     #side.closed { display: none; }
+  }
+  @media (max-width: 1250px) {
+    .title { display: none; }
+    #top { gap: 4px; }
+  }
+  @media (max-width: 1100px) {
+    #top .lbl { display: none; }
+    #top .btn { padding: 0 10px; }
+    .sep { margin: 0 2px; }
   }
   @media (max-width: 700px) {
     .hide-s { display: none; }
@@ -166,15 +190,15 @@
     <div class="sep"></div>
     <div id="score"><b id="scoreVal">0</b> Punkte<br><span id="punct">pünktlich 0/0</span></div>
     <div class="sep"></div>
-    <button class="btn warn" id="btnCancel" title="Fahrstraße löschen: danach Startsignal antippen">✖ FS löschen</button>
+    <button class="btn warn" id="btnCancel" title="Fahrstraße löschen: danach Startsignal antippen">✖<span class="lbl"> FS löschen</span></button>
     <div class="grp">
       <button class="btn" id="zoomOut">−</button>
       <button class="btn" id="zoomIn">+</button>
       <button class="btn" id="zoomFit" title="Ansicht einpassen">⤢</button>
     </div>
     <div style="flex:1"></div>
-    <button class="btn" id="btnPanel">☰ Fahrplan</button>
-    <button class="btn" id="btnHelp">?</button>
+    <button class="btn" id="btnPanel" title="Fahrplan ein-/ausblenden">📋<span class="lbl"> Fahrplan</span></button>
+    <button class="btn" id="btnMenu" title="Menü: Einstellungen, Hilfe, Meldungen">☰<span class="lbl"> Menü</span></button>
   </div>
 
   <div id="main">
@@ -198,18 +222,26 @@
     <aside id="side">
       <h2><span>Fahrplan · Bf Neustadt</span><span id="nextInfo" class="mono"></span></h2>
       <div id="planWrap"><table id="plan"></table></div>
-      <h2><span>Meldungen</span></h2>
-      <div id="logWrap"><ul id="log"></ul></div>
-      <div id="settings">
-        <button class="btn on" id="optSwitch">Weichen automatisch</button>
-        <button class="btn on" id="optSignal">Signal automatisch auf Fahrt</button>
-        <button class="btn" id="optDensity">Zugdichte: normal</button>
-        <button class="btn on" id="optDisrupt">Störungen an</button>
-        <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
-        <button class="btn" id="btnNew" style="grid-column: span 2">Neues Spiel</button>
-      </div>
+      <div id="ticker" title="Neueste Meldung – alle Meldungen im Menü"></div>
     </aside>
   </div>
+</div>
+
+<!-- Menü (ausklappbar) -->
+<div id="menuBack"></div>
+<div id="menu">
+  <h2><span>Menü</span><button class="btn" id="btnMenuClose" aria-label="Menü schließen">✕</button></h2>
+  <div id="settings">
+    <button class="btn on" id="optSwitch">Weichen automatisch</button>
+    <button class="btn on" id="optSignal">Signal automatisch auf Fahrt</button>
+    <button class="btn" id="optDensity">Zugdichte: normal</button>
+    <button class="btn on" id="optDisrupt">Störungen an</button>
+    <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
+    <button class="btn" id="btnHelp">? Hilfe</button>
+    <button class="btn" id="btnNew" style="grid-column: span 2">Neues Spiel</button>
+  </div>
+  <h2><span>Meldungen</span></h2>
+  <div id="logWrap"><ul id="log"></ul></div>
 </div>
 
 <div id="help">
@@ -229,7 +261,7 @@
       <li><b>Ausfahrt (N1–N6 / P1–P6):</b> Ausfahrsignal <b>einmal antippen</b> – die Fahrstraße zur Strecke wird direkt gestellt.</li>
       <li>Ist der Fahrweg frei, werden die Weichen umgestellt und verschlossen, die Fahrstraße leuchtet <span class="sw" style="background:var(--route)"></span> gelb und das Signal geht auf <span class="dot" style="background:#33ff77"></span> Fahrt.</li>
       <li>Signal antippen schaltet um: grün → <span class="dot" style="background:#ff2d2d"></span> Halt, rot (mit eingestellter Fahrstraße, gelb gestrichelter Ring) → grün. Ein Signal <b>ohne Fahrstraße</b> kann nicht auf Fahrt gehen.</li>
-      <li>Wer jedes Signal von Hand auf Fahrt stellen will: Einstellung „Signal von Hand auf Fahrt“ unten in der Seitenleiste.</li>
+      <li>Wer jedes Signal von Hand auf Fahrt stellen will: Einstellung „Signal von Hand auf Fahrt“ im <b>☰ Menü</b>.</li>
       <li><b>Fahrstraße löschen</b> (solange kein Zug sie befährt):
         <ul><li>auf die <b>gelbe Fahrstraße tippen</b> (blinkt weiß) und zur Bestätigung nochmal tippen, oder</li>
         <li>das <b>Startsignal lange drücken</b>, oder</li>
@@ -246,7 +278,7 @@
     <h3>Weichen</h3>
     <ul>
       <li>Weiche (W1–W16) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
-      <li>Im Modus <b>„Weichen manuell“</b> (Einstellungen unten im Fahrplan) musst du sie selbst richtig legen, bevor die Fahrstraße eingestellt werden kann.</li>
+      <li>Im Modus <b>„Weichen manuell“</b> (im <b>☰ Menü</b>) musst du sie selbst richtig legen, bevor die Fahrstraße eingestellt werden kann.</li>
     </ul>
     <h3>Züge</h3>
     <ul>
@@ -270,14 +302,14 @@
     <ul>
       <li>Ist eine Fahrstraße noch belegt (Gleis besetzt, Weiche verschlossen, Signal hat schon eine Fahrstraße), wird sie <b>gespeichert</b> (blau gestrichelt) und <b>automatisch eingestellt</b>, sobald sie frei ist – das Startsignal geht dann selbst auf Fahrt.</li>
       <li>So kannst du z. B. die Ausfahrt schon stellen, während der Zug noch einfährt, oder bei <b>grünem Signal mit herannahendem Zug</b> das Signal antippen und das Ziel für den <b>nächsten</b> Zug vorwählen.</li>
-      <li>Gespeicherte Fahrstraße löschen: Startsignal lange drücken (oder ✖ FS löschen → Startsignal). Ausschalten in den Einstellungen.</li>
+      <li>Gespeicherte Fahrstraße löschen: Startsignal lange drücken (oder ✖ FS löschen → Startsignal). Ausschalten im ☰ Menü.</li>
     </ul>
     <h3>Störungen</h3>
     <ul>
       <li><b>Weichenstörung</b> (⚠ orange): Die Weiche bleibt einige Minuten in ihrer Lage – nimm Fahrstraßen, die sie so befahren, oder speichere die Fahrstraße.</li>
       <li><b>Signalstörung</b>: Das Signal kann nicht auf Fahrt. Fahrstraße stellen und Signal antippen → <b>Ersatzsignal Zs1</b> (weißes Blinklicht). Der Zug fährt dann <b>auf Sicht</b> (langsam) bis zum nächsten Signal.</li>
       <li><b>Bauarbeiten</b> 🚧: Ein Streckengleis wird angekündigt gesperrt (orange gestrichelt). Züge aus dieser Richtung kommen dann auf dem <b>Gegengleis</b> an <b>Signal A2</b> (West) bzw. <b>F2</b> (Ost) an – das Gleis teilen sie sich mit den ausfahrenden Zügen.</li>
-      <li>Abschaltbar in den Einstellungen unten in der Seitenleiste.</li>
+      <li>Abschaltbar im ☰ Menü.</li>
     </ul>
     <h3>Abstellgleis 7 &amp; Wendezüge</h3>
     <ul>
@@ -296,6 +328,7 @@
     <h3>Bedienung am Tablet</h3>
     <ul>
       <li>Mit einem Finger verschieben, mit zwei Fingern zoomen. ⤢ passt die Ansicht ein.</li>
+      <li><b>📋 Fahrplan</b> blendet den Fahrplan ein/aus, <b>☰ Menü</b> enthält Einstellungen, Hilfe, Neues Spiel und alle Meldungen. Die neueste Meldung steht unter dem Fahrplan.</li>
     </ul>
     <div style="text-align:right;margin-top:12px"><button class="btn on" id="btnStart">Dienst beginnen ▶</button></div>
   </div>
@@ -1351,8 +1384,9 @@ function trainStatus(tr) {
 function renderPanel() {
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
-  const rows = [...active.slice(0, 14), ...done];
-  let h = '<thead><tr><th>Zug</th><th>Fahrt</th><th>An</th><th>Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
+  const rows = [...active.slice(0, 24), ...done];
+  let h = '<colgroup><col style="width:20%"><col style="width:26%"><col style="width:19%"><col style="width:6%"><col style="width:29%"></colgroup>'
+        + '<thead><tr><th>Zug</th><th>Fahrt</th><th>An / Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
     let del = '';
@@ -1362,8 +1396,7 @@ function renderPanel() {
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
       <td><b>${tr.dir > 0 ? '▶ nach ' + tr.to : '◀ nach ' + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
-      <td class="mono">${tr.plan.arr != null ? fmt(tr.plan.arr) : '—'}</td>
-      <td class="mono">${tr.turn ? '<span class="sub">endet<br>→ Abst. ${SIDINGS[tr.siding].no}</span>' : (tr.stops ? '' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</td>
+      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.turn ? `<span class="sub">endet → Abst. ${SIDINGS[tr.siding].no}</span>` : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
@@ -1381,6 +1414,9 @@ function renderPanel() {
   if (S.logDirty) {
     S.logDirty = false;
     $('#log').innerHTML = S.log.map(l => `<li class="${l.cls}"><span class="t">${fmt(l.t)}</span>${l.text}</li>`).join('');
+    const l0 = S.log[0];
+    $('#ticker').innerHTML = l0 ? `<span class="t">${fmt(l0.t)}</span>${l0.text}` : '';
+    $('#ticker').className = l0 ? l0.cls : '';
   }
 }
 
@@ -1470,7 +1506,11 @@ $('#btnPanel').addEventListener('click', () => {
   if (narrow.matches) side.classList.toggle('open'); else side.classList.toggle('closed');
   setTimeout(fit, 30);
 });
-$('#btnHelp').addEventListener('click', () => { $('#help').classList.remove('hidden'); setSpeed(0); });
+function setMenu(open) { $('#menu').classList.toggle('open', open); $('#menuBack').classList.toggle('open', open); $('#btnMenu').classList.toggle('on', open); }
+$('#btnMenu').addEventListener('click', () => setMenu(!$('#menu').classList.contains('open')));
+$('#btnMenuClose').addEventListener('click', () => setMenu(false));
+$('#menuBack').addEventListener('click', () => setMenu(false));
+$('#btnHelp').addEventListener('click', () => { setMenu(false); $('#help').classList.remove('hidden'); setSpeed(0); });
 $('#btnStart').addEventListener('click', () => { $('#help').classList.add('hidden'); setSpeed(1); });
 function syncOptions() {
   $('#optSwitch').classList.toggle('on', S.autoSwitch);
@@ -1488,7 +1528,7 @@ $('#optDensity').addEventListener('click', () => {
 });
 $('#optDisrupt').addEventListener('click', () => { S.disrupt = !S.disrupt; syncOptions(); });
 $('#optQueue').addEventListener('click', () => { S.useQueue = !S.useQueue; if (!S.useQueue) S.queue = []; syncOptions(); });
-$('#btnNew').addEventListener('click', () => { if (confirm('Neues Spiel beginnen?')) startGame(); });
+$('#btnNew').addEventListener('click', () => { if (confirm('Neues Spiel beginnen?')) { setMenu(false); startGame(); } });
 window.addEventListener('resize', () => setTimeout(fit, 50));
 window.addEventListener('orientationchange', () => setTimeout(fit, 250));
 
