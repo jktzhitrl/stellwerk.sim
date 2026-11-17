@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
+<meta name="app-version" content="2026-11-17.1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -77,6 +78,11 @@
     opacity: 0; transition: opacity .25s; text-align: center;
   }
   #toast.show { opacity: 1; }
+  #updateBar { position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 60;
+    background: #1d6a96; border: 1px solid var(--accent); border-radius: 10px; padding: 8px 10px 8px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.5);
+    display: none; align-items: center; gap: 10px; flex-wrap: wrap; max-width: calc(100% - 20px); font-size: 15px; }
+  #updateBar.show { display: flex; }
+  #updateBar .sub { color: #cfe8ff; }
   #alerts { position: absolute; left: 8px; top: 8px; max-width: min(46%, 420px); display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
   #alerts div { background: rgba(20,22,24,.85); border-left: 4px solid #ff8a3d; padding: 5px 8px; border-radius: 4px; font-size: 13px; }
   #alerts div.q { border-left-color: #5ad1ff; }
@@ -236,6 +242,11 @@
 </div>
 
 <!-- Menü (ausklappbar) -->
+<div id="updateBar">
+  <span>🔄 <b>Neue Version verfügbar</b> <span class="sub">– das laufende Spiel startet dabei neu</span></span>
+  <button class="btn on" id="btnUpdateNow">Jetzt aktualisieren</button>
+  <button class="btn" id="btnUpdateLater">Später</button>
+</div>
 <div id="menuBack"></div>
 <div id="menu">
   <h2><span>Menü</span><button class="btn" id="btnMenuClose" aria-label="Menü schließen">✕</button></h2>
@@ -368,7 +379,7 @@
     <h3>Bedienung am Tablet</h3>
     <ul>
       <li>Mit einem Finger verschieben, mit zwei Fingern zoomen. ⤢ passt die Ansicht ein.</li>
-      <li><b>Als App installieren:</b> ☰ Menü → „📲 Als App installieren“ (Android/Chrome) bzw. in Safari „Teilen → Zum Home-Bildschirm“ (iPad). Danach startet das Spiel im Vollbild und läuft auch ohne Internet.</li>
+      <li><b>Als App installieren:</b> ☰ Menü → „📲 Als App installieren“ (Android/Chrome) bzw. in Safari „Teilen → Zum Home-Bildschirm“ (iPad). Danach startet das Spiel im Vollbild und läuft auch ohne Internet. Gibt es eine neue Version, erscheint oben <b>„Neue Version verfügbar – Jetzt aktualisieren“</b>.</li>
       <li><b>📋 Fahrplan</b> blendet den Fahrplan ein/aus, <b>☰ Menü</b> enthält Einstellungen, Hilfe, Neues Spiel und alle Meldungen. Die neueste Meldung steht unter dem Fahrplan.</li>
     </ul>
 
@@ -1927,6 +1938,42 @@ $('#btnInstall').addEventListener('click', async () => {
   else toast('Im Browsermenü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.');
 });
 syncInstall();
+
+// ---------- Aktualisierung: neue Version erkennen und anbieten ----------
+const APP_VERSION = (document.querySelector('meta[name="app-version"]') || {}).content || '';
+let updateDismissedFor = null, lastUpdateCheck = 0;
+async function checkForUpdate(force) {
+  if (!/^https?:$/.test(location.protocol) || !navigator.onLine) return;
+  if (!force && Date.now() - lastUpdateCheck < 60 * 1000) return;       // höchstens einmal pro Minute
+  lastUpdateCheck = Date.now();
+  try {
+    const res = await fetch('./index.html?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const m = (await res.text()).match(/<meta name="app-version" content="([^"]+)"/);
+    const latest = m && m[1];
+    if (latest && latest !== APP_VERSION && latest !== updateDismissedFor) $('#updateBar').classList.add('show');
+    if (navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
+  } catch (e) { /* offline o. Ä. – später erneut */ }
+}
+$('#btnUpdateNow').addEventListener('click', async () => {
+  $('#btnUpdateNow').textContent = 'Lädt …';
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.update();
+  } catch (e) {}
+  location.reload();
+});
+$('#btnUpdateLater').addEventListener('click', () => {
+  $('#updateBar').classList.remove('show');
+  fetch('./index.html?v=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
+    const m = t.match(/<meta name="app-version" content="([^"]+)"/); updateDismissedFor = m && m[1];
+  }).catch(() => {});
+  toast('Die neue Version wird beim nächsten Start geladen.');
+});
+window.addEventListener('load', () => setTimeout(() => checkForUpdate(true), 3000));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(false); });
+window.addEventListener('online', () => checkForUpdate(true));
+setInterval(() => checkForUpdate(true), 5 * 60 * 1000);
 
 buildStatic();
 startGame();
