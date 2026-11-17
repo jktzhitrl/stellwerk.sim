@@ -1468,13 +1468,30 @@ function assignRoutes() {
     }
   }
 }
+// Mindestabstand fuer nachfolgende Zuege auf demselben Gleisabschnitt.
+function followingLimit(tr) {
+  if (!tr.segs.length) return Infinity;
+  const here = segAt(tr, tr.s);
+  if (!here) return Infinity;
+  const pos = here.d > 0 ? tr.s - here.a : here.b - tr.s;
+  let limit = Infinity;
+  for (const other of S.trains) {
+    if (other === tr || other.done || !other.segs || !other.segs.length) continue;
+    const ahead = segAt(other, other.s);
+    if (!ahead || ahead.leg !== here.leg || ahead.d !== here.d) continue;
+    const otherPos = ahead.d > 0 ? other.s - ahead.a : ahead.b - other.s;
+    const gap = otherPos - other.len - pos;
+    if (gap >= 0) limit = Math.min(limit, tr.s + Math.max(0, gap - 12));
+  }
+  return limit;
+}
 function endLimit(tr) {
   let E = EXITS[tr.endSig] ? Infinity : tr.total - 8;
   if (tr.stopAt != null && !tr.served) E = Math.min(E, tr.stopAt);
   if (tr.coupleAt != null) E = Math.min(E, tr.coupleAt);
   // nach dem Halt am Bahnsteig stehen bleiben, bis das Ausfahrsignal Fahrt zeigt (nicht bis vors Signal vorziehen)
   if (tr.stopAt != null && tr.served && tr.s <= tr.stopAt + 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) E = Math.min(E, tr.stopAt);
-  return E;
+  return Math.min(E, followingLimit(tr));
 }
 function stepTrain(tr, dt) {
   if (tr.frozen) { tr.v = 0; return; }
@@ -1548,9 +1565,15 @@ function trainEvents(tr) {
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
     if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
-    if (tr.overtake && tr.link && tr.link.actDep == null) {
-      S.score -= 10; tr.link.extraDelay = 240;
-      log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, der ICE hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+    if (tr.overtake && tr.link) {
+      if (tr.link.actDep == null) {
+        S.score -= 10; tr.link.extraDelay = 240;
+        log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, ${tr.link.num} hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+      } else if (!tr.overtakeRewarded) {
+        tr.overtakeRewarded = true;
+        S.score += 10;
+        log(`Überholung gelungen: ${tr.link.num} vor ${tr.num} durchgelassen (+10 Punkte).`, 'good');
+      }
     }
   }
 }
