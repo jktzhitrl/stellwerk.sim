@@ -20,3 +20,8 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 - **Bf Teutschenthal** (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis.
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
+
+## Als App installieren
+Die Seite ist eine installierbare Web-App (PWA) und läuft danach auch offline:
+- **Android / Chrome:** ☰ Menü → „📲 Als App installieren“ (oder Browsermenü ⋮ → „App installieren“).
+- **iPad / iPhone (Safari):** Teilen (□↑) → „Zum Home-Bildschirm“.

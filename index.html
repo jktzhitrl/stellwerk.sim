@@ -6,6 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
+<meta name="apple-mobile-web-app-title" content="Stellwerk">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Stellwerk</title>
 <style>
   :root {
@@ -241,6 +246,7 @@
     <button class="btn on" id="optDisrupt">Störungen an</button>
     <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
     <button class="btn" id="btnHelp">? Hilfe</button>
+    <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
     <button class="btn" id="btnNew" style="grid-column: span 2">Neues Spiel</button>
   </div>
   <h2><span>Bahnhof</span></h2>
@@ -362,6 +368,7 @@
     <h3>Bedienung am Tablet</h3>
     <ul>
       <li>Mit einem Finger verschieben, mit zwei Fingern zoomen. ⤢ passt die Ansicht ein.</li>
+      <li><b>Als App installieren:</b> ☰ Menü → „📲 Als App installieren“ (Android/Chrome) bzw. in Safari „Teilen → Zum Home-Bildschirm“ (iPad). Danach startet das Spiel im Vollbild und läuft auch ohne Internet.</li>
       <li><b>📋 Fahrplan</b> blendet den Fahrplan ein/aus, <b>☰ Menü</b> enthält Einstellungen, Hilfe, Neues Spiel und alle Meldungen. Die neueste Meldung steht unter dem Fahrplan.</li>
     </ul>
 
@@ -1903,6 +1910,24 @@ function stationButtons(el0, ask) {
 }
 stationButtons($('#stationBtns'), false);
 stationButtons($('#menuStations'), true);
+// ---------- Installierbare App (PWA) ----------
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+let installPrompt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+window.addEventListener('appinstalled', () => { installPrompt = null; toast('Stellwerk wurde als App installiert 🎉'); syncInstall(); });
+function syncInstall() { $('#btnInstall').style.display = isStandalone() ? 'none' : ''; }
+$('#btnInstall').addEventListener('click', async () => {
+  if (installPrompt) { installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; return; }
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (location.protocol === 'file:') toast('Installieren geht nur über die Internetadresse (GitHub Pages), nicht aus einer lokalen Datei.', true);
+  else if (ios) toast('iPad/iPhone: In Safari unten/oben auf „Teilen“ (□↑) tippen → „Zum Home-Bildschirm“.');
+  else toast('Im Browsermenü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.');
+});
+syncInstall();
+
 buildStatic();
 startGame();
 setSpeed(0);
