@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.6">
+<meta name="app-version" content="2026-11-17.7">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -143,6 +143,10 @@
   tr.urgent td:first-child { box-shadow: inset 4px 0 #ff6b5b; }
   .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
 .priority-tag.urgent { color: #ff8a7a; }
+  #network { padding:8px 10px; background:#17232c; border-bottom:1px solid #3d505b; font-size:12px; }
+  #network .netlinks { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+  #network button { padding:5px 8px; min-height:30px; }
+  #network .netactive { color:#f4d77e; font-weight:700; }
   #connections { padding: 8px; background: #202b32; font-size: 12px; max-height: 160px; overflow-y: auto; }
   #connections:empty { display: none; }
   .connRow { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:5px 0; }
@@ -313,6 +317,7 @@
     <div id="sideBackdrop" aria-hidden="true"></div>
     <aside id="side" aria-label="Fahrplan und Zugmeldungen">
       <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span><button id="sideClose" type="button" aria-label="Fahrplan schließen">✕</button></h2>
+      <div id="network" aria-label="Streckennetz"></div>
       <div id="connections" aria-label="Anschlussmanagement"></div>
       <div id="planWrap"><table id="plan"></table></div>
       <div id="ticker" title="Neueste Meldung – alle Meldungen im Menü"></div>
@@ -393,6 +398,7 @@
     </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte.</p>
+    <p><b>Streckennetz:</b> Falkenberg ist über die freie Strecke mit der Blockstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind zunächst nur dargestellte Bereitstellungsgleise ohne Fahrstraßen.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -1463,6 +1469,55 @@ function addTrain(type, dir, spawn) {
 }
 function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 
+// ---------- Streckennetz / Bk Heidekreuz ----------
+// Übergaben werden pro Browser gespeichert. Es läuft jeweils nur ein Stellwerk aktiv;
+// die freie Strecke wird beim Wechsel über eine zeitversetzte Zugmeldung abgebildet.
+const NETWORK_KEY = 'stw_network_v1';
+function readNetwork() {
+  try { const a = JSON.parse(localStorage.getItem(NETWORK_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && x.to && x.from && x.type) : []; }
+  catch(e) { return []; }
+}
+function writeNetwork(a) { try { localStorage.setItem(NETWORK_KEY, JSON.stringify(a.slice(-80))); } catch(e) {} }
+function networkDest(tr) {
+  if (BF === 'falkenberg') return tr.dir > 0 ? 'teutschenthal' : 'neustadt';
+  if (BF === 'neustadt' && tr.dir > 0) return 'falkenberg';
+  if (BF === 'teutschenthal' && tr.dir < 0) return 'falkenberg';
+  return null;
+}
+function transferTrain(tr) {
+  if (tr.networkTransferred || tr.shunter || tr.isLoco || tr.turn || tr.endsGbf || tr.fromSiding || tr.fromRunaround) return;
+  const dest = networkDest(tr);
+  if (!dest) return;
+  tr.networkTransferred = true;
+  const queue = readNetwork();
+  queue.push({ from:BF, to:dest, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num,
+    ready:Date.now() + 90000, delay:tr.delay || 0 });
+  writeNetwork(queue);
+  log(tr.num + ' über freie Strecke / Bk Heidekreuz nach ' + STATIONS[dest].short + ' übergeben.', 'info');
+}
+function importNetwork() {
+  const queue = readNetwork(), remain = [];
+  for (const transfer of queue) {
+    if (transfer.to !== BF) { remain.push(transfer); continue; }
+    const dir = BF === 'falkenberg' ? (transfer.from === 'neustadt' ? 1 : -1) : BF === 'neustadt' ? -1 : 1;
+    const tr = addTrain(transfer.type, dir, S.t + 150);
+    tr.num = transfer.num;
+    tr.from = STATIONS[transfer.from]?.short || transfer.from;
+    tr.inboundDelay = Math.max(0, (transfer.delay || 0) * 60);
+    tr.networkOrigin = transfer.from;
+    log(tr.num + ' von ' + tr.from + ' über Bk Heidekreuz angekündigt.', 'info');
+  }
+  writeNetwork(remain);
+}
+function renderNetwork() {
+  const q = readNetwork();
+  const waiting = q.filter(x => x.to === BF).length;
+  const outbound = q.filter(x => x.from === BF).length;
+  $('#network').innerHTML = '<span class="netactive">🚦 Netz: ' + ST.short + '</span> · Bk Heidekreuz · ' +
+    waiting + ' Zugmeldung(en) eingehend · ' + outbound + ' ausgehend' +
+    '<div class="netlinks">' + Object.entries(STATIONS).filter(([id]) => id !== BF).map(([id,st]) =>
+      '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
+}
 // ---------- Anschlussmanagement ----------
 function connectionTrain(id) { return S.schedule.find(t => t.id === id); }
 function connectionFor(tr) { return S.connections.find(c => c.receiver === tr.id && !c.resolved); }
@@ -1707,6 +1762,7 @@ function removeTrains() {
   for (const tr of S.trains) {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
       tr.done = true;
+      transferTrain(tr);
       if (tr.turn && tr.link && !tr.link.spawned) {
         const B = tr.link; B.fromSiding = false; B.from = (B.dir < 0 ? 'Neuhafen' : 'Altdorf') + ' (Ersatzzug)';
         S.score -= 10; tr.notParked = true;
@@ -2155,6 +2211,7 @@ function trainStatus(tr) {
   return { txt: `fährt → ${tr.endSig}`, cls: '' };
 }
 function renderPanel() {
+  renderNetwork();
   $('#connections').innerHTML = S.connections.filter(c => !c.resolved).map(c => {
     const feeder = connectionTrain(c.feeder), receiver = connectionTrain(c.receiver);
     if (!feeder || !receiver) return '';
@@ -2316,6 +2373,10 @@ function syncOptions() {
   $('#optDisrupt').classList.toggle('on', S.disrupt); $('#optDisrupt').textContent = S.disrupt ? 'Störungen an' : 'Störungen aus';
   $('#optQueue').classList.toggle('on', S.useQueue); $('#optQueue').textContent = S.useQueue ? 'Fahrstraßenspeicher an' : 'Fahrstraßenspeicher aus';
 }
+$('#network').addEventListener('click', e => {
+  const b = e.target.closest('button[data-network-station]');
+  if (b) chooseStation(b.dataset.networkStation);
+});
 $('#connections').addEventListener('click', e => {
   const btn = e.target.closest('button[data-connection]');
   if (btn) decideConnection(Number(btn.dataset.connection), btn.dataset.decision);
@@ -2339,6 +2400,7 @@ function startGame() {
   addTrain('RB', -1, START_T + 180);
   S.genT = START_T + 180; S.lastDir = { '1': START_T + 60, '-1': START_T + 180 };
   ensureSchedule();
+  importNetwork();
   log(`Dienstbeginn im ${ST.stw}. Gute Schicht!`, 'good');
   S.dp = dayPart(S.t); log('🕒 ' + DAYPARTS[S.dp].msg, 'info');
   syncOptions(); setCancel(false);
