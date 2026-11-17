@@ -775,6 +775,9 @@ const TYPES = {
 };
 // ---------- Fahrplan-Regeln je Bahnhof ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
+// Unterschiedliche Beschleunigung und Bremsung je Zuggattung (Spiel-Einheiten/s²).
+const DYNAMICS = { ICE: [5.0, 7.0], IC: [4.2, 6.0], RE: [3.5, 5.0], RB: [3.8, 5.2], RBN: [3.2, 4.5], GC: [1.8, 3.0], RG: [1.2, 2.2], LOK: [2.5, 3.5] };
+const trainDynamics = tr => DYNAMICS[tr.type] || DYNAMICS.RE;
 const CFG = BF === 'neustadt' ? {
   townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
@@ -1034,7 +1037,7 @@ function signalGo(id, quiet) {
   toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
   return true;
 }
-function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * DEC) <= off - 3; }
+function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * trainDynamics(tr)[1]) <= off - 3; }
 function truncate(tr, ar) {
   const idx = tr.segs.indexOf(ar.segRefs[0]);
   if (idx >= 0) tr.segs.splice(idx);
@@ -1365,10 +1368,13 @@ function addTrain(type, dir, spawn) {
   const from = pick(dir > 0 ? CFG.townsW : CFG.townsE), to = pick(dir > 0 ? CFG.townsE : CFG.townsW);
   const track = CFG.trackFor(type, dir);
   const arr = T.stops ? spawn + 300 : null;
+  // Vorlaufverspaetungen entstehen ausserhalb des Stellwerks und verschieben
+  // nur die tatsaechliche Ankunft, niemals den veroeffentlichten Fahrplan.
+  const inboundDelay = type === 'RG' ? 0 : Math.random() < 0.28 ? (1 + Math.floor(Math.random() * 5)) * 60 : 0;
   const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : Math.ceil((spawn + (type === 'ICE' ? 210 : 300)) / 60) * 60;
   S.schedule.push({
     id: ++S.uid, type, num: `${T.name || type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
-    plan: { spawn, arr, dep, track },
+    plan: { spawn, arr, dep, track }, inboundDelay,
     spawned: false, announced: false, done: false,
     segs: [], pts: [], cum: [], total: 0, s: 0, v: 0,
     endSig: null, stopAt: null, stopTrack: null, dwellUntil: null, served: false,
@@ -1384,17 +1390,18 @@ function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
     if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround || tr.shunter) continue;
-    if (!tr.announced && S.t >= tr.plan.spawn - 60) {
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (!tr.announced && S.t >= actualSpawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
-      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(tr.plan.spawn)}, Plangleis ${tr.plan.track}.`, 'info');
+      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(actualSpawn)}${tr.inboundDelay ? ' (+' + Math.round(tr.inboundDelay / 60) + ' Min. Zulauf)' : ''}, Plangleis ${tr.plan.track}.`, 'info');
     }
     let ek = tr.entry || String(tr.dir);
     if (S.closure && S.closure.active) {
       if (ek === '1' && S.closure.side === 'W') ek = 'A2';
       if (ek === '-1' && S.closure.side === 'E') ek = 'F2';
     }
-    if (S.t < tr.plan.spawn || blocked.has(ek)) continue;
+    if (S.t < actualSpawn || blocked.has(ek)) continue;
     const ent = ENTRY[ek], sec = ent.sec;
     if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(ek); continue; }
     blocked.add(ek);
@@ -1472,18 +1479,19 @@ function endLimit(tr) {
 function stepTrain(tr, dt) {
   if (tr.frozen) { tr.v = 0; return; }
   const E = endLimit(tr);
+  const [acc, dec] = trainDynamics(tr);
   let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
   if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
   for (const sg of tr.segs) {
     if (sg.a > tr.s && sg.a - tr.s < 260) {
       const lv = Math.min(tr.vmax, LEGS[sg.leg].v);
-      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * DEC * 0.8 * (sg.a - tr.s)));
+      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * dec * 0.8 * (sg.a - tr.s)));
     }
   }
   const d = E - tr.s;
   if (d <= 0.05) vT = 0;
-  else vT = Math.max(Math.min(vT, Math.sqrt(2 * DEC * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
-  if (tr.v < vT) tr.v = Math.min(vT, tr.v + ACC * dt); else tr.v = Math.max(vT, tr.v - DEC * 1.6 * dt);
+  else vT = Math.max(Math.min(vT, Math.sqrt(2 * dec * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
+  if (tr.v < vT) tr.v = Math.min(vT, tr.v + acc * dt); else tr.v = Math.max(vT, tr.v - dec * 1.6 * dt);
   tr.s += tr.v * dt;
   if (tr.s >= E) { tr.s = E; tr.v = 0; }
   if (tr.v < 0.5) tr.halted = true;
