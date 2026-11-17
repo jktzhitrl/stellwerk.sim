@@ -1939,6 +1939,10 @@ function runStep(L) {
   return 'Lok fährt (Umsetzen) …';
 }
 function trainStatus(tr) {
+  if (tr.overtake && tr.link && !tr.done && tr.link.actDep != null && tr.actDep == null && tr.spawned && tr.served)
+    return { txt: `Überholung durch ${tr.link.num} erfolgt – Ausfahrt freigeben`, cls: 'act' };
+  if (tr.overtakes && !tr.done && tr.overtakes.actDep == null && tr.spawned && tr.v < 0.5)
+    return { txt: `Vorrang vor ${tr.overtakes.num} – Durchfahrt ermöglichen`, cls: 'act' };
   if (tr.shunter) {
     if (tr.done) return { txt: tr.aborted ? 'abgebrochen' : 'erledigt', cls: 'done' };
     if (!tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: ${tr.from} belegt`, cls: 'warn' };
@@ -1960,8 +1964,9 @@ function trainStatus(tr) {
   if (tr.turn && (tr.served || !tr.stops) && tr.v < 0.5 && tr.endSig === SIDINGS[tr.siding].inSig && !isGo(tr.endSig))
     return { txt: `endet – abstellen: ${tr.endSig} → ${SIDINGS[tr.siding].short}`, cls: 'act' };
   if (!tr.spawned) {
-    if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
-    if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (S.t < actualSpawn - 60) return { txt: tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'geplant', cls: tr.inboundDelay ? 'warn' : '' };
+    if (S.t < actualSpawn) return { txt: 'angeboten', cls: 'stop' };
     return { txt: 'wartet auf freie Strecke', cls: 'warn' };
   }
   if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
@@ -1991,7 +1996,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
@@ -2005,8 +2010,8 @@ function renderPanel() {
   if ($('#alerts')._h !== al) { $('#alerts').innerHTML = al; $('#alerts')._h = al; }
   $('#scoreVal').textContent = S.score;
   $('#punct').textContent = `pünktlich ${S.ontime}/${S.departed}`;
-  const nxt = S.schedule.find(t => !t.spawned);
-  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn) : '';
+  const nxt = S.schedule.filter(t => !t.spawned && !t.done).sort((a, b) => (a.plan.spawn + (a.inboundDelay || 0)) - (b.plan.spawn + (b.inboundDelay || 0)))[0];
+  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn + (nxt.inboundDelay || 0)) : '';
   if (S.logDirty) {
     S.logDirty = false;
     $('#log').innerHTML = S.log.map(l => `<li class="${l.cls}"><span class="t">${fmt(l.t)}</span>${l.text}</li>`).join('');
