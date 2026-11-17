@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.4">
+<meta name="app-version" content="2026-11-17.5">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -176,7 +176,8 @@
   #help h1 { margin: 0 0 6px; font-size: 22px; }
   #help h3 { margin: 14px 0 4px; font-size: 15px; color: var(--accent); }
   #help ul { margin: 4px 0; padding-left: 20px; }
-  body[data-bf="neustadt"] .only-teutschenthal, body[data-bf="teutschenthal"] .only-neustadt { display: none; }
+  .only-neustadt, .only-teutschenthal, .only-burgstadt { display: none; }
+  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt { display: revert; }
   .stationPick { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .stationPick .btn { margin: 4px 4px 0 0; }
   #help li { margin: 3px 0; }
@@ -343,6 +344,14 @@
         <li>Vereinfachtes Gleisbild nach OpenRailwayMap – Lage und Zahl der Weichen entsprechen nicht genau dem Original.</li>
       </ul>
     </div>
+    <div class="only-burgstadt">Du bist Fahrdienstleiter im <b>Burgstadt Hbf</b> (fiktiv) mit <b>10 Bahnsteiggleisen</b> und einem <b>Güterbahnhof (Gleise 11–16)</b>.
+      <ul>
+        <li><b>Hauptstrecke Altheim – Hafenau</b> (zweigleisig, Rechtsverkehr): ▶ kommt von Westen unten an <b>A</b>, ◀ von Osten oben an <b>F</b>. Diese Züge nutzen die <b>Gleise 5–10</b> (5/6 sind die Hauptgleise für ICE und IC).</li>
+        <li><b>Abzweig Talburg</b> (zweigleisig, oben rechts): Züge von Talburg kommen an <b>T</b> und fahren auf <b>Gleis 1/2</b>; Züge nach Talburg fahren von Westen auf <b>Gleis 3/4</b> und dann <b>N… → „nach Talburg ▶“</b>. Im Osten erreichen nur die Gleise 1–4 die Strecke nach Talburg, nur die Gleise 5–16 die Strecke nach Hafenau.</li>
+        <li><b>Güter-Einfahrgleis</b> (unten links, eingleisig): Güterzüge vom Rbf Altheim kommen an <b>G</b> und fahren direkt in den Gbf. Güterzüge dorthin: aus dem Gbf <b>P11–P16 → „◀ Güterstrecke“</b>.</li>
+        <li>Im Gbf <b>enden</b> manche Güterzüge (werden aufgelöst, +5), andere <b>beginnen</b> dort: sie stehen bereit und ziehen bis vor das Ausfahrsignal.</li>
+      </ul>
+    </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <h3>Richtungen</h3>
     <ul>
@@ -469,6 +478,9 @@ const STATIONS = {
   teutschenthal: { name: 'Bf Teutschenthal', short: 'Teutschenthal', stw: 'Stw Teutschenthal B1',
     info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
     tags: ['viel Güterverkehr', 'Rangieraufträge', 'Anschluss Glaswerk', 'reales Vorbild'] },
+  burgstadt: { name: 'Burgstadt Hbf', short: 'Burgstadt', stw: 'Stw Burgstadt Hbf',
+    info: 'Großer fiktiver Hauptbahnhof: 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, zweigleisiger Abzweig nach Talburg, Güter-Einfahrgleis',
+    tags: ['10 Bahnsteiggleise', 'Abzweig zweigleisig', 'Güterbahnhof', 'Güter-Einfahrgleis', 'groß'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -586,6 +598,74 @@ if (BF === 'neustadt') {
     'F2': { segs: [{ leg: 'XEo', d: -1 }, { leg: 'eU0', d: -1 }], sec: 'eU0', sig: 'F2' },   // Gegengleis Ost
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
+} else if (BF === 'burgstadt') {
+  // Burgstadt Hbf (fiktiv): 10 Bahnsteiggleise, Güterbahnhof Gl 11–16, zweigleisige Hauptstrecke Altheim – Hafenau,
+  // zweigleisiger Abzweig nach Talburg (Ostkopf, Gleise 1–4) und eingleisiges Güter-Einfahrgleis von Westen in den Gbf.
+  // Rechtsverkehr: Richtung Ost (▸) unten (y=350), Richtung West (◂) oben (y=300).
+  // Der untere Teil des Westkopfs (Hauptgleise, Fächer Gl 5–10, Gbf-Leiter) wird für den Ostkopf gespiegelt (x → WID−x).
+  WID = 2200; X0 = 850; X1 = 1350; NTRACKS = 10; MAIN_Y = [300, 350]; THROUGH = ['G5', 'G6'];
+  TRACK_Y = { 1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500, 10: 550, 11: 640, 12: 680, 13: 720, 14: 760, 15: 800, 16: 840 };
+  const add = (k, pts) => { LEGS[k] = { pts }; };
+  const LOW = {   // wird gespiegelt
+    L0: [[0,350],[110,350]], L1: [[110,350],[170,350]], L2: [[170,350],[310,350]], L3: [[310,350],[370,350]], L4: [[370,350],[850,350]],
+    U0: [[0,300],[110,300]], U1: [[110,300],[220,300]], U2: [[220,300],[260,300]], U3: [[260,300],[350,300]], U4: [[350,300],[850,300]],
+    XA: [[170,350],[220,300]], XB: [[260,300],[310,350]],
+    f1: [[370,350],[420,400]], f2: [[420,400],[470,450]], f3: [[470,450],[520,500]], f4: [[520,500],[570,550]], f5: [[570,550],[620,600]],
+    h7: [[420,400],[850,400]], h8: [[470,450],[850,450]], h9: [[520,500],[850,500]], h10: [[570,550],[850,550]],
+    q1: [[620,600],[660,640]], q2: [[660,640],[700,680]], q3: [[700,680],[740,720]], q4: [[740,720],[780,760]], q5: [[780,760],[820,800]], q6: [[820,800],[860,840]],
+    b11: [[660,640],[900,640]], b12: [[700,680],[900,680]], b13: [[740,720],[900,720]], b14: [[780,760],[900,760]], b15: [[820,800],[900,800]], b16: [[860,840],[900,840]],
+  };
+  const mir = p => [WID - p[0], p[1]];
+  for (const k in LOW) { add('w' + k, LOW[k]); add('e' + k, LOW[k].map(mir).reverse()); }
+  // Westkopf oben: Weichenfächer vom Hauptgleis Richtung West zu den Gleisen 4 … 1
+  add('wd1', [[350,300],[400,250]]); add('wd2', [[400,250],[450,200]]); add('wd3', [[450,200],[500,150]]); add('wd4', [[500,150],[550,100]]);
+  add('wh1', [[550,100],[850,100]]); add('wh2', [[500,150],[850,150]]); add('wh3', [[450,200],[850,200]]); add('wh4', [[400,250],[850,250]]);
+  // Güter-Einfahrgleis von Westen (eingleisig) – mündet in die Weichenleiter des Gbf
+  add('wGZ0', [[0,600],[110,600]]); add('wGZ1', [[110,600],[620,600]]);
+  // Bahnsteig- und Gbf-Gleise
+  for (let g = 1; g <= 10; g++) add('G' + g, [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]]);
+  for (let g = 11; g <= 16; g++) add('G' + g, [[900, TRACK_Y[g]], [1300, TRACK_Y[g]]]);
+  // Ostkopf oben: Gleise 1–4 → zweigleisiger Abzweig Talburg (oben = Richtung West, unten = Richtung Ost)
+  add('t1a', [[1350,100],[1400,100]]); add('t1d', [[1400,100],[1450,150]]); add('t2a', [[1350,150],[1450,150]]);
+  add('t4a', [[1350,250],[1450,250]]); add('t4d', [[1450,250],[1500,200]]); add('t3a', [[1350,200],[1500,200]]);
+  add('tu1', [[1450,150],[1500,150]]); add('tu2', [[1500,150],[1650,150]]); add('tu3', [[1650,150],[1700,150]]);
+  add('tl1', [[1500,200],[1550,200]]); add('tl2', [[1550,200],[1600,200]]); add('tl3', [[1600,200],[1700,200]]);
+  add('tD1', [[1500,150],[1550,200]]); add('tD2', [[1600,200],[1650,150]]);
+  add('tub', [[1700,150],[1800,50]]); add('tU1', [[1800,50],[2090,50]]); add('tU0', [[2090,50],[2200,50]]);
+  add('tlb', [[1700,200],[1800,100]]); add('tL1', [[1800,100],[2090,100]]); add('tL0', [[2090,100],[2200,100]]);
+  Object.assign(LEGS, {
+    XWi: { pts: [[-300,350],[0,350]], virtual: true }, XWo: { pts: [[-300,300],[0,300]], virtual: true },
+    XEi: { pts: [[2200,300],[2500,300]], virtual: true }, XEo: { pts: [[2200,350],[2500,350]], virtual: true },
+    XTi: { pts: [[2200,50],[2500,50]], virtual: true },  XTo: { pts: [[2200,100],[2500,100]], virtual: true },
+    XG:  { pts: [[-300,600],[0,600]], virtual: true },
+  });
+  Object.assign(SIGNALS, {
+    A: { x: 110,  y: 350, dir:  1, kind: 'Einfahrsignal' },                // von Altheim
+    F: { x: 2090, y: 300, dir: -1, kind: 'Einfahrsignal' },                // von Hafenau
+    T: { x: 2090, y: 50,  dir: -1, kind: 'Einfahrsignal' },                // von Talburg
+    G: { x: 110,  y: 600, dir:  1, kind: 'Einfahrsignal (Güter)' },        // Güter-Einfahrgleis
+  });
+  for (let g = 1; g <= 16; g++) {
+    const gb = g > 10;
+    SIGNALS['N' + g] = { x: gb ? 1300 : X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
+    SIGNALS['P' + g] = { x: gb ? 900 : X0,  y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
+  }
+  Object.assign(DISTANT, {
+    VA: { x: 40, y: 350, dir: 1, main: 'A' }, VG: { x: 40, y: 600, dir: 1, main: 'G' },
+    VF: { x: 2160, y: 300, dir: -1, main: 'F' }, VT: { x: 2160, y: 50, dir: -1, main: 'T' },
+  });
+  Object.assign(EXITS, {
+    WEST: { label: '◀ nach Altheim',   town: 'Altheim',     node: '0,300',    dir: -1, virt: 'XWo', box: [6, 254, 122, 26] },
+    GZ:   { label: '◀ Güterstrecke',   town: 'Rbf Altheim', node: '0,600',    dir: -1, virt: 'XG',  box: [6, 554, 122, 26] },
+    OST:  { label: 'nach Hafenau ▶',   town: 'Hafenau',     node: '2200,350', dir:  1, virt: 'XEo', box: [2074, 364, 120, 26] },
+    TAL:  { label: 'nach Talburg ▶',   town: 'Talburg',     node: '2200,100', dir:  1, virt: 'XTo', box: [2074, 114, 120, 26] },
+  });
+  Object.assign(ENTRY, {
+    '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0',  d:  1 }], sec: 'wL0',  sig: 'A' },
+    '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0',  d: -1 }], sec: 'eU0',  sig: 'F' },
+    'T':  { segs: [{ leg: 'XTi', d: -1 }, { leg: 'tU0',  d: -1 }], sec: 'tU0',  sig: 'T' },
+    'G':  { segs: [{ leg: 'XG',  d:  1 }, { leg: 'wGZ0', d:  1 }], sec: 'wGZ0', sig: 'G' },
+  });
 } else {
   // Bf Teutschenthal (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden zweigleisig mit Haltepunkt,
   // Strecke 6840 eingleisig (Gleis 3), Güterbahnhof Gleis 5–10/12, Anschlussgleis, Stellwerk B1 im Osten.
@@ -665,7 +745,8 @@ for (const k in LEGS) {
   L.len = l;
   L.sec = L.virtual ? null : k;                       // jeder Gleisabschnitt hat eigene Freimeldung
   const mainStraight = !curved && MAIN_Y.includes(p[0][1]);
-  L.v = L.virtual || /L0$|U0$/.test(k) ? 55 : (k === 'BR0' || k === 'C0') ? 35 : THROUGH.includes(k) ? 45 : /^G/.test(k) ? 30
+  if (k === 'tub' || k === 'tlb') { L.v = 40; continue; }   // Abzweig Talburg: flacher Bogen, kein Langsamfahrbegriff
+  L.v = L.virtual || /L0$|U0$/.test(k) ? 55 : (k === 'BR0' || k === 'C0' || k === 'wGZ0') ? 35 : THROUGH.includes(k) ? 45 : /^G/.test(k) ? 30
       : /^AG|^AN/.test(k) ? 18 : curved ? 20 : mainStraight ? 45 : 30;
 }
 
@@ -797,7 +878,7 @@ const CFG = BF === 'neustadt' ? {
       [0.30, 'P', () => { if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8'); else addTrain('RB', dir, t); }],
     ]);
   },
-} : {
+} : BF === 'teutschenthal' ? {
   townsW: ['Röblingen am See', 'Eisleben', 'Sangerhausen'], townsE: ['Halle (Saale)', 'Angersdorf'],
   branch: { inDir: -1, town: 'Strecke 6840', type: 'GC', exitE: 'B6840', exitW: 'WEST', tracks: dir => dir < 0 ? [3, 5, 6, 7, 8, 9, 10, 12] : [3, 5, 6, 7] },
   overtake: { fast: 'RE', tracks: dir => dir > 0 ? [3, 5, 6] : [3] },
@@ -815,6 +896,35 @@ const CFG = BF === 'neustadt' ? {
       [0.08, 'P', () => addOvertake(t, dir)],             // Güterzug wartet auf RE
       [0.08, 'F', () => { if (dir > 0 && sidingFree('AN', t) && !anBusyByShunts()) addTurnPair(t, 'AN', 'GC'); else addGbfEnd(t, dir); }],
       [0.26, 'F', () => addGbfEnd(t, dir)],               // Güterzug endet im Gbf und wird aufgelöst
+    ]);
+  },
+} : {
+  townsW: ['Altheim', 'Kreuzfeld', 'Westerburg'], townsE: ['Hafenau', 'Seehausen', 'Marienhof'],
+  // Abzweig Talburg (zweigleisig, Ostkopf): Züge von/nach Westen über die Gleise 1–4
+  branch: { inDir: -1, town: 'Talburg', entry: 'T', exitE: 'TAL', exitW: 'WEST',
+    type: () => pick(['RE', 'RB', 'RB', 'IC', 'GC']), tracks: dir => dir > 0 ? [3, 4] : [1, 2] },
+  overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [7, 8] : [9, 10] },
+  closure: false, fit: { by: -50, bh: 950 }, shunting: false, branchLabel: 'Abzweig Talburg',
+  gbf: [11, 12, 13, 14, 15, 16], gbfTracks: () => [11, 12, 13, 14, 15, 16],
+  trackFor(type, dir) {   // Hauptstrecke Altheim – Hafenau: Gleise 5–10 (Gleise 1–4 erreichen im Osten nur Talburg)
+    if (type === 'ICE') return dir > 0 ? 6 : 5;
+    if (type === 'IC') return dir > 0 ? pick([6, 7]) : 5;
+    if (type === 'GC') return dir > 0 ? pick([6, 10]) : pick([5, 10]);
+    if (type === 'RE') return dir > 0 ? pick([7, 8]) : pick([5, 9]);
+    return dir > 0 ? pick([7, 8, 9]) : pick([9, 10]);
+  },
+  gen(t, dir) {
+    pickWeighted(t, [
+      [0.14, 'P', () => addBranch(t, dir)],                // Talburg
+      [0.07, 'X', () => addOvertake(t, dir)],
+      [0.08, 'P', () => addTrain('ICE', dir, t)],
+      [0.10, 'P', () => addTrain('IC', dir, t)],
+      [0.17, 'P', () => addTrain('RE', dir, t)],
+      [0.17, 'P', () => addTrain('RB', dir, t)],
+      [0.07, 'F', () => addTrain('GC', dir, t)],
+      [0.08, 'F', () => addFreightLine(t, dir)],           // über das Güter-Einfahrgleis
+      [0.07, 'F', () => addGbfEnd(t, dir)],                // endet im Gbf
+      [0.05, 'F', () => addGbfStart(t, dir)],              // beginnt im Gbf
     ]);
   },
 };
@@ -1009,6 +1119,8 @@ function secName(sec) {
   if (/^AG8/.test(sec)) return 'Abstellgleis 8';
   if (/^AG/.test(sec)) return 'Abstellgleis 7';
   if (/^BR/.test(sec)) return 'Nebenbahn Waldheim';
+  if (/^t[UL]0$/.test(sec)) return 'Strecke Talburg';
+  if (/^wGZ/.test(sec)) return 'Güter-Einfahrgleis';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
   if (sec === 'C0') return 'Strecke 6840';
   const p = LEGS[sec] && LEGS[sec].pts, mx = p ? (p[0][0] + p[p.length - 1][0]) / 2 : 0;
@@ -1167,9 +1279,9 @@ function addOvertake(t, dir) {
 }
 // Nebenbahn Waldheim ↔ Neuhafen über den Abzweig
 function addBranch(t, dir) {
-  const BR = CFG.branch, B = addTrain(BR.type, dir, t);
+  const BR = CFG.branch, B = addTrain(typeof BR.type === 'function' ? BR.type() : BR.type, dir, t);
   B.branch = true;
-  if (dir === BR.inDir) { B.from = BR.town; B.entry = 'C'; } else B.to = BR.town;
+  if (dir === BR.inDir) { B.from = BR.town; B.entry = BR.entry || 'C'; } else B.to = BR.town;
   B.plan.track = pick(BR.tracks(dir));
 }
 // Wendezug: endet in Neustadt → Abstellgleis → später als neuer Zug zurück
@@ -1247,13 +1359,41 @@ function couple(L) {
   log(`Lok angekuppelt (+5 Punkte): ${B.num} nach ${B.to} steht auf Gleis 1 – Ausfahrt ◂ P1 → „◀ nach Altdorf“.`, 'good');
 }
 // ---------- Rangieren im Güterbahnhof (Teutschenthal) ----------
-const GBF = [3, 5, 6, 7, 8, 9, 10, 12];
+const GBF = CFG.gbf || [3, 5, 6, 7, 8, 9, 10, 12];
 // Güterzug endet im Gbf: hält auf einem Gbf-Gleis, wird aufgelöst – oft entsteht daraus ein Rangierauftrag
 function addGbfEnd(t, dir) {
   const G = addTrain('GC', dir, t);
   G.endsGbf = true; G.stops = true; G.dwell = 150; G.to = ST.short + ' Gbf';
-  G.plan.track = pick(dir > 0 ? [5, 6, 7, 8, 9, 10] : [5, 6, 7, 8, 9, 10, 12]);
+  G.plan.track = pick(CFG.gbfTracks ? CFG.gbfTracks(dir) : dir > 0 ? [5, 6, 7, 8, 9, 10] : [5, 6, 7, 8, 9, 10, 12]);
+  if (dir > 0 && ENTRY.G && Math.random() < 0.6) { G.entry = 'G'; G.from = EXITS.GZ.town; }   // über das Güter-Einfahrgleis
   G.plan.arr = t + 300; G.plan.dep = Math.ceil((G.plan.arr + G.dwell) / 60) * 60;
+}
+// Güterverkehr über das Güter-Einfahrgleis (Rbf Altheim ↔ Gbf ↔ Hafenau)
+function addFreightLine(t, dir) {
+  const G = addTrain('GC', dir, t);
+  G.fline = true; G.plan.track = pick(CFG.gbfTracks(dir));
+  if (dir > 0) { G.entry = 'G'; G.from = EXITS.GZ.town; } else G.to = EXITS.GZ.town;
+}
+// Güterzug beginnt im Gbf: steht bereit, zieht bis vor das Ausfahrsignal
+function addGbfStart(t, dir) {
+  const G = addTrain('GC', dir, t);
+  G.gbfStart = true; G.from = ST.short + ' Gbf'; G.plan.track = pick(CFG.gbfTracks(dir));
+  G.plan.dep = Math.ceil((t + 300) / 60) * 60;
+  if (dir < 0 && Math.random() < 0.5) { G.fline = true; G.to = EXITS.GZ.town; }
+}
+function spawnGbfStarts() {
+  const locked = lockedSecs();
+  for (const tr of S.schedule) {
+    if (!tr.gbfStart || tr.spawned || tr.done || S.t < tr.plan.spawn) continue;
+    const leg = 'G' + tr.plan.track;
+    if (S.occSecs.has(leg) || locked.has(leg)) continue;
+    tr.segs = [{ leg, d: tr.dir }]; rebuild(tr);
+    tr.s = Math.min(tr.total - 10, tr.total / 2 + tr.len / 2);
+    tr.endSig = (tr.dir > 0 ? 'N' : 'P') + tr.plan.track;
+    tr.spawned = true; tr.announced = true; tr.stopTrack = tr.plan.track;
+    S.trains.push(tr); computeOcc();
+    log(`${tr.num} nach ${tr.to} steht im Gbf auf Gleis ${tr.plan.track} bereit – Ausfahrt über ${sigLabel(tr.endSig)}.`, 'info');
+  }
 }
 function dissolveGbf(G) {
   const k = G.stopTrack;
@@ -1262,7 +1402,7 @@ function dissolveGbf(G) {
   S.trains = S.trains.filter(t => t !== G);
   S.score += 5;
   log(`${G.num} in Gleis ${k} aufgelöst – Lok ins Bw, Wagen stehen bereit (+5 Punkte).`, 'good');
-  if (GBF.includes(k) && Math.random() < 0.6) addShuntTask(k, S.t + 60);
+  if (CFG.shunting && GBF.includes(k) && Math.random() < 0.6) addShuntTask(k, S.t + 60);
 }
 // Rangierauftrag: Köf mit Wagengruppe von Gleis „from“ nach Gleis „to“ / ins Anschlussgleis / aus dem Anschlussgleis
 function addShuntTask(from, when) {
@@ -1381,7 +1521,7 @@ function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
-    if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround || tr.shunter) continue;
+    if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround || tr.shunter || tr.gbfStart) continue;
     if (!tr.announced && S.t >= tr.plan.spawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
@@ -1563,7 +1703,7 @@ function removeTrains() {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
       tr.done = true;
       if (tr.turn && tr.link && !tr.link.spawned) {
-        const B = tr.link; B.fromSiding = false; B.from = (B.dir < 0 ? 'Neuhafen' : 'Altdorf') + ' (Ersatzzug)';
+        const B = tr.link; B.fromSiding = false; B.from = (B.dir < 0 ? CFG.townsE[0] : CFG.townsW[0]) + ' (Ersatzzug)';
         S.score -= 10; tr.notParked = true;
         log(`${tr.num} endet in Neustadt, ist aber ausgefahren! ${B.num} kommt als Ersatzzug (−10 Punkte).`, 'bad');
       }
@@ -1618,6 +1758,7 @@ function update(dt) {
   spawnTrains();
   handleTurns();
   handleShunts();
+  spawnGbfStarts();
   processQueue();
   assignRoutes();
   for (const tr of S.trains) { stepTrain(tr, dt); trainEvents(tr); }
@@ -1698,11 +1839,39 @@ function decorTeutschenthal(W, txt, arrow, buffer) {
   [[62, 510, 1], [62, 450, -1], [1890, 450, -1], [1890, 510, 1], [1872, 390, -1], [1902, 390, 1]].forEach(a => arrow(...a));
 }
 
+function decorBurgstadt(W, txt, arrow, buffer) {
+  el('rect', { x: -14, y: -46, width: WID + 28, height: 932, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  txt(WID / 2, -18, 'BURGSTADT HBF', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 22, 'font-weight': 800, 'letter-spacing': 3 });
+  txt(WID / 2, -2, 'Zentralstellwerk Bf · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
+  txt(8, -20, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(8, -4, 'Altheim · Rbf Altheim', { 'font-size': 11 });
+  txt(WID - 8, -20, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(WID - 8, -4, 'Talburg · Hafenau', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(6, 392, '▶ von Altheim (Einfahrt an A)', { fill: '#c9ced3' });
+  txt(WID - 6, 262, '◀ von Hafenau (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  txt(WID - 6, 150, '◀ von Talburg (Einfahrt an T)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  txt(1880, 76, '⇄ Abzweig Talburg (zweigleisig)', { 'font-size': 11, fill: '#c9ced3' });
+  txt(6, 640, '⇄ Güter-Einfahrgleis (eingleisig, Einfahrt an G)', { fill: '#c9ced3' });
+  // Bahnsteige
+  [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]].forEach(([a, b], i) => {
+    const y0 = TRACK_Y[a] + 12, y1 = TRACK_Y[b] - 12;
+    el('rect', { x: X0 + 30, y: y0, width: X1 - X0 - 60, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
+    txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, `BAHNSTEIG ${a}/${b}`, { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
+  });
+  for (let g = 1; g <= 10; g++) txt(X1 - 50, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
+  for (let g = 11; g <= 16; g++) txt(1240, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
+  txt(1100, 872, 'GÜTERBAHNHOF', { 'text-anchor': 'middle', fill: '#8b9298', 'font-size': 12, 'letter-spacing': 3 });
+  // Empfangsgebäude
+  el('rect', { x: 1000, y: 62, width: 200, height: 18, rx: 2, fill: '#6b5a3a', stroke: '#a08a5c' }, W);
+  txt(1100, 75, 'EMPFANGSGEBÄUDE', { 'text-anchor': 'middle', 'font-size': 10, fill: '#e0cfa8', 'letter-spacing': 1 });
+  // Fahrtrichtungspfeile (Rechtsverkehr)
+  [[75, 350, 1], [75, 300, -1], [2125, 300, -1], [2125, 350, 1], [2125, 50, -1], [2125, 100, 1], [170, 600, 1], [200, 600, -1]].forEach(a => arrow(...a));
+}
 function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: WID, height: 600 }, cp);
+  el('rect', { x: 0, y: 0, width: WID, height: 1000 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -1711,7 +1880,7 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  (BF === 'neustadt' ? decorNeustadt : decorTeutschenthal)(W, txt, arrow, buffer);
+  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt })[BF](W, txt, arrow, buffer);
 
   // Gleise
   E_.legs = {};
@@ -1877,7 +2046,7 @@ function render() {
   $('#clock').textContent = fmt(S.t, true);
 }
 
-function exitFor(tr) { return tr.branch ? (tr.dir > 0 ? CFG.branch.exitE : CFG.branch.exitW) : tr.dir > 0 ? 'OST' : 'WEST'; }
+function exitFor(tr) { if (tr.fline && tr.dir < 0) return 'GZ'; return tr.branch ? (tr.dir > 0 ? CFG.branch.exitE : CFG.branch.exitW) : tr.dir > 0 ? 'OST' : 'WEST'; }
 function wantExit(tr) { return tr.turn ? tr.siding : exitFor(tr); }
 // Ausfahrziel, das vom aktuellen Signal aus wirklich erreichbar ist (sonst eine Umleitung)
 function bestExit(tr) {
@@ -1890,7 +2059,8 @@ function entryText(tr) {
   if (tr.fromSiding) return `aus ${SIDINGS[tr.siding].name}`;
   if (tr.fromRunaround) return 'Lok umsetzen auf Gl 1';
   if (tr.shunter) return 'Rangierauftrag · Köf + Wagen';
-  const e = tr.spawned ? ENTRY_SIG(tr) : tr.entry === 'C' ? 'C' : tr.dir > 0 ? 'A' : 'F';
+  if (tr.gbfStart) return `aus Gbf Gl ${tr.plan.track}`;
+  const e = tr.spawned ? ENTRY_SIG(tr) : tr.entry ? ENTRY[tr.entry].sig : tr.dir > 0 ? 'A' : 'F';
   return 'Einf. ' + e + (/2$/.test(e) ? ' (Gegengleis)' : '');
 }
 function ENTRY_SIG(tr) {
@@ -1926,6 +2096,7 @@ function trainStatus(tr) {
   if (tr.parked) return { txt: `abgestellt (${SIDINGS[tr.siding].short}, wendet ${fmt(tr.link.plan.spawn)})`, cls: 'stop' };
   if (tr.turn && (tr.served || !tr.stops) && tr.v < 0.5 && tr.endSig === SIDINGS[tr.siding].inSig && !isGo(tr.endSig))
     return { txt: `endet – abstellen: ${tr.endSig} → ${SIDINGS[tr.siding].short}`, cls: 'act' };
+  if (tr.gbfStart && !tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: Gl ${tr.plan.track} belegt`, cls: 'warn' };
   if (!tr.spawned) {
     if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
     if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
@@ -1936,7 +2107,7 @@ function trainStatus(tr) {
   if (tr.v < 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) {
     if (tr.served) return { txt: `abfahrbereit Gl ${tr.stopTrack} – ${tr.endSig} → ${TGT[bestExit(tr)].label} stellen`, cls: 'act' };
     if (tr.s >= tr.total - 9) {
-      if (/^(A|F|C|A2|F2)$/.test(tr.endSig)) return { txt: `wartet an ${sigLabel(tr.endSig)} – Einfahrt nach Gl ${tr.plan.track} stellen`, cls: 'act' };
+      if (Object.values(ENTRY).some(e => e.sig === tr.endSig)) return { txt: `wartet an ${sigLabel(tr.endSig)} – Einfahrt nach Gl ${tr.plan.track} stellen`, cls: 'act' };
       if (/^L\d$/.test(tr.endSig)) return { txt: `bereit an ${tr.endSig} – Fahrt nach Gl ${tr.plan.track} stellen`, cls: 'act' };
       return { txt: `wartet an ${sigLabel(tr.endSig)} – ${tr.endSig} → ${TGT[bestExit(tr)].label} stellen${bestExit(tr) !== wantExit(tr) ? ' (Umleitung)' : ''}`, cls: 'act' };
     }
@@ -1958,7 +2129,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · Nebenbahn' : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
