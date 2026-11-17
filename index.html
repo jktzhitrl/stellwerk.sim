@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.5">
+<meta name="app-version" content="2026-11-17.16">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -15,10 +15,10 @@
 <title>Stellwerk</title>
 <style>
   :root {
-    --bg: #2f3337;
-    --panel: #24272a;
-    --panel2: #1b1d1f;
-    --border: #44494e;
+    --bg: #202c33;
+    --panel: #222b32;
+    --panel2: #172027;
+    --border: #40505a;
     --text: #e6e8ea;
     --muted: #9aa1a8;
     --accent: #4fc3f7;
@@ -64,6 +64,19 @@
   /* ---------- Hauptbereich ---------- */
   #main { flex: 1; display: flex; min-height: 0; position: relative; }
   #board { flex: 1; position: relative; background: var(--bg); min-width: 0; overflow: hidden; }
+  #board::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .16; background-image: linear-gradient(rgba(155,190,204,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(155,190,204,.14) 1px, transparent 1px); background-size: 32px 32px; }
+  #boardHead { position: absolute; top: 10px; right: 12px; z-index: 2; pointer-events: none; color: #b6cbd7; background: rgba(14,23,29,.87); border: 1px solid #425866; border-radius: 6px; padding: 6px 10px; font-size: 11px; letter-spacing: .12em; font-weight: 700; }
+  #sideClose { display: none; }
+  #trainCard { position: absolute; right: 12px; bottom: 62px; z-index: 7; width: min(330px, calc(100% - 24px)); background: rgba(17,29,37,.97); border: 1px solid #648296; border-radius: 12px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #trainCard[hidden] { display: none; }
+  #trainCard .cardHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  #trainCard .cardHead strong { font-size: 18px; color: #f3f8fb; }
+  #trainCard .cardGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; font-size: 14px; }
+  #trainCard .cardGrid small { display: block; color: #a8bac7; font-size: 11px; margin-bottom: 2px; }
+  #trainCard .cardStatus { margin-top: 12px; padding: 9px; background: #263b47; border-left: 3px solid var(--route); border-radius: 4px; font-size: 13px; }
+  #trainCardClose { background: #344650; border: 1px solid #6a8595; color: white; border-radius: 8px; min-width: 44px; min-height: 44px; font-size: 20px; cursor: pointer; }
+  .train-hit { cursor: pointer; pointer-events: stroke; }
+  .train-selected { filter: drop-shadow(0 0 5px #fff); }
   #svg { width: 100%; height: 100%; display: block; touch-action: none; }
   #legend {
     position: absolute; left: 8px; bottom: 8px; font-size: 12px; color: var(--muted);
@@ -124,6 +137,28 @@
   tr.act td { background: rgba(255,210,31,.10); }
   tr.act td.st { color: var(--route); font-weight: 700; }
   tr.warn td.st { color: #ff8a7a; font-weight: 700; }
+  tr.priority td { background: rgba(255,210,31,.09); }
+  tr.priority td:first-child { box-shadow: inset 4px 0 #ffd21f; }
+  tr.urgent td { background: rgba(255,90,80,.14); }
+  tr.urgent td:first-child { box-shadow: inset 4px 0 #ff6b5b; }
+  .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
+.priority-tag.urgent { color: #ff8a7a; }
+  #network { padding:8px 10px; background:#17232c; border-bottom:1px solid #3d505b; font-size:12px; }
+  #network .netlines { margin-top:6px; display:grid; gap:3px; }
+  #network .netline { display:flex; justify-content:space-between; gap:8px; padding:4px 7px; border:1px solid #41525c; border-radius:3px; background:#22333e; }
+  #network .netline span:first-child { color:#c5d6df; }
+  #network .netcrossover { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:7px; padding:7px 0; color:#f4d77e; }
+  #network .netlinks { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+  #network button { padding:5px 8px; min-height:30px; }
+  #network .netactive { color:#f4d77e; font-weight:700; }
+  #connections { padding: 8px; background: #202b32; font-size: 12px; max-height: 160px; overflow-y: auto; }
+  #connections:empty { display: none; }
+  .connRow { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:5px 0; }
+  .connRow strong { color:#f5d77a; }
+  .connRow .btn { min-height:32px; padding:5px 9px; }
+  .connRow .btn.on { background:#246c53; border-color:#53bd88; }
+  .connInfo { flex:1; min-width:180px; }
+  .connState { color:#b8cbd5; font-size:11px; }
   tr.stop td.st { color: #8fd3ff; }
   .late { color: #ff6b5b; font-weight: 700; }
   .ontime { color: var(--ok); }
@@ -145,6 +180,9 @@
       transform: translateX(105%); transition: transform .25s ease; box-shadow: -6px 0 18px rgba(0,0,0,.5);
     }
     #side.open { transform: none; }
+    #sideClose { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 20px; cursor: pointer; }
+    #sideBackdrop { display: none; position: absolute; inset: 0; background: rgba(4,11,17,.48); z-index: 9; }
+    #main:has(#side.open) #sideBackdrop { display: block; }
   }
   @media (min-width: 1151px) {
     #side.closed { display: none; }
@@ -159,6 +197,20 @@
     .sep { margin: 0 2px; }
   }
   @media (max-width: 700px) {
+    #trainCard { bottom: 50px; right: 8px; width: min(330px, calc(100% - 16px)); }
+    #side { width: 100%; top: auto; height: min(70dvh, 620px); border-left: 0; border-top: 2px solid var(--accent); border-radius: 16px 16px 0 0; transform: translateY(105%); box-shadow: 0 -10px 35px rgba(0,0,0,.65); }
+    #side.open { transform: translateY(0); }
+    #side h2 { min-height: 52px; font-size: 14px; }
+    #boardHead { top: 8px; right: 8px; font-size: 10px; }
+    #legend { font-size: 11px; gap: 6px; }
+    #alerts { max-width: 72%; }
+    #top { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    #top::-webkit-scrollbar { display: none; }
+    #top > div[style*="flex:1"] { min-width: 4px; }
+    .btn { min-height: 48px; min-width: 48px; }
+    #planWrap { min-height: 0; }
+    td { padding: 10px 6px; }
+    #side .sub { font-size: 12px; }
     .hide-s { display: none; }
     #clock { font-size: 20px; }
   }
@@ -177,7 +229,7 @@
   #help h3 { margin: 14px 0 4px; font-size: 15px; color: var(--accent); }
   #help ul { margin: 4px 0; padding-left: 20px; }
   .only-neustadt, .only-teutschenthal, .only-burgstadt { display: none; }
-  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt { display: revert; }
+  body[data-bf="neustadt"] .only-neustadt, body[data-bf="falkenberg"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt { display: revert; }
   .stationPick { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .stationPick .btn { margin: 4px 4px 0 0; }
   #help li { margin: 3px 0; }
@@ -252,6 +304,8 @@
       <svg id="svg" xmlns="http://www.w3.org/2000/svg">
         <g id="world"></g>
       </svg>
+      <div id="boardHead">ESTW · GLEISBILD</div>
+      <section id="trainCard" hidden aria-label="Zugdetails" aria-live="polite"><div class="cardHead"><strong id="trainCardTitle"></strong><button type="button" id="trainCardClose" aria-label="Zugdetails schließen">✕</button></div><div id="trainCardBody"></div></section>
       <div id="toast"></div>
       <div id="alerts"></div>
       <div id="legend">
@@ -265,8 +319,11 @@
       </div>
     </div>
 
-    <aside id="side">
-      <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span></h2>
+    <div id="sideBackdrop" aria-hidden="true"></div>
+    <aside id="side" aria-label="Fahrplan und Zugmeldungen">
+      <h2><span id="planTitle">Fahrplan</span><span id="nextInfo" class="mono"></span><button id="sideClose" type="button" aria-label="Fahrplan schließen">✕</button></h2>
+      <div id="network" aria-label="Streckennetz"></div>
+      <div id="connections" aria-label="Anschlussmanagement"></div>
       <div id="planWrap"><table id="plan"></table></div>
       <div id="ticker" title="Neueste Meldung – alle Meldungen im Menü"></div>
     </aside>
@@ -353,6 +410,8 @@
       </ul>
     </div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte.</p>
+    <p><b>Streckennetz:</b> Falkenberg ist über eine zweigleisige freie Strecke mit getrennten Richtungsgleisen und der Block- und Überleitstelle Heidekreuz und den Stellwerken Neustadt und Teutschenthal verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert. Falkenbergs Gleise 7–10 sind über zusätzliche Weichen an Gleis 1 bzw. 6 angeschlossen und besitzen eigene Ein- und Ausfahrstraßen.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -380,6 +439,7 @@
         <span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#33ff77"></span> <b>Vr1</b> Fahrt erwarten ·
         <span class="dot" style="background:#ffc400"></span><span class="dot" style="background:#33ff77"></span> <b>Vr2</b> Langsamfahrt erwarten.</li>
     </ul>
+    <p>Im Gleisbild steht der aktuelle Signalbegriff direkt am Signal: <b>Hp0</b>, <b>Hp1</b>, <b>Hp2</b>, <b>Sh1</b> (Rangierfahrt) oder <b>Zs1</b> (Ersatzsignal mit weißem Blinklicht). Die Anzeige ist eine vereinfachte ESTW-Darstellung, keine vollständige Nachbildung aller deutschen Signalbauformen.</p>
     <h3>Weichen</h3>
     <ul>
       <li>Weiche (W…) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
@@ -475,6 +535,9 @@ const STATIONS = {
   neustadt: { name: 'Bf Neustadt', short: 'Neustadt', stw: 'Stw Neustadt',
     info: 'Fiktiver Knotenbahnhof: 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen',
     tags: ['viel Reiseverkehr', 'ICE-Durchfahrten', 'Nebenbahn', 'Lok umsetzen'] },
+  falkenberg: { name: 'Bf Falkenberg', short: 'Falkenberg', stw: 'ESTW Falkenberg',
+    info: 'Großer fiktiver Knoten mit zehn Gleisen, Nebenbahn, freier Strecke und Bk Heidekreuz; Netzverbindung zu Neustadt und Teutschenthal',
+    tags: ['10 Gleise', 'Bk Heidekreuz', 'Streckennetz', 'Zugübergaben'] },
   teutschenthal: { name: 'Bf Teutschenthal', short: 'Teutschenthal', stw: 'Stw Teutschenthal B1',
     info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
     tags: ['viel Güterverkehr', 'Rangieraufträge', 'Anschluss Glaswerk', 'reales Vorbild'] },
@@ -498,7 +561,7 @@ function savePrefs() { try { localStorage.setItem('stw_prefs', JSON.stringify(P)
 let WID, X0, X1, TRACK_Y, NTRACKS, MAIN_Y, THROUGH;
 const LEGS = {}, SIGNALS = {}, DISTANT = {}, EXITS = {}, ENDS = {}, SIDINGS = {}, SHUNT_TGT = {}, ENTRY = {};
 let SHUNT_LIST = [];
-if (BF === 'neustadt') {
+if (BF === 'neustadt' || BF === 'falkenberg') {
   // Bahnhof mit 6 Bahnsteiggleisen, zweigleisige Strecke mit Rechtsverkehr:
   //   Richtung Ost (▸) fährt auf dem unteren Streckengleis (y=330), Richtung West (◂) auf dem oberen (y=250).
   // Der westliche Weichenbereich wird definiert; der östliche entsteht durch Punktspiegelung (x,y) → (WID−x, CY−y).
@@ -598,6 +661,46 @@ if (BF === 'neustadt') {
     'F2': { segs: [{ leg: 'XEo', d: -1 }, { leg: 'eU0', d: -1 }], sec: 'eU0', sig: 'F2' },   // Gegengleis Ost
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
+  if (BF === 'falkenberg') {
+    // Separate Einfahr-Abzweige zu den vier zusätzlichen Gleisen.
+    const split=(id,p)=>{const q=LEGS[id].pts;delete LEGS[id];LEGS[id+'a']={pts:[q[0],p]};LEGS[id+'b']={pts:[p,q[q.length-1]]};};
+    split('wU1a',[170,250]);split('wU1ab',[190,250]);split('eU1a',[1470,330]);split('eU1ab',[1490,330]);
+    Object.assign(TRACK_Y,{7:50,8:530,9:-10,10:590});
+    Object.assign(LEGS,{
+      fTopW0:{pts:[[170,250],[350,50]]},
+      fTopW1:{pts:[[350,50],[440,50]]},
+      fTopW9:{pts:[[350,50],[410,-10]]},
+      fTopW7:{pts:[[440,50],[650,50]]},
+      fTopW9b:{pts:[[410,-10],[690,-10]]},
+      fTopE0:{pts:[[1200,50],[1490,330]]},
+      fTopE7:{pts:[[1010,50],[1200,50]]},
+      fTopE9:{pts:[[970,-10],[1040,-10],[1100,50]]},
+      fTopE9b:{pts:[[1100,50],[1200,50]]},
+      G7:{pts:[[650,50],[1010,50]]},
+      G9:{pts:[[690,-10],[970,-10]]},
+      fBotW0:{pts:[[190,250],[250,590]]},
+      fBotW1:{pts:[[250,590],[440,590]]},
+      fBotW8:{pts:[[440,590],[510,530]]},
+      fBotW8b:{pts:[[510,530],[650,530]]},
+      fBotW10:{pts:[[440,590],[690,590]]},
+      fBotE0:{pts:[[1200,590],[1470,330]]},
+      fBotE10:{pts:[[970,590],[1200,590]]},
+      fBotE8:{pts:[[1010,530],[1070,590]]},
+      fBotE8b:{pts:[[1070,590],[1200,590]]},
+      G8:{pts:[[650,530],[1010,530]]},
+      G10:{pts:[[690,590],[970,590]]},
+    });
+    for(const [g,xw,xe] of [[7,650,1010],[8,650,1010],[9,690,970],[10,690,970]]){
+      SIGNALS['P'+g]={x:xw,y:TRACK_Y[g],dir:-1,kind:'Ausfahrsignal'};
+      SIGNALS['N'+g]={x:xe,y:TRACK_Y[g],dir:1,kind:'Ausfahrsignal'};
+    }
+    // Verbindungswege im Netz: Falkenberg ↔ Bk Heidekreuz ↔ Neustadt / Teutschenthal.
+    EXITS.WEST.label = '◀ Bk Heidekreuz / Neustadt';
+    EXITS.WEST.town = 'Neustadt';
+    EXITS.OST.label = 'Bk Heidekreuz / Teutschenthal ▶';
+    EXITS.OST.town = 'Teutschenthal';
+    NTRACKS = 10;
+  }
 } else if (BF === 'burgstadt') {
   // Burgstadt Hbf (fiktiv): 10 Bahnsteiggleise, Güterbahnhof Gl 11–16, zweigleisige Hauptstrecke Altheim – Hafenau,
   // zweigleisiger Abzweig nach Talburg (Ostkopf, Gleise 1–4) und eingleisiges Güter-Einfahrgleis von Westen in den Gbf.
@@ -856,11 +959,14 @@ const TYPES = {
 };
 // ---------- Fahrplan-Regeln je Bahnhof ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
-const CFG = BF === 'neustadt' ? {
-  townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
+// Unterschiedliche Beschleunigung und Bremsung je Zuggattung (Spiel-Einheiten/s²).
+const DYNAMICS = { ICE: [5.0, 7.0], IC: [4.2, 6.0], RE: [3.5, 5.0], RB: [3.8, 5.2], RBN: [3.2, 4.5], GC: [1.8, 3.0], RG: [1.2, 2.2], LOK: [2.5, 3.5] };
+const trainDynamics = tr => DYNAMICS[tr.type] || DYNAMICS.RE;
+const CFG = BF === 'neustadt' || BF === 'falkenberg' ? {
+  townsW: BF === 'falkenberg' ? ['Neustadt', 'Heidekreuz'] : ['Altdorf', 'Bergheim', 'Lindenau'], townsE: BF === 'falkenberg' ? ['Teutschenthal', 'Heidekreuz'] : ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
   overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [5, 6] : [1, 2] },
-  closure: true, fit: { by: 38, bh: 480 }, shunting: false,
+  closure: true, fit: { by: BF === 'falkenberg' ? -75 : 38, bh: BF === 'falkenberg' ? 825 : 480 }, shunting: false,
   trackFor(type, dir) {
     if (type === 'IC' || type === 'ICE') return dir > 0 ? 4 : 3;                 // Hauptgleise
     if (type === 'GC') return dir > 0 ? pick([4, 6]) : pick([3, 1]);
@@ -955,7 +1061,8 @@ let S;
 function newState() {
   return {
     t: START_T, speed: 1, score: 0, ontime: 0, departed: 0,
-    trains: [], schedule: [], routes: [], log: [], logDirty: true,
+    trains: [], schedule: [], connections: [], routes: [], log: [], logDirty: true,
+    crossover: false,
     sw: Object.fromEntries(Object.keys(SWITCHES).map(k => [k, '+'])),
     sig: Object.fromEntries(Object.keys(SIGNALS).map(k => [k, 'Hp0'])),
     sel: null, cancelMode: false,
@@ -1053,8 +1160,10 @@ function routeLegs() {
 }
 function activeFrom(id) { return S.routes.find(ar => ar.r.from === id && !ar.passed); }
 function switchLocked(id) {
-  const w = SWITCHES[id], sec = LEGS[w.trunk].sec;
-  return S.routes.some(ar => ar.r.sw[id] && !ar.released.has(sec));
+  // Eine Fahrstrasse haelt ihre Weichen verschlossen, solange noch ein
+  // Abschnitt dieser Fahrstrasse verriegelt ist. Die Freigabe des
+  // Stammgleises allein darf die Weiche nicht entriegeln.
+  return S.routes.some(ar => ar.r.sw[id] && ar.r.secs.some(sec => !ar.released.has(sec)));
 }
 function switchOccupied(id) {
   const w = SWITCHES[id];
@@ -1144,7 +1253,7 @@ function signalGo(id, quiet) {
   toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
   return true;
 }
-function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * DEC) <= off - 3; }
+function canStopBefore(tr, off) { return tr.s + tr.v * tr.v / (2 * trainDynamics(tr)[1]) <= off - 3; }
 function truncate(tr, ar) {
   const idx = tr.segs.indexOf(ar.segRefs[0]);
   if (idx >= 0) tr.segs.splice(idx);
@@ -1196,6 +1305,7 @@ function throwSwitch(id) {
 
 // ---------- Eingabe (Tap) ----------
 function onTap(kind, id) {
+  if (kind === 'train') { selectedTrain = S.trains[Number(id)] || null; return; }
   if (kind === 'leg') { S.sel = null; tapLeg(id); return; }
   if (kind === 'switch') { S.sel = null; throwSwitch(id); return; }
   if (kind === 'exit') {
@@ -1267,6 +1377,17 @@ function genNext() {
   t = Math.round(t / 60) * 60;
   S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
   CFG.gen(t, dir);
+  const receiver = S.schedule.filter(x => x.stops && !x.turn && !x.runaround && !x.fromSiding && !x.fromRunaround && !x.overtake && !x.overtakes && !x.connectionIn && x.plan.spawn >= S.t + 9 * 60 && (x.type === 'RE' || x.type === 'RB')).slice(-1)[0];
+  if (receiver && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.38) {
+    const feederSpawn = receiver.plan.dep - 3 * 60 - 300;
+    if (feederSpawn >= S.t + 90) {
+      const feeder = addTrain('RB', -receiver.dir, feederSpawn);
+      feeder.inboundDelay = Math.random() < 0.65 ? (2 + Math.floor(Math.random() * 5)) * 60 : 0;
+      feeder.connectionOut = receiver.id;
+      receiver.connectionIn = feeder.id;
+      S.connections.push({ feeder: feeder.id, receiver: receiver.id, decision: 'hold', maxWait: 4 * 60, resolved: false });
+    }
+  }
 }
 // Überholung: Güterzug wartet auf einem Nebengleis, bis der nachfolgende ICE durchgefahren ist
 function addOvertake(t, dir) {
@@ -1503,10 +1624,13 @@ function addTrain(type, dir, spawn) {
   const from = pick(dir > 0 ? CFG.townsW : CFG.townsE), to = pick(dir > 0 ? CFG.townsE : CFG.townsW);
   const track = CFG.trackFor(type, dir);
   const arr = T.stops ? spawn + 300 : null;
+  // Vorlaufverspaetungen entstehen ausserhalb des Stellwerks und verschieben
+  // nur die tatsaechliche Ankunft, niemals den veroeffentlichten Fahrplan.
+  const inboundDelay = type === 'RG' ? 0 : Math.random() < 0.28 ? (1 + Math.floor(Math.random() * 5)) * 60 : 0;
   const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : Math.ceil((spawn + (type === 'ICE' ? 210 : 300)) / 60) * 60;
   S.schedule.push({
     id: ++S.uid, type, num: `${T.name || type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
-    plan: { spawn, arr, dep, track },
+    plan: { spawn, arr, dep, track }, inboundDelay,
     spawned: false, announced: false, done: false,
     segs: [], pts: [], cum: [], total: 0, s: 0, v: 0,
     endSig: null, stopAt: null, stopTrack: null, dwellUntil: null, served: false,
@@ -1517,22 +1641,147 @@ function addTrain(type, dir, spawn) {
 }
 function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
 
+// ---------- Streckennetz / Bk Heidekreuz ----------
+// Übergaben werden pro Browser gespeichert. Es läuft jeweils nur ein Stellwerk aktiv;
+// die freie Strecke wird beim Wechsel über eine zeitversetzte Zugmeldung abgebildet.
+const NETWORK_KEY = 'stw_network_v1';
+function readNetwork() {
+  try { const a = JSON.parse(localStorage.getItem(NETWORK_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && x.to && x.from && x.type) : []; }
+  catch(e) { return []; }
+}
+function writeNetwork(a) { try { localStorage.setItem(NETWORK_KEY, JSON.stringify(a.slice(-80))); } catch(e) {} }
+// Die beiden Richtungsgleise sind voneinander unabhängig (kein eingleisiger Gegenverkehr).
+const NETWORK_TRAVEL_MS = 90000;
+function networkTrack(from, to) {
+  if ((from === 'neustadt' && to === 'falkenberg') || (from === 'falkenberg' && to === 'teutschenthal')) return 'R1';
+  if ((from === 'teutschenthal' && to === 'falkenberg') || (from === 'falkenberg' && to === 'neustadt')) return 'R2';
+  return null;
+}
+function networkDest(tr) {
+  if (BF === 'falkenberg') return tr.dir > 0 ? 'teutschenthal' : 'neustadt';
+  if (BF === 'neustadt' && tr.dir > 0) return 'falkenberg';
+  if (BF === 'teutschenthal' && tr.dir < 0) return 'falkenberg';
+  return null;
+}
+function transferTrain(tr) {
+  if (tr.networkTransferred || tr.shunter || tr.isLoco || tr.turn || tr.endsGbf || tr.fromSiding || tr.fromRunaround) return;
+  const dest = networkDest(tr);
+  if (!dest) return;
+  tr.networkTransferred = true;
+  const queue = readNetwork();
+  const normalTrack = networkTrack(BF, dest);
+  if (!normalTrack) return;
+  // Ueberleitstelle Heidekreuz: Bei gestellter Ueberleitung faehrt der Zug
+  // zeitweise auf dem Gegengleis. Die Belegung sperrt beide Richtungsgleise.
+  const crossover = BF === 'falkenberg' && S.crossover;
+  const track = crossover ? (normalTrack === 'R1' ? 'R2' : 'R1') : normalTrack;
+  const now = Date.now();
+  // Zugfolge auf demselben Richtungsgleis: mindestens 45 Sekunden Blockabstand.
+  const last = queue.filter(x => x.track === track && x.from === BF && x.to === dest)
+    .reduce((m,x) => Math.max(m, Number(x.entered) || 0), 0);
+  const occupiedUntil = crossover ? queue.reduce((m,x) => Math.max(m, Number(x.ready) || 0), 0) : 0;
+  const entered = Math.max(now, last + 45000, occupiedUntil);
+  queue.push({ from:BF, to:dest, track, crossover, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num,
+    entered, ready:entered + NETWORK_TRAVEL_MS, delay:tr.delay || 0 });
+  writeNetwork(queue);
+  log(tr.num + ' über freie Strecke / Bk Heidekreuz nach ' + STATIONS[dest].short + ' übergeben.', 'info');
+}
+function importNetwork() {
+  const queue = readNetwork(), remain = [];
+  for (const transfer of queue) {
+    // Zug bleibt bis zum Ablauf der Streckenfahrzeit auf dem Richtungsgleis.
+    if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
+    const dir = BF === 'falkenberg' ? (transfer.from === 'neustadt' ? 1 : -1) : BF === 'neustadt' ? -1 : 1;
+    const tr = addTrain(transfer.type, dir, S.t + 150);
+    tr.num = transfer.num;
+    tr.from = STATIONS[transfer.from]?.short || transfer.from;
+    tr.inboundDelay = Math.max(0, (transfer.delay || 0) * 60);
+    tr.networkOrigin = transfer.from;
+    log(tr.num + ' von ' + tr.from + ' über Bk Heidekreuz angekündigt.', 'info');
+  }
+  writeNetwork(remain);
+}
+function toggleCrossover() {
+  if (BF !== 'falkenberg') return;
+  const busy = readNetwork().some(x => x.entered <= Date.now() && Date.now() < x.ready);
+  if (busy) { log('Üst Heidekreuz: Umstellen gesperrt – Strecke belegt.', 'bad'); return; }
+  S.crossover = !S.crossover;
+  log('Üst Heidekreuz: Überleitung ' + (S.crossover ? 'gestellt – Fahrt über Gegengleis' : 'zurückgenommen'), 'info');
+  renderNetwork();
+}
+function renderNetwork() {
+  const q = readNetwork();
+  const waiting = q.filter(x => x.to === BF).length;
+  const outbound = q.filter(x => x.from === BF).length;
+  const line = (id, caption, from, to) => {
+    const trains = q.filter(x => x.track === id && x.from === from && x.to === to && Date.now() < x.ready);
+    return '<div class="netline"><span>' + caption + '</span><span>' +
+      (trains.length ? '🚆 ' + trains.map(x => x.num).join(', ') : 'frei') + '</span></div>';
+  };
+  const netLines = BF === 'burgstadt'
+    ? '<div class="netline"><span>Burgstadt Hbf ist nicht ans Netz über Bk Heidekreuz angebunden</span><span>–</span></div>'
+    : BF === 'falkenberg'
+    ? line('R1','Gleis 1 → Teutschenthal','falkenberg','teutschenthal') + line('R2','Gleis 2 → Neustadt','falkenberg','neustadt')
+    : BF === 'neustadt'
+      ? line('R1','Gleis 1 → Falkenberg','neustadt','falkenberg') + line('R2','Gleis 2 ← Falkenberg','falkenberg','neustadt')
+      : line('R1','Gleis 1 ← Falkenberg','falkenberg','teutschenthal') + line('R2','Gleis 2 → Falkenberg','teutschenthal','falkenberg');
+  $('#network').innerHTML = '<span class="netactive">🚦 Zweigleisige Strecke · ' + ST.short + '</span> · Bk Heidekreuz · ' +
+    waiting + ' Zugmeldung(en) eingehend · ' + outbound + ' ausgehend' +
+    '<div class="netlines">' + netLines + '</div>' +
+    (BF === 'falkenberg' ? '<div class="netcrossover">Üst Heidekreuz · WÜ1 / WÜ2 · ' + (S.crossover ? 'Überleitung gestellt' : 'Grundstellung') +
+    '<button class="btn ' + (S.crossover ? 'on' : '') + '" data-crossover="1">' + (S.crossover ? 'Grundstellung' : 'Überleitung stellen') + '</button></div>' : '') +
+    '<div class="netlinks">' + Object.entries(STATIONS).filter(([id]) => id !== BF).map(([id,st]) =>
+      '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
+}
+// ---------- Anschlussmanagement ----------
+function connectionTrain(id) { return S.schedule.find(t => t.id === id); }
+function connectionFor(tr) { return S.connections.find(c => c.receiver === tr.id && !c.resolved); }
+function connectionReady(c) {
+  const feeder = connectionTrain(c.feeder);
+  return !!(feeder && feeder.actArr != null && S.t >= feeder.actArr + 90);
+}
+function connectionBlocks(tr) {
+  const c = connectionFor(tr);
+  return !!(c && c.decision === 'hold' && !connectionReady(c) && S.t < tr.plan.dep + c.maxWait);
+}
+function resolveConnections() {
+  for (const c of S.connections) {
+    if (c.resolved) continue;
+    const receiver = connectionTrain(c.receiver), feeder = connectionTrain(c.feeder);
+    if (!receiver || !feeder) { c.resolved = true; continue; }
+    if (receiver.actDep != null || receiver.done || (S.t >= receiver.plan.dep + c.maxWait && !connectionReady(c))) {
+      c.resolved = true;
+      const saved = connectionReady(c) && receiver.actDep != null;
+      S.score += saved ? 12 : -8;
+      log('Anschluss ' + feeder.num + ' → ' + receiver.num + ': ' + (saved ? 'erreicht (+12 Punkte)' : 'verpasst (−8 Punkte)'), saved ? 'good' : 'bad');
+    }
+  }
+}
+function decideConnection(id, decision) {
+  const c = S.connections.find(x => x.receiver === id && !x.resolved);
+  if (!c || !['hold', 'release'].includes(decision)) return;
+  c.decision = decision;
+  const tr = connectionTrain(c.receiver);
+  log('Anschluss ' + connectionTrain(c.feeder).num + ' → ' + tr.num + ': ' + (decision === 'hold' ? 'warten bis maximal ' + fmt(tr.plan.dep + c.maxWait) : 'Abfahrt freigegeben'), 'info');
+  renderPanel();
+}
 // ---------- Simulation ----------
 function spawnTrains() {
   const blocked = new Set(), locked = lockedSecs();
   for (const tr of S.schedule) {
     if (tr.spawned || tr.done || tr.fromSiding || tr.fromRunaround || tr.shunter || tr.gbfStart) continue;
-    if (!tr.announced && S.t >= tr.plan.spawn - 60) {
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (!tr.announced && S.t >= actualSpawn - 60) {
       tr.announced = true;
       const ek0 = tr.entry || String(tr.dir);
-      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(tr.plan.spawn)}, Plangleis ${tr.plan.track}.`, 'info');
+      log(`Zugmeldung: ${tr.num} ${tr.dir > 0 ? '▶' : '◀'} von ${tr.from} nach ${tr.to} – kommt von ${tr.dir > 0 ? 'Westen' : 'Osten'} an Signal ${ENTRY[ek0].sig} ca. ${fmt(actualSpawn)}${tr.inboundDelay ? ' (+' + Math.round(tr.inboundDelay / 60) + ' Min. Zulauf)' : ''}, Plangleis ${tr.plan.track}.`, 'info');
     }
     let ek = tr.entry || String(tr.dir);
     if (S.closure && S.closure.active) {
       if (ek === '1' && S.closure.side === 'W') ek = 'A2';
       if (ek === '-1' && S.closure.side === 'E') ek = 'F2';
     }
-    if (S.t < tr.plan.spawn || blocked.has(ek)) continue;
+    if (S.t < actualSpawn || blocked.has(ek)) continue;
     const ent = ENTRY[ek], sec = ent.sec;
     if (S.occSecs.has(sec) || locked.has(sec)) { blocked.add(ek); continue; }
     blocked.add(ek);
@@ -1599,29 +1848,47 @@ function assignRoutes() {
     }
   }
 }
+// Mindestabstand fuer nachfolgende Zuege auf demselben Gleisabschnitt.
+function followingLimit(tr) {
+  if (!tr.segs.length) return Infinity;
+  const here = segAt(tr, tr.s);
+  if (!here) return Infinity;
+  const pos = here.d > 0 ? tr.s - here.a : here.b - tr.s;
+  let limit = Infinity;
+  for (const other of S.trains) {
+    if (other === tr || other.done || !other.segs || !other.segs.length) continue;
+    const ahead = segAt(other, other.s);
+    if (!ahead || ahead.leg !== here.leg || ahead.d !== here.d) continue;
+    const otherPos = ahead.d > 0 ? other.s - ahead.a : ahead.b - other.s;
+    const gap = otherPos - other.len - pos;
+    if (gap >= 0) limit = Math.min(limit, tr.s + Math.max(0, gap - 12));
+  }
+  return limit;
+}
 function endLimit(tr) {
   let E = EXITS[tr.endSig] ? Infinity : tr.total - 8;
   if (tr.stopAt != null && !tr.served) E = Math.min(E, tr.stopAt);
   if (tr.coupleAt != null) E = Math.min(E, tr.coupleAt);
   // nach dem Halt am Bahnsteig stehen bleiben, bis das Ausfahrsignal Fahrt zeigt (nicht bis vors Signal vorziehen)
   if (tr.stopAt != null && tr.served && tr.s <= tr.stopAt + 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) E = Math.min(E, tr.stopAt);
-  return E;
+  return Math.min(E, followingLimit(tr));
 }
 function stepTrain(tr, dt) {
   if (tr.frozen) { tr.v = 0; return; }
   const E = endLimit(tr);
+  const [acc, dec] = trainDynamics(tr);
   let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
   if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
   for (const sg of tr.segs) {
     if (sg.a > tr.s && sg.a - tr.s < 260) {
       const lv = Math.min(tr.vmax, LEGS[sg.leg].v);
-      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * DEC * 0.8 * (sg.a - tr.s)));
+      vT = Math.min(vT, Math.sqrt(lv * lv + 2 * dec * 0.8 * (sg.a - tr.s)));
     }
   }
   const d = E - tr.s;
   if (d <= 0.05) vT = 0;
-  else vT = Math.max(Math.min(vT, Math.sqrt(2 * DEC * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
-  if (tr.v < vT) tr.v = Math.min(vT, tr.v + ACC * dt); else tr.v = Math.max(vT, tr.v - DEC * 1.6 * dt);
+  else vT = Math.max(Math.min(vT, Math.sqrt(2 * dec * 0.8 * d)), Math.min(vT, d > 0.3 ? 2 : 0));
+  if (tr.v < vT) tr.v = Math.min(vT, tr.v + acc * dt); else tr.v = Math.max(vT, tr.v - dec * 1.6 * dt);
   tr.s += tr.v * dt;
   if (tr.s >= E) { tr.s = E; tr.v = 0; }
   if (tr.v < 0.5) tr.halted = true;
@@ -1644,6 +1911,7 @@ function trainEvents(tr) {
         for (const sg of ar.segRefs) { const sec = LEGS[sg.leg].sec; if (sec && sg.a <= tr.s) ar.released.add(sec); }
       }
     } else if (S.t >= tr.dwellUntil) {
+      if (connectionBlocks(tr)) return;
       tr.served = true;
       if (tr.runaround && !tr.split) { if (tr.stopTrack === 1) { splitLoco(tr); return; } abortRunaround(tr); }
       if (tr.endsGbf) { dissolveGbf(tr); return; }
@@ -1676,11 +1944,18 @@ function trainEvents(tr) {
     tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep + (tr.extraDelay || 0)) / 60));
     const pts = tr.delay <= 1 ? 10 : Math.max(-10, 10 - 2 * (tr.delay - 1));
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
+    resolveConnections();
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
     if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
-    if (tr.overtake && tr.link && tr.link.actDep == null) {
-      S.score -= 10; tr.link.extraDelay = 240;
-      log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, der ICE hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+    if (tr.overtake && tr.link) {
+      if (tr.link.actDep == null) {
+        S.score -= 10; tr.link.extraDelay = 240;
+        log(`${tr.num} vor ${tr.link.num} abgefahren – Überholung verpasst, ${tr.link.num} hängt hinter dem Güterzug (−10 Punkte, +4 Min.).`, 'bad');
+      } else if (!tr.overtakeRewarded) {
+        tr.overtakeRewarded = true;
+        S.score += 10;
+        log(`Überholung gelungen: ${tr.link.num} vor ${tr.num} durchgelassen (+10 Punkte).`, 'good');
+      }
     }
   }
 }
@@ -1702,6 +1977,7 @@ function removeTrains() {
   for (const tr of S.trains) {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
       tr.done = true;
+      transferTrain(tr);
       if (tr.turn && tr.link && !tr.link.spawned) {
         const B = tr.link; B.fromSiding = false; B.from = (B.dir < 0 ? CFG.townsE[0] : CFG.townsW[0]) + ' (Ersatzzug)';
         S.score -= 10; tr.notParked = true;
@@ -1753,6 +2029,7 @@ function update(dt) {
   const dp = dayPart(S.t);
   if (dp !== S.dp) { S.dp = dp; log('🕒 ' + DAYPARTS[dp].msg, 'info'); toast('🕒 ' + DAYPARTS[dp].msg); }
   ensureSchedule();
+  resolveConnections();
   computeOcc();
   disruptions();
   spawnTrains();
@@ -1871,7 +2148,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: WID, height: 1000 }, cp);
+  el('rect', { x: 0, y: BF === 'falkenberg' ? -75 : 0, width: WID, height: BF === 'falkenberg' ? 825 : BF === 'burgstadt' ? 1000 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -1880,7 +2157,33 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt })[BF](W, txt, arrow, buffer);
+  // Falkenberg nutzt die Gleisgeometrie von Neustadt, aber nicht deren Orts- und Kopfzeilen.
+  const oldNeustadtLabels = new Set(['Bf NEUSTADT', 'Gleisbildstellwerk Ns · Fahrdienstleiter',
+    'Altdorf · Waldheim', 'Neuhafen', '▶ von Altdorf (Einfahrt an A)',
+    '◀ von Neuhafen (Einfahrt an F)']);
+  const stationTxt = BF === 'falkenberg'
+    ? (x,y,label,attrs) => oldNeustadtLabels.has(label) ? null : txt(x,y,label,attrs)
+    : txt;
+  ({ neustadt: decorNeustadt, falkenberg: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt })[BF](W, stationTxt, arrow, buffer);
+  if (BF === 'falkenberg') {
+    txt(WID/2, -43, 'BF FALKENBERG · NETZKNOTEN', { 'text-anchor':'middle', fill:'#f4d77e','font-size':20,'font-weight':800 });
+    txt(WID/2, -24, 'Zweigleisige freie Strecke über Bk Heidekreuz · Neustadt / Teutschenthal', { 'text-anchor':'middle','font-size':12 });
+    // Schematische zweigleisige freie Strecke rechts des Bahnhofsgleisbilds.
+    for (const [y, label, direction] of [[610, 'Streckengleis 1 →', 1],[650, '← Streckengleis 2', -1]]) {
+      el('line', { x1: 90, y1:y, x2:WID-90, y2:y, stroke:'#a9bbc5','stroke-width':4 }, W);
+      txt(100,y-9,label,{'font-size':12,fill:'#e1e9ee'});
+      arrow(WID-120,y,direction);
+    }
+    // Zwei Weichenverbindungen zwischen den beiden Streckengleisen.
+    for (const x of [WID/2-105, WID/2+105]) {
+      el('path', { d:'M'+(x-28)+',610 L'+(x+28)+',650', fill:'none',
+        stroke:'#e0b55b','stroke-width':3 }, W);
+      el('circle', { cx:x-28,cy:610,r:5,fill:'#20272c',stroke:'#e0b55b','stroke-width':2 }, W);
+      el('circle', { cx:x+28,cy:650,r:5,fill:'#20272c',stroke:'#e0b55b','stroke-width':2 }, W);
+    }
+    txt(WID/2, 595, 'Üst HEIDEKREUZ · WÜ1 / WÜ2', {'text-anchor':'middle','font-size':13,fill:'#f4d77e'});
+    txt(WID/2, 684, 'Gleis 7–10: über Weichen an Gleis 1/6 angebunden', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
+  }
 
   // Gleise
   E_.legs = {};
@@ -1922,15 +2225,23 @@ function buildStatic() {
   }
 
   // Hauptsignale
-  E_.lamp = {}; E_.ring = {};
+  E_.lamp = {}; E_.ring = {}; E_.aspectText = {}; E_.sigHousing = {};
   for (const id in SIGNALS) {
     const s = SIGNALS[id];
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
     el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 13, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
     E_.lamp2 = E_.lamp2 || {};
-    E_.lamp2[id] = el('circle', { cx: s.x - s.dir * 15, cy: s.ly, r: 5, fill: '#2a2d30', stroke: '#0d0e0f', 'stroke-width': 1.5 }, W);
+    // Kompakter Signalschirm mit drei getrennten Leuchten statt großer Farbpunkte.
+    E_.lamp2[id] = el('circle', { cx: s.lx, cy: s.ly + 7, r: 3.4, fill: '#182229', stroke: '#39444b', 'stroke-width': 0.8 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
-    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 9, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    E_.sigHousing[id] = el('rect', { x: s.lx - 6.5, y: s.ly - 13, width: 13, height: 26, rx: 5, fill: '#0a1014', stroke: '#77858c', 'stroke-width': 1 }, W);
+    // Die Leuchten liegen über dem Gehäuse und werden einzeln geschaltet.
+    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly - 7, r: 3.4, fill: COL.red, stroke: '#39444b', 'stroke-width': 0.8 }, W);
+    E_.lampMid = E_.lampMid || {};
+    E_.lampMid[id] = el('circle', { cx: s.lx, cy: s.ly, r: 3.4, fill: '#182229', stroke: '#39444b', 'stroke-width': 0.8 }, W);
+    // Zweite Leuchte im unteren Schirmteil (vor der Beschriftung).
+    W.appendChild(E_.lamp2[id]);
+    E_.aspectText[id] = txt(s.lx, s.ly + (s.dir > 0 ? 29 : -21), 'Hp0', { 'text-anchor': 'middle', 'font-size': 10, fill: '#ffaaa4', 'font-weight': 700 });
     if (s.kind === 'Einfahrsignal') {   // Vorsignal am Einfahrsignal: zeigt das Ausfahrsignal an
       const vx = s.lx + s.dir * 17;
       el('rect', { x: vx - 6, y: s.ly - 8, width: 12, height: 16, rx: 3, fill: '#141618', stroke: '#000' }, W);
@@ -1986,9 +2297,16 @@ function render() {
   for (const id in SIGNALS) {
     const asp = aspect(id);
     const arS = S.routes.find(a => a.r.from === id && !a.passed), shunt = arS && arS.r.shunt;
-    E_.lamp[id].setAttribute('fill', asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
+    const zs1 = S.sig[id] === 'Zs1';
+    const signalTerm = zs1 ? 'Zs1' : shunt && asp !== 'Hp0' ? 'Sh1' : asp;
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
-    E_.lamp2[id].setAttribute('fill', asp === 'Hp2' && !shunt ? COL.yellow : S.sig[id] === 'Zs1' ? (blinkOn ? '#ffffff' : '#2a2d30') : '#2a2d30');
+    const off = '#182229';
+    E_.lamp[id].setAttribute('fill', zs1 ? off : asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
+    E_.lampMid[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : off) : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
+    E_.lamp2[id].setAttribute('fill', zs1 ? off : asp === 'Hp2' && !shunt ? COL.yellow : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
+    E_.aspectText[id].textContent = signalTerm;
+    E_.aspectText[id].setAttribute('fill', zs1 ? '#ffffff' : signalTerm === 'Hp0' ? '#ffaaa4' : signalTerm === 'Hp2' ? '#ffe17c' : '#a7f2c1');
+    E_.sigHousing[id].setAttribute('stroke', S.sigFault[id] ? '#ff8a3d' : '#64717a');
     E_.sigl[id].setAttribute('fill', S.sigFault[id] ? '#ff8a3d' : '#e6e8ea');
     E_.sigl[id].textContent = sigLabel(id) + (S.sigFault[id] ? ' ⚠' : '');
     if (E_.vr && E_.vr[id]) {
@@ -2025,7 +2343,7 @@ function render() {
   if (E_.queue._h !== qh) { E_.queue.innerHTML = qh; E_.queue._h = qh; }
   // Züge
   let h = '';
-  for (const tr of S.trains) {
+  for (const [idx, tr] of S.trains.entries()) {
     const pts = subPath(tr, tr.s - tr.len, tr.s);
     const ps = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
     const head = pointAt(tr, tr.s);
@@ -2041,11 +2359,28 @@ function render() {
     h += `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(head[0] - uy * 6).toFixed(1)},${(head[1] + ux * 6).toFixed(1)} ${(head[0] + uy * 6).toFixed(1)},${(head[1] - ux * 6).toFixed(1)}" fill="#ffffff" stroke="#000" stroke-width="1.2"/>`;
     const lbl = tr.dir > 0 ? `${tr.num} ▸ ${tr.to}` : `${tr.to} ◂ ${tr.num}`;
     h += `<text x="${mid[0].toFixed(1)}" y="${(mid[1] - 12).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tr.color}" stroke="#0d0e0f" stroke-width="3.5" paint-order="stroke" font-family="ui-monospace,Menlo,Consolas,monospace">${lbl}</text>`;
+    h += `<polyline class="train-hit${selectedTrain === tr ? ' train-selected' : ''}" points="${ps}" fill="none" stroke="transparent" stroke-width="24" data-hit="train" data-id="${idx}"/>`;
+    h += `<rect x="${(mid[0] - 35).toFixed(1)}" y="${(mid[1] - 27).toFixed(1)}" width="70" height="22" fill="transparent" data-hit="train" data-id="${idx}" style="cursor:pointer"/>`;
   }
   E_.trains.innerHTML = h;
   $('#clock').textContent = fmt(S.t, true);
+  renderTrainCard();
 }
 
+let selectedTrain = null;
+function renderTrainCard() {
+  const card = $('#trainCard');
+  if (!selectedTrain || !S.trains.includes(selectedTrain) || selectedTrain.done) { card.hidden = true; selectedTrain = null; return; }
+  const tr = selectedTrain;
+  card.hidden = false;
+  $('#trainCardTitle').textContent = `${tr.num} · ${tr.type}`;
+  const delay = tr.delay != null ? `${tr.delay > 0 ? '+' : ''}${tr.delay} Min.` : tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'noch offen';
+  const fields = [['Von', tr.from], ['Ziel', tr.to], ['Tempo (Spielwert)', `${Math.round(tr.v || 0)} / ${tr.vmax}`], ['Verspätung', delay], ['Plangleis', tr.plan.track || '–'], ['Planabfahrt', tr.plan.dep != null ? fmt(tr.plan.dep) : '–']];
+  const grid = document.createElement('div'); grid.className = 'cardGrid';
+  for (const [label, value] of fields) { const item = document.createElement('div'), small = document.createElement('small'); small.textContent = label; item.append(small, document.createTextNode(String(value))); grid.append(item); }
+  const status = document.createElement('div'); status.className = 'cardStatus'; status.textContent = trainStatus(tr).txt;
+  $('#trainCardBody').replaceChildren(grid, status);
+}
 function exitFor(tr) { if (tr.fline && tr.dir < 0) return 'GZ'; return tr.branch ? (tr.dir > 0 ? CFG.branch.exitE : CFG.branch.exitW) : tr.dir > 0 ? 'OST' : 'WEST'; }
 function wantExit(tr) { return tr.turn ? tr.siding : exitFor(tr); }
 // Ausfahrziel, das vom aktuellen Signal aus wirklich erreichbar ist (sonst eine Umleitung)
@@ -2075,7 +2410,33 @@ function runStep(L) {
   if (L.endSig === 'RB') return 'Lok umsetzen: ③ RB antippen (an die Wagen)';
   return 'Lok fährt (Umsetzen) …';
 }
+function trainPriority(tr) {
+  const c = connectionFor(tr);
+  if (c && c.decision === 'hold' && !connectionReady(c) && S.t >= tr.plan.dep - 60)
+    return { level: 'priority', label: 'ANSCHLUSS', hint: 'Warten auf ' + connectionTrain(c.feeder).num };
+  if (tr.done || tr.actDep != null || tr.shunter) return null;
+  if (tr.overtake && tr.link && tr.link.actDep == null) {
+    if (tr.served && tr.spawned) return { level: 'priority', label: 'WARTEN', hint: `${tr.link.num} zuerst durchlassen` };
+    return null;
+  }
+  if (tr.overtakes && tr.overtakes.actDep == null) {
+    const slow = tr.overtakes;
+    if (slow.served && slow.spawned && tr.spawned && S.t >= tr.plan.dep - 120)
+      return { level: 'urgent', label: 'ÜBERHOLUNG', hint: `${tr.num} jetzt vor ${slow.num} durchlassen` };
+    if (slow.spawned && tr.spawned) return { level: 'priority', label: 'VORRANG', hint: `${tr.num} vor ${slow.num}` };
+  }
+  if (tr.spawned && tr.plan.dep != null && S.t > tr.plan.dep + 120)
+    return { level: 'urgent', label: 'VERSPÄTET', hint: `${tr.num} ist mehr als 2 Min. über Plan` };
+  return null;
+}
 function trainStatus(tr) {
+  const c = connectionFor(tr);
+  if (c && tr.dwellUntil != null && !tr.served && S.t >= tr.dwellUntil && connectionBlocks(tr))
+    return { txt: 'Anschluss sichern: wartet auf ' + connectionTrain(c.feeder).num + ' (bis ' + fmt(tr.plan.dep + c.maxWait) + ')', cls: 'stop' };
+  if (tr.overtake && tr.link && !tr.done && tr.link.actDep != null && tr.actDep == null && tr.spawned && tr.served)
+    return { txt: `Überholung durch ${tr.link.num} erfolgt – Ausfahrt freigeben`, cls: 'act' };
+  if (tr.overtakes && !tr.done && tr.overtakes.actDep == null && tr.spawned && tr.v < 0.5)
+    return { txt: `Vorrang vor ${tr.overtakes.num} – Durchfahrt ermöglichen`, cls: 'act' };
   if (tr.shunter) {
     if (tr.done) return { txt: tr.aborted ? 'abgebrochen' : 'erledigt', cls: 'done' };
     if (!tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: ${tr.from} belegt`, cls: 'warn' };
@@ -2098,8 +2459,9 @@ function trainStatus(tr) {
     return { txt: `endet – abstellen: ${tr.endSig} → ${SIDINGS[tr.siding].short}`, cls: 'act' };
   if (tr.gbfStart && !tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: Gl ${tr.plan.track} belegt`, cls: 'warn' };
   if (!tr.spawned) {
-    if (S.t < tr.plan.spawn - 60) return { txt: 'geplant', cls: '' };
-    if (S.t < tr.plan.spawn) return { txt: 'angeboten', cls: 'stop' };
+    const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
+    if (S.t < actualSpawn - 60) return { txt: tr.inboundDelay ? `Zulauf +${Math.round(tr.inboundDelay / 60)} Min.` : 'geplant', cls: tr.inboundDelay ? 'warn' : '' };
+    if (S.t < actualSpawn) return { txt: 'angeboten', cls: 'stop' };
     return { txt: 'wartet auf freie Strecke', cls: 'warn' };
   }
   if (tr.overtake && tr.dwellUntil != null && !tr.served) return { txt: `wartet auf Überholung durch ${tr.link.num}`, cls: 'stop' };
@@ -2116,6 +2478,13 @@ function trainStatus(tr) {
   return { txt: `fährt → ${tr.endSig}`, cls: '' };
 }
 function renderPanel() {
+  renderNetwork();
+  $('#connections').innerHTML = S.connections.filter(c => !c.resolved).map(c => {
+    const feeder = connectionTrain(c.feeder), receiver = connectionTrain(c.receiver);
+    if (!feeder || !receiver) return '';
+    const state = connectionReady(c) ? 'Umstieg möglich' : feeder.actArr != null ? 'Zubringer da – Umstieg läuft' : 'Zubringer unterwegs';
+    return '<div class="connRow"><div class="connInfo"><strong>🔗 ' + feeder.num + ' → ' + receiver.num + '</strong><div class="connState">' + state + ' · ab ' + fmt(receiver.plan.dep) + ' · max. ' + fmt(receiver.plan.dep + c.maxWait) + '</div></div><button class="btn ' + (c.decision === 'hold' ? 'on' : '') + '" data-connection="' + c.receiver + '" data-decision="hold">Warten</button><button class="btn ' + (c.decision === 'release' ? 'on' : '') + '" data-connection="' + c.receiver + '" data-decision="release">Freigeben</button></div>';
+  }).join('');
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
   const rows = [...active.slice(0, 24), ...done];
@@ -2123,13 +2492,14 @@ function renderPanel() {
         + '<thead><tr><th>Zug</th><th>Fahrt</th><th>An / Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
+    const priority = trainPriority(tr);
     let del = '';
     if (tr.delay != null) del = tr.delay > 1 ? `<span class="late">+${tr.delay}</span>` : `<span class="ontime">±0</span>`;
     else if (S.t > tr.plan.dep + 60) del = `<span class="late">+${Math.floor((S.t - tr.plan.dep) / 60)}</span>`;
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
-    h += `<tr class="${st.cls}">
-      <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span></td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überh. ' + tr.link.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+    h += `<tr class="${priority ? priority.level : st.cls}">
+      <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
@@ -2140,11 +2510,15 @@ function renderPanel() {
   for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
   if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
   if (S.queue.length) al += `<div class="q">Speicher: ${S.queue.map(rName).join(' · ')}</div>`;
+  for (const tr of S.schedule) {
+    const p = trainPriority(tr);
+    if (p && p.level === 'urgent' && tr.overtakes) al += `<div class="b">⚠ Überholung gefährdet: ${p.hint}</div>`;
+  }
   if ($('#alerts')._h !== al) { $('#alerts').innerHTML = al; $('#alerts')._h = al; }
   $('#scoreVal').textContent = S.score;
   $('#punct').textContent = `pünktlich ${S.ontime}/${S.departed}`;
-  const nxt = S.schedule.find(t => !t.spawned);
-  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn) : '';
+  const nxt = S.schedule.filter(t => !t.spawned && !t.done).sort((a, b) => (a.plan.spawn + (a.inboundDelay || 0)) - (b.plan.spawn + (b.inboundDelay || 0)))[0];
+  $('#nextInfo').textContent = nxt ? 'nächster ' + fmt(nxt.plan.spawn + (nxt.inboundDelay || 0)) : '';
   if (S.logDirty) {
     S.logDirty = false;
     $('#log').innerHTML = S.log.map(l => `<li class="${l.cls}"><span class="t">${fmt(l.t)}</span>${l.text}</li>`).join('');
@@ -2212,7 +2586,7 @@ function endPtr(e) {
   if (gest && gest.type === 'tap' && ptrs.size === 0 && e.type === 'pointerup') {
     const t = gest.target && gest.target.closest ? gest.target.closest('[data-hit]') : null;
     if (t) onTap(t.getAttribute('data-hit'), t.getAttribute('data-id'));
-    else { S.sel = null; if (S.cancelMode) setCancel(false); }
+    else { S.sel = null; selectedTrain = null; if (S.cancelMode) setCancel(false); }
     render();
   }
   if (ptrs.size === 1) { const p = [...ptrs.values()][0]; gest = { type: 'pan', p0: p, v0: { ...view } }; }
@@ -2240,6 +2614,9 @@ $('#btnPanel').addEventListener('click', () => {
   if (narrow.matches) side.classList.toggle('open'); else side.classList.toggle('closed');
   setTimeout(fit, 30);
 });
+$('#trainCardClose').addEventListener('click', () => { selectedTrain = null; $('#trainCard').hidden = true; });
+$('#sideClose').addEventListener('click', () => $('#side').classList.remove('open'));
+$('#sideBackdrop').addEventListener('click', () => $('#side').classList.remove('open'));
 function setMenu(open) { $('#menu').classList.toggle('open', open); $('#menuBack').classList.toggle('open', open); $('#btnMenu').classList.toggle('on', open); }
 $('#btnMenu').addEventListener('click', () => setMenu(!$('#menu').classList.contains('open')));
 $('#btnMenuClose').addEventListener('click', () => setMenu(false));
@@ -2263,6 +2640,15 @@ function syncOptions() {
   $('#optDisrupt').classList.toggle('on', S.disrupt); $('#optDisrupt').textContent = S.disrupt ? 'Störungen an' : 'Störungen aus';
   $('#optQueue').classList.toggle('on', S.useQueue); $('#optQueue').textContent = S.useQueue ? 'Fahrstraßenspeicher an' : 'Fahrstraßenspeicher aus';
 }
+$('#network').addEventListener('click', e => {
+  const b = e.target.closest('button[data-network-station]');
+  if (b) chooseStation(b.dataset.networkStation);
+  if (e.target.closest('button[data-crossover]')) toggleCrossover();
+});
+$('#connections').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-connection]');
+  if (btn) decideConnection(Number(btn.dataset.connection), btn.dataset.decision);
+});
 $('#optSwitch').addEventListener('click', () => { S.autoSwitch = !S.autoSwitch; syncOptions(); });
 $('#optSignal').addEventListener('click', () => { S.autoSignal = !S.autoSignal; syncOptions(); });
 $('#optDensity').addEventListener('click', () => {
@@ -2282,6 +2668,7 @@ function startGame() {
   addTrain('RB', -1, START_T + 180);
   S.genT = START_T + 180; S.lastDir = { '1': START_T + 60, '-1': START_T + 180 };
   ensureSchedule();
+  importNetwork();
   log(`Dienstbeginn im ${ST.stw}. Gute Schicht!`, 'good');
   S.dp = dayPart(S.t); log('🕒 ' + DAYPARTS[S.dp].msg, 'info');
   syncOptions(); setCancel(false);
