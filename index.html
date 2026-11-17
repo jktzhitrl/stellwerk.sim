@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.8">
+<meta name="app-version" content="2026-11-17.9">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -857,7 +857,7 @@ const CFG = BF === 'neustadt' || BF === 'falkenberg' ? {
   townsW: BF === 'falkenberg' ? ['Neustadt', 'Heidekreuz'] : ['Altdorf', 'Bergheim', 'Lindenau'], townsE: BF === 'falkenberg' ? ['Teutschenthal', 'Heidekreuz'] : ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
   overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [5, 6] : [1, 2] },
-  closure: true, fit: { by: BF === 'falkenberg' ? 0 : 38, bh: BF === 'falkenberg' ? 700 : 480 }, shunting: false,
+  closure: true, fit: { by: BF === 'falkenberg' ? -75 : 38, bh: BF === 'falkenberg' ? 825 : 480 }, shunting: false,
   trackFor(type, dir) {
     if (type === 'IC' || type === 'ICE') return dir > 0 ? 4 : 3;                 // Hauptgleise
     if (type === 'GC') return dir > 0 ? pick([4, 6]) : pick([3, 1]);
@@ -1933,7 +1933,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: BF === 'falkenberg' ? -20 : 0, width: WID, height: BF === 'falkenberg' ? 710 : 600 }, cp);
+  el('rect', { x: 0, y: BF === 'falkenberg' ? -75 : 0, width: WID, height: BF === 'falkenberg' ? 825 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -1942,10 +1942,17 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  (BF === 'neustadt' || BF === 'falkenberg' ? decorNeustadt : decorTeutschenthal)(W, txt, arrow, buffer);
+  // Falkenberg nutzt die Gleisgeometrie von Neustadt, aber nicht deren Orts- und Kopfzeilen.
+  const oldNeustadtLabels = new Set(['Bf NEUSTADT', 'Gleisbildstellwerk Ns · Fahrdienstleiter',
+    'Altdorf · Waldheim', 'Neuhafen', '▶ von Altdorf (Einfahrt an A)',
+    '◀ von Neuhafen (Einfahrt an F)']);
+  const stationTxt = BF === 'falkenberg'
+    ? (x,y,label,attrs) => oldNeustadtLabels.has(label) ? null : txt(x,y,label,attrs)
+    : txt;
+  (BF === 'neustadt' || BF === 'falkenberg' ? decorNeustadt : decorTeutschenthal)(W, stationTxt, arrow, buffer);
   if (BF === 'falkenberg') {
-    txt(WID/2, 66, 'BF FALKENBERG · NETZKNOTEN', { 'text-anchor':'middle', fill:'#f4d77e','font-size':20,'font-weight':800 });
-    txt(WID/2, 84, 'Zweigleisige freie Strecke über Bk Heidekreuz · Neustadt / Teutschenthal', { 'text-anchor':'middle','font-size':12 });
+    txt(WID/2, -43, 'BF FALKENBERG · NETZKNOTEN', { 'text-anchor':'middle', fill:'#f4d77e','font-size':20,'font-weight':800 });
+    txt(WID/2, -24, 'Zweigleisige freie Strecke über Bk Heidekreuz · Neustadt / Teutschenthal', { 'text-anchor':'middle','font-size':12 });
     // Schematische zweigleisige freie Strecke rechts des Bahnhofsgleisbilds.
     for (const [y, label, direction] of [[610, 'Streckengleis 1 →', 1],[650, '← Streckengleis 2', -1]]) {
       el('line', { x1: 90, y1:y, x2:WID-90, y2:y, stroke:'#a9bbc5','stroke-width':4 }, W);
@@ -1953,7 +1960,7 @@ function buildStatic() {
       arrow(WID-120,y,direction);
     }
     txt(WID/2, 635, 'Bk HEIDEKREUZ · Richtungsgleise (Netzschema)', {'text-anchor':'middle','font-size':13,fill:'#f4d77e'});
-    txt(820, 626, 'Gleis 7–10: Ergänzungs- und Bereitstellungsgleise', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
+    txt(WID/2, 684, 'Gleis 7–10: Bereitstellung (noch ohne Fahrstraßen)', { 'text-anchor':'middle','font-size':12,fill:'#b4c7d0' });
   }
 
   // Gleise
