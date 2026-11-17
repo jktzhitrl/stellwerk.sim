@@ -1833,10 +1833,16 @@ function buildStatic() {
     el('line', { x1: s.x, y1: s.y + (s.dir > 0 ? 4 : -4), x2: s.x, y2: s.ly, stroke: '#8b9298', 'stroke-width': 2 }, W);
     el('line', { x1: s.x, y1: s.ly, x2: s.x - s.dir * 13, y2: s.ly, stroke: '#8b9298', 'stroke-width': 3 }, W);
     E_.lamp2 = E_.lamp2 || {};
-    E_.lamp2[id] = el('circle', { cx: s.x - s.dir * 15, cy: s.ly, r: 5, fill: '#2a2d30', stroke: '#0d0e0f', 'stroke-width': 1.5 }, W);
+    // Kompakter Signalschirm mit drei getrennten Leuchten statt großer Farbpunkte.
+    E_.lamp2[id] = el('circle', { cx: s.lx, cy: s.ly + 7, r: 3.4, fill: '#182229', stroke: '#39444b', 'stroke-width': 0.8 }, W);
     E_.ring[id] = el('circle', { cx: s.lx, cy: s.ly, r: 15, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, display: 'none' }, W);
-    E_.sigHousing[id] = el('rect', { x: s.lx - 11, y: s.ly - 12, width: 22, height: 24, rx: 5, fill: '#11191e', stroke: '#64717a', 'stroke-width': 1.3 }, W);
-    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly, r: 8, fill: COL.red, stroke: '#0d0e0f', 'stroke-width': 2 }, W);
+    E_.sigHousing[id] = el('rect', { x: s.lx - 6.5, y: s.ly - 13, width: 13, height: 26, rx: 5, fill: '#0a1014', stroke: '#77858c', 'stroke-width': 1 }, W);
+    // Die Leuchten liegen über dem Gehäuse und werden einzeln geschaltet.
+    E_.lamp[id] = el('circle', { cx: s.lx, cy: s.ly - 7, r: 3.4, fill: COL.red, stroke: '#39444b', 'stroke-width': 0.8 }, W);
+    E_.lampMid = E_.lampMid || {};
+    E_.lampMid[id] = el('circle', { cx: s.lx, cy: s.ly, r: 3.4, fill: '#182229', stroke: '#39444b', 'stroke-width': 0.8 }, W);
+    // Zweite Leuchte im unteren Schirmteil (vor der Beschriftung).
+    W.appendChild(E_.lamp2[id]);
     E_.aspectText[id] = txt(s.lx, s.ly + (s.dir > 0 ? 29 : -21), 'Hp0', { 'text-anchor': 'middle', 'font-size': 10, fill: '#ffaaa4', 'font-weight': 700 });
     if (s.kind === 'Einfahrsignal') {   // Vorsignal am Einfahrsignal: zeigt das Ausfahrsignal an
       const vx = s.lx + s.dir * 17;
@@ -1895,9 +1901,11 @@ function render() {
     const arS = S.routes.find(a => a.r.from === id && !a.passed), shunt = arS && arS.r.shunt;
     const zs1 = S.sig[id] === 'Zs1';
     const signalTerm = zs1 ? 'Zs1' : shunt && asp !== 'Hp0' ? 'Sh1' : asp;
-    E_.lamp[id].setAttribute('fill', zs1 ? '#3b4850' : asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
-    E_.lamp2[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : '#2a2d30') : asp === 'Hp2' && !shunt ? COL.yellow : shunt && asp !== 'Hp0' ? '#f2f6ff' : '#2a2d30');
+    const off = '#182229';
+    E_.lamp[id].setAttribute('fill', zs1 ? off : asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
+    E_.lampMid[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : off) : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
+    E_.lamp2[id].setAttribute('fill', zs1 ? off : asp === 'Hp2' && !shunt ? COL.yellow : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
     E_.aspectText[id].textContent = signalTerm;
     E_.aspectText[id].setAttribute('fill', zs1 ? '#ffffff' : signalTerm === 'Hp0' ? '#ffaaa4' : signalTerm === 'Hp2' ? '#ffe17c' : '#a7f2c1');
     E_.sigHousing[id].setAttribute('stroke', S.sigFault[id] ? '#ff8a3d' : '#64717a');
