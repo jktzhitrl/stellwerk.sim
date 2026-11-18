@@ -626,8 +626,8 @@ function routeStopPosition(p,points){
 }
 async function stationCandidates(j,feedback){
  const a=station(j.a),b=station(j.b);if(!a||!b)return[];
- const existing=lineStopsCache.get(j.id);if(existing)return existing;
- const saved=wonNetworkStops[j.id];if(Array.isArray(saved)&&saved.length){lineStopsCache.set(j.id,saved);return saved;}
+ const existing=lineStopsCache.get(j.id);if(existing){feedback.textContent=existing.length+' gespeicherte Zwischenhalte verfügbar.';return existing;}
+ const saved=wonNetworkStops[j.id];if(Array.isArray(saved)&&saved.length){lineStopsCache.set(j.id,saved);feedback.textContent=saved.length+' Halte aus deinem gewonnenen Netz geladen.';return saved;}
  const guide=routeCache[j.id]?.points,endpointA=[a.lat,a.lng],endpointB=[b.lat,b.lng];
  const south=Math.min(a.lat,b.lat)-.075,north=Math.max(a.lat,b.lat)+.075,west=Math.min(a.lng,b.lng)-.075,east=Math.max(a.lng,b.lng)+.075;
  if((north-south)*(east-west)>.55){feedback.textContent='Zu großer Kartenausschnitt: nur die beiden festen Endbahnhöfe verfügbar.';return[];}
@@ -734,7 +734,7 @@ function startMapLineMode(contractId,lineId=null){
  $('plannerFeedback').textContent='Lade geeignete Haltestellen im Verkehrsnetz …';renderPlannerTrains();
  closePanels();$('mapLinePlanner').hidden=false;redrawMapLineMode();
  const j=JOBS.find(x=>x.id===contractId),a=station(j.a),b=station(j.b);
- map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[75,75],maxZoom:11});
+ map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{paddingTopLeft:[65,55],paddingBottomRight:[Math.min(350,map.getSize().x*.42),55],maxZoom:11});
  // Overpass-Ergebnisse aus dem bestehenden Stationsdienst im Korridor sichtbar machen.
  const feedback=$('plannerFeedback');
  stationCandidates(j,feedback).then(candidates=>{
