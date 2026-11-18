@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Railway Empire Deutschland</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Railway Empire Deutschland</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.2.1/dist/maplibre-gl.css">
 <style>
 :root{font:14px system-ui;color:#eaf6ff;background:#091822;color-scheme:dark;--gold:#f4cf86;--teal:#69e4c5}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
 button,select,input{font:inherit}button{background:linear-gradient(160deg,#335b72,#203d53);color:#e8f4fb;border:1px solid #54798e;border-radius:11px;padding:9px 11px;cursor:pointer;min-height:42px;box-shadow:0 2px 0 #0c2130}button:hover{background:linear-gradient(160deg,#477d97,#27516c)}button:disabled{opacity:.4;cursor:default}button.primary{background:linear-gradient(150deg,#15aa8e,#067568);border-color:#84f9da;font-weight:bold;color:#f6fffb;box-shadow:0 3px 0 #07564e}
@@ -183,9 +183,17 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 #gameDock .dockIcon.selected,#gameDock .dockIcon:hover{background:linear-gradient(140deg,#55d0a8,#148c7d);color:#fff}
 #gameDock .dockSep{background:#c1d3cb}
 .leaflet-control-zoom a{background:#fffdf5!important;color:#174a55!important;border-color:#bbd2c9!important}
+
+/* v1.1: farbige Stadtkarte mit sanften Konturen */
+#map{background:#dce9dd}
+#map .leaflet-maplibre-gl-layer{filter:saturate(.90) contrast(.98) brightness(1.03)}
+#map .maplibregl-map{background:#f4f0e2}
+#map .leaflet-control-attribution{background:#f9fffbe6!important;color:#315255!important}
+#mapTop{box-shadow:0 5px 18px #23463b45!important}
+#selected{box-shadow:0 3px 12px #23463b40!important}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.0.1 · KARTENFIX</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.1 · SPIELWELT</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
@@ -207,7 +215,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 
 </div>
 <div id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div id="dialogCard"><h2 id="dialogTitle"></h2><div id="dialogContent"></div><div id="dialogActions"><button id="closeDialog">Abbrechen</button><button id="acceptDialog" class="primary">Angebot abgeben</button></div></div></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://unpkg.com/maplibre-gl@2.2.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='railway_empire_germany_v02';
@@ -222,7 +230,7 @@ const SERVICES={sb:{name:'S-Bahn',pattern:'Alle geeigneten Zwischenhalte',types:
 const serviceForJob=j=>j.id==='L01'?'sb':null;
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],lines:[],nextLine:1,fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
-let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
+let S=fresh(),map=null,vectorMap=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
@@ -691,7 +699,7 @@ function initMap(){
  if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
  map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
  L.control.zoom({position:'bottomright'}).addTo(map);
- // Ohne API-Schlüssel: offizielle OSM-Kartenkacheln anstelle des gesperrten CARTO-Endpoints.
+ // Stabiles Fallback: OSM-Raster wird sofort geladen, die farbige Spielwelt danach.
  const baseMap=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
    minZoom:2,maxZoom:19,maxNativeZoom:19,
    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>'
@@ -711,6 +719,39 @@ function initMap(){
      $('railDetail').textContent='Karte nicht geladen. Bitte neu laden; die Bahnhofssymbole sind kein Ersatz für die Hintergrundkarte.';
    }
  });
+
+ // OpenFreeMap Bright: farbige Vektorkarte ohne API-Key. Leaflet-Spielmarker bleiben erhalten.
+ const showFallback=(message)=>{
+   if(vectorMap&&map.hasLayer(vectorMap))map.removeLayer(vectorMap);
+   vectorMap=null;
+   if(!map.hasLayer(baseMap))baseMap.addTo(map);
+   $('mapStatus').textContent=message;
+ };
+ if(L.maplibreGL&&typeof maplibregl!=='undefined'&&maplibregl.supported()){
+  try{
+   vectorMap=L.maplibreGL({style:'https://tiles.openfreemap.org/styles/bright',interactive:false}).addTo(map);
+   const gl=vectorMap.getMaplibreMap();
+   let ready=false,failures=0;
+   const loadingTimeout=setTimeout(()=>{
+     if(!ready)showFallback('Farbige Spielkarte lädt zu langsam – klassische Karte als Ersatz aktiv.');
+   },16000);
+   gl.on('error',()=>{
+     if(ready)return;
+     failures++;
+     if(failures>=3){clearTimeout(loadingTimeout);showFallback('Farbige Karte nicht erreichbar – klassische Karte aktiv.');}
+   });
+   gl.on('idle',()=>{
+     if(ready||!vectorMap||!map.hasLayer(vectorMap))return;
+     if(!gl.isStyleLoaded())return;
+     ready=true;clearTimeout(loadingTimeout);
+     if(map.hasLayer(baseMap))map.removeLayer(baseMap);
+     $('mapStatus').textContent='✓ Farbige Spielwelt geladen · Straßen, Gebäude und Landschaft aus OpenStreetMap.';
+   });
+  }catch(err){showFallback('Klassische Karte aktiv: Vektordarstellung nicht verfügbar.');}
+ }else{
+   $('mapStatus').textContent='Klassische Karte aktiv (Vektordarstellung auf diesem Gerät nicht unterstützt).';
+ }
+
  railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.55,attribution:'Technische Gleisdetails © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'});
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
  connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
