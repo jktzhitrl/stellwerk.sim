@@ -260,6 +260,21 @@ const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],lines:[],nextLine:1,fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
 let S=fresh(),map=null,vectorMap=null,connections=null,stationsLayer=null,networkStationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
+/* Datenquellen-Fallback: keine Schlüssel, höchstens zwei Anläufe,
+   abgebrochene Anfragen werden niemals unnötig wiederholt. */
+async function fetchOverpass(options){
+ let error=null;
+ for(const endpoint of ['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter']){
+  if(options.signal?.aborted)throw Error('Abfrage abgebrochen');
+  try{
+   const response=await fetch(endpoint,options);
+   if(response.ok)return response;
+   error=new Error('Overpass HTTP '+response.status);
+   if(response.status!==429&&response.status<500)break;
+  }catch(e){error=e;if(options.signal?.aborted)break;}
+ }
+ throw error||new Error('Beide Gleisdatenanbieter nicht erreichbar');
+}
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){note('Speichern fehlgeschlagen.');}}
@@ -296,7 +311,7 @@ async function fetchOwnedNetworkTrack(){
  try{
   const box=[bbox.s,bbox.w,bbox.n,bbox.e].map(x=>x.toFixed(5)).join(',');
   const query='[out:json][timeout:27];way["railway"="rail"]('+box+');out geom;';
-  const result=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  const result=await fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
   if(!result.ok)throw Error('Gleisdaten HTTP '+result.status);
   const elements=(await result.json()).elements||[];
   const graph=graphFromWays(elements),route=shortestRailPath(graph,[a.lat,a.lng],[b.lat,b.lng]);
@@ -360,7 +375,7 @@ async function loadWonNetworkStations(){
   const query='[out:json][timeout:20];(node["railway"~"^(station|halt)$"]('+bbox+');way["railway"~"^(station|halt)$"]('+bbox+'););out center 700;';
   const ctl=new AbortController(),timeout=setTimeout(()=>ctl.abort(),26000);
   let response;
-  try{response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal});}
+  try{response=await fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal});}
   finally{clearTimeout(timeout);}
   if(!response.ok)throw Error('Stationsdaten HTTP '+response.status);
   const json=await response.json(),unique=new Map();
@@ -412,7 +427,7 @@ async function loadRailGeometry(){
  $('railDetail').textContent='Lade reale Gleise und Weichen im Kartenausschnitt …';
  const timeout=setTimeout(()=>controller.abort(),20000);
  try{
-  const res=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  const res=await fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
   if(!res.ok)throw Error('HTTP '+res.status);
   const data=await res.json();if(token!==railToken)return;
   railGeometry.clearLayers();let ways=0,switches=0;
@@ -442,7 +457,7 @@ lastStops=Date.now();const token=++loadToken;const bbox=[b.getSouth(),b.getWest(
 const query='[out:json][timeout:15];(node["railway"~"station|halt"]('+bbox+');way["railway"~"station|halt"]('+bbox+'););out center 140;';
 $('mapStatus').textContent='Lade Bahnhöfe und Haltepunkte aus OpenStreetMap …';
 const ctl=new AbortController();setTimeout(()=>ctl.abort(),18000);
-fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal})
+fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal})
 .then(r=>{if(!r.ok)throw Error('Status '+r.status);return r.json();}).then(v=>{if(token!==loadToken)return;stopsLayer.clearLayers();let found=0;
 for(const n of v.elements||[]){const lat=n.lat||(n.center&&n.center.lat),lng=n.lon||(n.center&&n.center.lon),name=n.tags&&n.tags.name;if(!name||!Number.isFinite(lat)||!Number.isFinite(lng))continue;const id='osm-'+n.type+'-'+n.id,s={id,lat,lng,name};dyn.set(id,s);const m=L.circleMarker([lat,lng],{radius:5,color:'#33617e',weight:1,fillColor:S.owned.includes(id)?'#43d9ab':'#f6d581',fillOpacity:.9}).addTo(stopsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>{if(mapLineMode)addMapStop(s);else select(s);});found++;}
 $('mapStatus').textContent=found+' reale Bahnhöfe/Haltepunkte geladen (OpenStreetMap).';})
@@ -562,7 +577,7 @@ async function calculateRailRoute(id='L01'){
  const bbox=[box.s,box.w,box.n,box.e].map(x=>x.toFixed(5)).join(',');
  const query='[out:json][timeout:35];way["railway"="rail"]('+bbox+');out geom;';
  try{
-  const response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  const response=await fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
   if(!response.ok)throw Error('HTTP '+response.status);
   const data=await response.json();if(seq!==routeSequence)return;
   routeProgress('Prüfe Gleisverbindungen und berechne den Fahrweg …');
@@ -619,7 +634,7 @@ async function stationCandidates(j,feedback){
  try{
   const bbox=[south,west,north,east].map(v=>v.toFixed(5)).join(',');
   const query='[out:json][timeout:15];(node["railway"~"^(station|halt)$"]('+bbox+');way["railway"~"^(station|halt)$"]('+bbox+'););out center 450;';
-  const res=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal});
+  const res=await fetchOverpass({method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal});
   if(!res.ok)throw Error('Stationsdienst HTTP '+res.status);
   const data=await res.json();if(token!==lineLoadSerial)return[];
   const seen=new Map();
@@ -867,7 +882,7 @@ async function calculateLiveLine(line){
  try{
   const bbox=[south,west,north,east].map(x=>x.toFixed(5)).join(',');
   const query='[out:json][timeout:37];way["railway"="rail"]('+bbox+');out geom;';
-  const resp=await fetch('https://overpass.kumi.systems/api/interpreter',{
+  const resp=await fetchOverpass({
     method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body:'data='+encodeURIComponent(query),signal:controller.signal});
   if(!resp.ok)throw Error('Gleisdaten HTTP '+resp.status);
