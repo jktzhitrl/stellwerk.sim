@@ -132,9 +132,27 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
  #gettingStarted #startAction{font-size:11px;min-height:36px}
 }
 @media(max-height:600px){#gettingStarted{max-height:75%;overflow-y:auto;bottom:5px;padding:9px}}
+
+/* v0.8 geführtes Tutorial – kompakt und auf Tablet ohne verdeckte Bedienelemente */
+#gettingStarted{z-index:1100;right:14px;bottom:18px;width:min(375px,calc(100vw - 90px));max-height:min(84vh,650px);overflow:auto;gap:10px;padding:19px;border-radius:17px}
+#gettingStarted strong{font-size:18px;padding-right:19px}
+#gettingStarted #startProgress{font-weight:800;font-size:10px;letter-spacing:.5px;color:#397c7a}
+#tutorialBar{height:6px;border-radius:20px;background:#e0d2b0;overflow:hidden}
+#tutorialBarFill{height:100%;width:0;display:block;background:linear-gradient(90deg,#159b81,#3ba7c9);transition:width .24s}
+#tutorialTip{background:#e5f3ed;border-left:3px solid #169e83;border-radius:6px;padding:9px 10px;font-size:12px;line-height:1.5;color:#35545a}
+#tutorialActions{display:flex;gap:8px}
+#tutorialActions button{font-size:12px;flex:1}
+#tutorialActions button.primary{flex:1.6}
+#gettingStarted #startSkip{background:transparent;border:0;color:#596f76;box-shadow:none;min-height:27px;padding:0;text-decoration:underline;font-size:11px}
+@media(max-width:700px){
+ #gettingStarted{right:7px;bottom:8px;width:min(305px,calc(100vw - 64px));max-height:calc(100% - 25px);padding:12px;gap:7px}
+ #gettingStarted strong{font-size:15px}
+ #gettingStarted p,#tutorialTip{font-size:11px}
+ #tutorialActions button{padding:6px;font-size:11px}
+}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.7</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.8</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" class="active" aria-pressed="true">🛤️ Bahngleise</button><button id="loadStops">🚉 Stationen</button></div>
@@ -144,7 +162,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Erste Schritte"><button id="closeStart" aria-label="Hinweis schließen" title="Schließen">×</button><span class="startOverline">DEIN ERSTER AUFTRAG</span><strong>Starte deine Eisenbahngesellschaft</strong><p id="startText">Du besitzt Leipzig und Halle sowie zwei Züge. Bewirb dich zuerst auf das Mitteldeutsche S-Bahn-Netz.</p><button id="startAction" class="primary">🏆 Jetzt erstes Los ansehen</button><div id="startProgress"></div></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -479,40 +497,53 @@ $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;}
 $('routeDemo').onclick=()=>calculateRailRoute('L01');$('clearRoute').onclick=clearRailRoute;
 
 
-const TUTORIAL_KEY='railway_empire_tutorial_dismissed_v06';
+
+const TUTORIAL_KEY='railway_empire_tutorial_dismissed_v08';
+let tutorialStep=0;
+const TUTORIAL_STEPS=[
+ {title:'Willkommen bei Railway Empire!',text:'Du leitest eine Eisenbahngesellschaft. Am Anfang besitzt du die Betriebsstellen Leipzig und Halle, einen S-Bahn-Triebwagen und einen Regionaltriebwagen. Die große Karte zeigt reale Bahnstrecken, deine Verkehrsverträge sind dagegen fiktive Spielaufträge.',tip:'Dein Ziel: Zuerst ein Verkehrsnetz gewinnen, passende Züge einsetzen und wirtschaftlich erfolgreich fahren.',action:'Start: Karte kennenlernen'},
+ {title:'Die Karte ist deine Spielwelt',text:'Bewege die Karte mit einem Finger oder der Maus und zoome hinein. Grüne Stationssymbole stehen für bereits erschlossene Bahnhöfe. Über das kleine 🏗️-Symbol öffnest du das Baumenü und kannst weitere Bahnhöfe erschließen.',tip:'Wichtig: Einen Bahnhof zu erschließen kostet 28.000 €. Das allein erstellt noch keine fahrende Linie.',action:'🏗️ Baumenü zeigen',open:'build'},
+ {title:'So bewirbst du dich auf ein Verkehrsnetz',text:'Tippe auf 🏆 Aufträge. Hier stehen die Ausschreibungen. Beginne mit „Mitteldeutsches S-Bahn-Netz“ zwischen Leipzig und Halle. Tippe auf „Angebot erstellen“, solange die Frist noch läuft.',tip:'Jedes Los hat eine Bewerbungsfrist und eine Mindestanzahl an Fahrten. Bei einem gewonnenen Los entsteht dein Verkehrsvertrag – keine frei gezeichnete Strecke.',action:'🏆 Ausschreibungen öffnen',open:'tenders'},
+ {title:'So funktioniert ein Angebot',text:'Im Bewerbungsfenster legst du fest: ① Betriebsart (S-Bahn, RB oder RE), ② Preis pro Betriebstag, ③ Fahrten pro Tag, ④ Fahrzeugtyp und ⑤ Anzahl der Züge. Das Mitteldeutsche Netz schreibt S-Bahn vor.',tip:'Preis zu hoch? Schlechtere Zuschlagschance. Zu wenige Plätze? Angebot nicht zulässig. Fehlende Fahrzeuge kosten Geld, wenn du gewinnst. Die Bewerbung kostet 1.200 €.',action:'📝 Beispielangebot öffnen',open:'offer'},
+ {title:'Was passiert nach der Bewerbung?',text:'Mit „Angebot abgeben“ reichst du dein Gebot ein. Anschließend tippe oben auf „▶ Nächster Tag“. Die Vergabe entscheidet anhand von Angebotspreis, Ruf, Fahrten und Fahrzeugkapazität, ob du das Los bekommst.',tip:'Der Zuschlag ist nicht garantiert. Bei einer Ablehnung kannst du dich auf andere noch offene Lose bewerben.',action:'📋 Bewerbungen prüfen',open:'tenders'},
+ {title:'Deine Linien und Fahrzeuge',text:'Gewinnst du ein Los, ist die Linie als Verkehrsvertrag in deinem Unternehmen angelegt. Passende Züge werden automatisch zugeteilt und fehlende Fahrzeuge bei ausreichendem Geld gekauft. Über 🚆 kannst du deine Fahrzeugzuordnung kontrollieren.',tip:'Für S-Bahn-Verträge sind S-Bahn-Triebwagen vorgesehen. Die Auswahl einzelner realer Zwischenhalte und ein eigener Fahrplaneditor sind derzeit noch nicht fertig.',action:'🚆 Fuhrpark öffnen',open:'fleet'},
+ {title:'Geld verdienen und richtig wirtschaften',text:'Jeder abgeschlossene Betriebstag bringt Einnahmen aus deinen gewonnenen Verträgen – aber auch Fahrzeug-, Strecken- und Stationskosten. Reicht die eingesetzte Kapazität nicht, drohen Vertragsstrafen und Rufverlust.',tip:'Achte auf ausreichend Geld für Fahrzeuge, die Mindestfahrten, verfügbare Sitzplätze und deinen Unternehmensruf. Unter 💰 siehst du die Ergebnisse.',action:'💰 Finanzen öffnen',open:'finance'},
+ {title:'Was schon geht – und was noch kommt',text:'Du kannst reale Bahnhöfe entdecken, Verkehrslose gewinnen, Fahrzeuge kaufen, Betriebsarten wählen und den täglichen Betrieb abrechnen. Die Testfahrt Leipzig–Halle zeigt bei erfolgreicher Datenabfrage einen Zug entlang verbundener Gleisgeometrie.',tip:'Noch nicht vorhanden: komplett frei gezeichnete, befahrbare Linien, auswählbare Zwischenhalte, echter individueller Fahrplan und vollständiger deutschlandweiter Zugbetrieb. Das Spiel wird schrittweise erweitert.',action:'✅ Tutorial abschließen',open:'finish'}
+];
 function updateTutorial(){
  const box=$('gettingStarted');if(!box)return;
  if(sessionStorage.getItem(TUTORIAL_KEY)==='yes'){box.hidden=true;return;}
- const initial=!S.bids.length&&!S.awards.length;
- const won=S.awards.length>0;
- const pending=S.bids.length>0;
- const text=$('startText'),btn=$('startAction'),progress=$('startProgress');
- if(initial){
- text.textContent='Du startest mit Bahnhöfen in Leipzig und Halle und zwei Zügen. Bewirb dich um dein erstes Verkehrsnetz: Fahrzeug auswählen, Angebot einreichen und Zuschlag abwarten.';
- btn.textContent='🏆 Erstes Verkehrsnetz ansehen';
- progress.textContent='1 / 3 · Ausschreibung auswählen';
- }else if(pending){
- text.textContent='Dein Angebot wurde eingereicht. Jetzt den nächsten Betriebstag starten, damit über den Zuschlag entschieden wird.';
- btn.textContent='▶ Zuschlagsentscheidung starten';
- progress.textContent='2 / 3 · Bewerbung läuft';
- }else if(won){
- text.textContent='Du hast einen Verkehrsvertrag gewonnen! Auf der Karte kannst du das Streckennetz ansehen. Verdiene Geld, kaufe Züge und bewirb dich auf weitere Lose.';
- btn.textContent='🗺️ Verkehrsnetz ansehen';
- progress.textContent='3 / 3 · Dein Unternehmen wächst';
- }else{
- text.textContent='Dein Angebot erhielt keinen Zuschlag. Bewirb dich bei einem anderen Verkehrsnetz oder investiere in deine Flotte.';
- btn.textContent='🏆 Neue Ausschreibung auswählen';
- progress.textContent='Neue Chance · Vergaben prüfen';
- }
+ tutorialStep=Math.max(0,Math.min(TUTORIAL_STEPS.length-1,tutorialStep));
+ const step=TUTORIAL_STEPS[tutorialStep],n=tutorialStep+1,total=TUTORIAL_STEPS.length;
+ $('startTitle').textContent=step.title;
+ $('startText').textContent=step.text;
+ $('tutorialTip').textContent='💡 '+step.tip;
+ $('startProgress').textContent='SCHRITT '+n+' VON '+total;
+ $('tutorialBarFill').style.width=(n/total*100)+'%';
+ $('startAction').textContent=step.action;
+ $('startBack').disabled=tutorialStep===0;
  box.hidden=false;
 }
-function dismissTutorial(){sessionStorage.setItem(TUTORIAL_KEY,'yes');$('gettingStarted').hidden=true;}
+function dismissTutorial(){sessionStorage.setItem(TUTORIAL_KEY,'yes');$('gettingStarted').hidden=true;closePanels();}
+function advanceTutorial(){tutorialStep=Math.min(TUTORIAL_STEPS.length-1,tutorialStep+1);updateTutorial();}
 $('closeStart').onclick=dismissTutorial;
-$('showHelp').onclick=()=>{sessionStorage.removeItem(TUTORIAL_KEY);updateTutorial();closePanels();};
+$('startSkip').onclick=dismissTutorial;
+$('startBack').onclick=()=>{tutorialStep=Math.max(0,tutorialStep-1);closePanels();updateTutorial();};
+$('showHelp').onclick=()=>{tutorialStep=0;sessionStorage.removeItem(TUTORIAL_KEY);closePanels();updateTutorial();};
 $('startAction').onclick=()=>{
- if(S.bids.length){nextDay();return;}
- if(S.awards.length){dismissTutorial();showTenderOnMap(S.awards[0].id);return;}
- dismissTutorial();openPanel('right','tenders','showContracts');setTimeout(()=>{const first=$('tenders').querySelector('button:not(:disabled)');if(first)first.scrollIntoView({block:'nearest',behavior:'smooth'});},160);
+ const mode=TUTORIAL_STEPS[tutorialStep].open;
+ if(mode==='finish'){dismissTutorial();return;}
+ if(mode==='build')openPanel('left',null,'showBuild');
+ if(mode==='tenders')openPanel('right','tenders','showContracts');
+ if(mode==='fleet')openPanel('right','fleet','showFleet');
+ if(mode==='finance')openPanel('right','finance','showFinance');
+ if(mode==='offer'){
+  openPanel('right','tenders','showContracts');
+  const first=JOBS.find(j=>!S.awards.some(a=>a.id===j.id)&&!S.bids.some(b=>b.id===j.id)&&S.day<=j.deadline);
+  if(first)bidDialog(first.id);
+  else note('Kein offenes Los verfügbar. Du kannst das Beispiel im Tutorial lesen.');
+ }
+ advanceTutorial();
 };
 function closePanels(){
  for(const id of ['left','right'])$(id).classList.remove('open');
