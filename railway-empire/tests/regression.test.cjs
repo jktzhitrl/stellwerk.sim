@@ -123,3 +123,24 @@ test('Aborted railway requests do not retry alternate providers',async()=>{
  await assert.rejects(query({signal:{aborted:true}}));
  assert.equal(calls,0);
 });
+
+test('Winning first Leipzig–Halle S-Bahn tender assigns and procures the promised trains',()=>{
+ const setup=segment('const ST=[','let S=fresh()');
+ const resolution=segment('function resolveBids(){','function nextDay(){');
+ const simulate=new Function('winning',setup+
+  'let S=fresh();'+
+  'const Math={random:()=>winning?0:.999,max:globalThis.Math.max,min:globalThis.Math.min,round:globalThis.Math.round};'+
+  'function debit(n){if(S.money<n)return false;S.money-=n;S.totalSpent+=n;return true;}'+
+  'function log(s){S.log.unshift(s);}'+resolution+
+  "S.bids=[{id:'L01',offer:11500,trips:4,type:'emu',count:2,service:'sb',submitted:1}];"+
+  'S.day=2;resolveBids();return S;');
+ const win=simulate(true);
+ assert.equal(win.awards.length,1);
+ assert.equal(win.awards[0].service,'sb');
+ assert.equal(win.fleet.filter(t=>t.line==='L01').length,2);
+ assert.equal(win.fleet.length,3);
+ assert.equal(win.money,442000);
+ const lose=simulate(false);
+ assert.equal(lose.awards.length,0);
+ assert.equal(lose.fleet.length,2);
+});
