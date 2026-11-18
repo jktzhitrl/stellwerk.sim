@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-18.2">
+<meta name="app-version" content="2026-11-18.3">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -354,6 +354,7 @@
     <button class="btn" id="btnHelp">? Hilfe</button>
     <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
     <button class="btn" id="btnHome" style="grid-column: span 2">🏠 Startmenü – Bahnhof, Schicht, neues Spiel</button>
+    <button class="btn" id="btnEditor" style="grid-column: span 2">🛠️ Eigenen Bahnhof zeichnen · Editor</button>
   </div>
   <h2><span>Meldungen</span></h2>
   <div id="logWrap"><ul id="log"></ul></div>
@@ -2752,6 +2753,7 @@ $('#stResume').addEventListener('click', () => {
   if (!S.useQueue) S.queue = [];
   syncOptions(); hideStart(); setSpeed(homeSpeed || 1);
 });
+$('#btnEditor').addEventListener('click', () => { window.location.href = 'editor.html'; });
 $('#stHelp').addEventListener('click', () => openHelp(true));
 $('#stInstall').addEventListener('click', () => $('#btnInstall').click());
 // ---------- Installierbare App (PWA) ----------
