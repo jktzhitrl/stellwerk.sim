@@ -1,0 +1,107 @@
+'use strict';
+/**
+ * Railway Empire – tests without external libraries.
+ * Run: node --test railway-empire/tests/regression.test.cjs
+ * No network calls and no browser dependencies.
+ */
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const html = fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+const js = html.match(/<script>\s*([\s\S]*?)<\/script>\s*<\/body>/)?.[1];
+if(!js)throw new Error('Application script missing');
+const segment=(start,end)=>{
+  const a=js.indexOf(start),b=js.indexOf(end,a+start.length);
+  assert.ok(a>=0&&b>a,'Missing source section '+start);
+  return js.slice(a,b);
+};
+const helpers = new Function(
+ segment('const degKm=','function restoreRoutes(')+
+ segment('function graphFromWays(','function clearRailRoute(')+
+ segment('function lateralKm(','async function stationCandidates(')+
+ segment('function distanceArray(','function paintLiveTrains(')+
+ 'return {degKm,graphFromWays,shortestRailPath,nearestTrackNodes,lateralKm,routeStopPosition,distanceArray,onRailAtDistance,liveTimetable,rideDistanceAt};'
+)();
+const {graphFromWays,shortestRailPath,liveTimetable,rideDistanceAt,distanceArray,onRailAtDistance} = helpers;
+const way=(nodes,xy)=>({type:'way',tags:{railway:'rail'},nodes,geometry:xy.map(([lat,lon])=>({lat,lon}))});
+const geometry = [[51,12],[51,12.01],[51,12.02],[51,12.03],[51,12.04]];
+const stations = [
+ {name:'A',lat:51,lng:12},
+ {name:'B',lat:51,lng:12.02},
+ {name:'C',lat:51,lng:12.04}
+];
+
+test('JavaScript application loads with valid syntax',()=>{
+ assert.doesNotThrow(()=>new Function(js));
+});
+
+test('Map uses key-free base layer and has the game overlay',()=>{
+ assert.match(js,/tile\.openstreetmap\.org/);
+ assert.match(js,/tiles\.openfreemap\.org\/styles\/bright/);
+ assert.match(js,/railVisible=false/);
+ assert.match(html,/id="gameDock"/);
+ assert.match(html,/id="mapLinePlanner"/);
+});
+
+test('Existing saves are migrated to support lines',()=>{
+ assert.match(js,/KEY='railway_empire_germany_v02'/);
+ assert.match(js,/S\.lines=Array\.isArray\(S\.lines\)/);
+});
+
+test('Lines can only be created after winning the network',()=>{
+ assert.match(js,/S\.awards\.find\(a=>a\.id===contractId\)/);
+ assert.match(js,/mapLineMode\.stops\.length<2/);
+ assert.match(js,/new Set\(mapLineMode\.stops\.map\(x=>x\.id\)\)/);
+ assert.match(js,/selectedTrains/);
+});
+
+test('Network places remain cached independently from zoom',()=>{
+ assert.match(js,/OWN_NETWORK_STOPS_KEY/);
+ assert.match(js,/function renderWonNetworkStations/);
+ assert.match(js,/function loadWonNetworkStations/);
+});
+
+test('Connected track graph produces an OSM-node route',()=>{
+ const graph=graphFromWays([
+  way([1,2,3],geometry.slice(0,3)),
+  way([3,4,5],geometry.slice(2))
+ ]);
+ const route=shortestRailPath(graph,geometry[0],geometry[4],1,5);
+ assert.equal(route.points.length,5);
+ assert.ok(route.km>2);
+});
+
+test('Disconnected tracks never produce an invented connection',()=>{
+ const graph=graphFromWays([
+  way([1,2],geometry.slice(0,2)),
+  way([3,4],geometry.slice(3))
+ ]);
+ assert.equal(shortestRailPath(graph,geometry[0],geometry[4],1,4),null);
+});
+
+test('Intermediate-stop dwell and reverse trip are continuous',()=>{
+ const plan=liveTimetable(geometry,stations);
+ assert.ok(plan);
+ const ride={plan};
+ const middleTime=plan.travelMs*(plan.stopKm[1]-plan.stopKm[0])/plan.total;
+ assert.ok(Math.abs(rideDistanceAt(ride,middleTime+600)-plan.stopKm[1])<.002);
+ const finalTime=plan.travelMs*(plan.stopKm[2]-plan.stopKm[0])/plan.total+plan.dwellMs;
+ assert.ok(Math.abs(rideDistanceAt(ride,finalTime+600)-plan.stopKm[2])<.002);
+ assert.ok(rideDistanceAt(ride,finalTime+plan.dwellMs+3000)<plan.stopKm[2]);
+ assert.ok(Math.abs(rideDistanceAt(ride,plan.cycleMs)-plan.stopKm[0])<.002);
+ const cumulative=distanceArray(geometry);
+ const position=onRailAtDistance(geometry,cumulative,plan.stopKm[1]);
+ assert.ok(Math.abs(position[1]-12.02)<.0001);
+});
+
+test('Invalid stop order does not enable a misleading animation',()=>{
+ assert.equal(liveTimetable(geometry,[stations[2],stations[1],stations[0]]),null);
+});
+
+test('Live animation has pause and speed controls',()=>{
+ assert.match(html,/id="pauseTrains"/);
+ assert.match(html,/id="trainSpeed"/);
+ assert.match(js,/livePaused/);
+ assert.match(js,/liveClock\+=frameMs\*liveSpeed/);
+});
