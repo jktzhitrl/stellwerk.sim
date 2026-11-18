@@ -42,7 +42,7 @@ const money=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const num=n=>Math.round(n).toLocaleString('de-DE');
 const fmtTime=m=>String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(Math.floor(m%60)).padStart(2,'0');
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-function newGame(){return {version:2,day:1,money:295000,reputation:72,
+function newGame(){return {version:2,day:1,money:365000,reputation:72,
 stations:{neustadt:{level:1},teutschenthal:{level:1}},
 tracks:{nt:{double:false,electric:true,signals:1,condition:100}},
 fleet:[{id:1,model:'diesel',condition:100},{id:2,model:'regional',condition:100}],
@@ -112,21 +112,24 @@ function changeFare(id,delta){const l=S.lines.find(a=>a.id===id);if(!l)return;l.
 function deleteLine(id){const l=S.lines.find(a=>a.id===id);if(!l)return;if(!confirm('Linie '+l.name+' wirklich einstellen?'))return;S.lines=S.lines.filter(x=>x.id!==id);log('Linie '+l.name+' eingestellt.');persist();render();}
 function dayEvent(day){const r=((day*17+7)%101)/101;return r<.11?{name:'Stellwerksstörung',factor:.76,maintenance:6500}:r<.20?{name:'Baustellenverkehr',factor:.85,maintenance:2400}:r<.29?{name:'Großveranstaltung',factor:1.35,maintenance:0}:{name:'Normalbetrieb',factor:1,maintenance:0};}
 function performDay(){
-const day=S.day,event=dayEvent(day),edgeUsed={},summary=[];let revenue=0,cost=0,passengers=0,freight=0,cancelled=0;
+const day=S.day,event=dayEvent(day),edgeUsed={},stationUsed={},summary=[];let revenue=0,cost=0,passengers=0,freight=0,cancelled=0;
 for(const l of S.lines){const v=lineVehicle(l),route=networkRoute(l.from,l.to);
 if(!v||!route||!route.edges.length){summary.push({name:l.name,done:0,missed:l.trips,profit:0});cancelled+=l.trips;continue;}
 const def=TRAINS[v.model],max=trainMaxTrips(v,route.km),feasible=Math.min(l.trips,max);
 let done=0,inc=0,out=0,loads=0;
 for(let i=0;i<feasible;i++){
 if(v.condition<12){cancelled++;continue;}
-if(route.edges.some(id=>(edgeUsed[id]||0)>=edgeCapacity(id))){cancelled++;continue;}
+if(route.edges.some(id=>(edgeUsed[id]||0)>=edgeCapacity(id))||
+   [l.from,l.to].some(id=>(stationUsed[id]||0)>=6+(S.stations[id]?.level||1)*4)){cancelled++;continue;}
 if(def.fuel==='Elektro'&&!routeIsElectric(route)){cancelled++;continue;}
 if(event.name==='Stellwerksstörung'&&(i+day+l.id)%4===0){cancelled++;continue;}
 route.edges.forEach(id=>edgeUsed[id]=(edgeUsed[id]||0)+1);
+stationUsed[l.from]=(stationUsed[l.from]||0)+1;stationUsed[l.to]=(stationUsed[l.to]||0)+1;
 const a=city(l.from),b=city(l.to);
-const demand=def.kind==='P'?Math.round((a.pop+b.pop)*.38*event.factor*(1.18-(l.fare-.22)*1.6)):Math.round((a.industry+b.industry)*.82*event.factor);
+const stationBoost=1+((S.stations[l.from]?.level||1)-1)*.12+((S.stations[l.to]?.level||1)-1)*.12;
+const demand=def.kind==='P'?Math.round((a.pop+b.pop)*.55*stationBoost*event.factor*(1.18-(l.fare-.22)*1.6)):Math.round((a.industry+b.industry)*1.08*stationBoost*event.factor);
 const load=Math.max(10,Math.min(def.seats,demand+((day*31+l.id*13+i*11)%31-15)));loads+=load;
-const income=load*route.km*l.fare;
+const income=load*route.km*l.fare*1.12;
 const operating=route.km*def.costKm+155+(def.kind==='G'?210:95);
 inc+=income;out+=operating;done++;v.condition=Math.max(0,v.condition-(def.kind==='G'?1.3:.85));
 }
@@ -163,7 +166,7 @@ const BUTTON=(action,id,label,disabled=false,cls='')=>'<button class="'+cls+'" d
 function stationCard(id){
 const c=city(id),level=S.stations[id]?.level||0;
 return '<div class="block"><div class="blockhead"><div><strong>'+c.name+'</strong><small>'+c.pop*1000+' Einwohner · Industrie '+c.industry+'</small></div><span class="tag '+(level?'green':'')+'">'+(level?'Stufe '+level:'nicht erschlossen')+'</span></div>'+
-(level?'<p>'+((level+1)*2)+' nutzbare Bahnsteig-/Betriebsgleise (vereinfacht).</p><div class="actionbar">'+BUTTON('upgrade-station',id,'Bahnhof ausbauen · '+money(16000*level),level>=4)+'</div>':'<p>Baue eine anschließende Strecke, um den Bahnhof freizuschalten.</p>')+'</div>';
+(level?'<p>'+((level+1)*2)+' nutzbare Bahnsteig-/Betriebsgleise (vereinfacht). Ausbau erhöht die Bahnhofskapazität um 4 Fahrten pro Tag und die Nachfrage.</p><div class="actionbar">'+BUTTON('upgrade-station',id,'Bahnhof ausbauen · '+money(16000*level),level>=4)+'</div>':'<p>Baue eine anschließende Strecke, um den Bahnhof freizuschalten.</p>')+'</div>';
 }
 function trackCard(id){
 const e=edge(id),t=S.tracks[id],accessible=linked(e),cost=costEdge(e);
@@ -180,7 +183,8 @@ return '<div class="layout"><div class="worldblock"><div class="maphead"><div><h
 }
 function lineCard(l){
 if(!l)return '<div class="empty">Linie nicht vorhanden.</div>';const v=lineVehicle(l),r=networkRoute(l.from,l.to);
-return '<div class="block"><div class="blockhead"><div><strong>'+escapeHtml(l.name)+'</strong><small>'+(r?r.km+' km · '+r.edges.length+' Streckenabschnitte':'Strecke unterbrochen')+'</small></div><span class="tag green">'+l.trips+' Fahrten/Tag</span></div><p>Fahrzeug: '+(v?TRAINS[v.model].name:'nicht vorhanden')+' · Tarif '+l.fare.toFixed(2)+' €/Pkm bzw. tkm</p><div class="actionbar">'+BUTTON('line-minus',l.id,'Weniger Fahrten')+BUTTON('line-plus',l.id,'Mehr Fahrten')+BUTTON('fare-minus',l.id,'Tarif −')+BUTTON('fare-plus',l.id,'Tarif +')+BUTTON('delete-line',l.id,'Linie einstellen',false,'danger')+'</div></div>';
+const times=Array.from({length:l.trips},(_,i)=>fmtTime(360+i*(900/Math.max(1,l.trips)))).join(' · ');
+return '<div class="block"><div class="blockhead"><div><strong>'+escapeHtml(l.name)+'</strong><small>'+(r?r.km+' km · '+r.edges.length+' Streckenabschnitte':'Strecke unterbrochen')+'</small></div><span class="tag green">'+l.trips+' Fahrten/Tag</span></div><p>Fahrzeug: '+(v?TRAINS[v.model].name:'nicht vorhanden')+' · Tarif '+l.fare.toFixed(2)+' €/Pkm bzw. tkm</p><p class="sub">Abfahrten: '+times+' Uhr · Max. Fahrzeugfahrten: '+(v&&r?trainMaxTrips(v,r.km):0)+'/Tag</p><div class="actionbar">'+BUTTON('line-minus',l.id,'Weniger Fahrten')+BUTTON('line-plus',l.id,'Mehr Fahrten')+BUTTON('fare-minus',l.id,'Tarif −')+BUTTON('fare-plus',l.id,'Tarif +')+BUTTON('delete-line',l.id,'Linie einstellen',false,'danger')+'</div></div>';
 }
 function linesPanel(){
 const own=CITIES.filter(c=>S.stations[c.id]);
