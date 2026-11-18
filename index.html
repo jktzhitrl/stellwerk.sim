@@ -1345,7 +1345,7 @@ function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on
 
 // ---------- Fahrplan ----------
 function genNext() {
-  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean * 2.45;
+  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean * ({ruhig:5,normal:3.7,dicht:2.6}[S.density] || 3.7);
   let t = S.genT + mean * (0.55 + Math.random() * 0.9);
   const dir = Math.random() < 0.5 ? 1 : -1;
   if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
