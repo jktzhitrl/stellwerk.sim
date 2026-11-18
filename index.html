@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-17.19">
+<meta name="app-version" content="2026-11-18.1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -144,7 +144,13 @@
   .priority-tag { display: inline-block; margin-top: 3px; padding: 1px 5px; border-radius: 3px; color: #ffd21f; border: 1px solid currentColor; font-size: 10px; font-weight: 700; }
 .priority-tag.urgent { color: #ff8a7a; }
   #network { padding:8px 10px; background:#17232c; border-bottom:1px solid #3d505b; font-size:12px; }
-  #network .netlines { margin-top:6px; display:grid; gap:3px; }
+  #network .netlines { margin-top:6px; display:grid; gap:5px; }
+  #network .blockrow { display:grid; grid-template-columns: minmax(88px,1fr) repeat(3,minmax(46px,1fr)); gap:4px; align-items:center; }
+  #network .blockcap { color:#c5d6df; font-size:11px; }
+  #network .blockcell { min-width:0; text-align:center; padding:5px 3px; border-radius:4px; background:#204135; border:1px solid #39705b; color:#adf1c8; font:11px ui-monospace,monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #network .blockcell.busy { color:#ffe1ba; background:#70412e; border-color:#c4774c; }
+  #network .blockcell.waiting { color:#c3cad3; background:#303944; border-color:#657280; }
+  #network .netcaption { color:#a9becb; font-size:11px; margin-top:5px; }
   #network .netline { display:flex; justify-content:space-between; gap:8px; padding:4px 7px; border:1px solid #41525c; border-radius:3px; background:#22333e; }
   #network .netline span:first-child { color:#c5d6df; }
   #network .netcrossover { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:7px; padding:7px 0; color:#f4d77e; }
@@ -1040,7 +1046,7 @@ function newState() {
     swFault: {}, sigFault: {}, closure: null, nextShunt: START_T + 4 * 60, rfNo: 0, nextDisrupt: START_T + 12 * 60, queue: [], turnBusy: {},
     disrupt: P.disrupt, useQueue: P.useQueue,
     cnt: Object.fromEntries(Object.keys(TYPES).map(k => [k, 0])), genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
-    uid: 0,
+    uid: 0, clockNext: {}, nextNetCheck: START_T,
   };
 }
 
@@ -1339,7 +1345,7 @@ function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on
 
 // ---------- Fahrplan ----------
 function genNext() {
-  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean;
+  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean * 1.17;
   let t = S.genT + mean * (0.55 + Math.random() * 0.9);
   const dir = Math.random() < 0.5 ? 1 : -1;
   if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
@@ -1614,7 +1620,36 @@ function addTrain(type, dir, spawn) {
   S.schedule.sort((a, b) => a.plan.spawn - b.plan.spawn);
   return S.schedule.find(x => x.id === S.uid);
 }
-function ensureSchedule() { while (S.genT < S.t + 45 * 60) genNext(); }
+// Stündlich wiederkehrender Personenverkehr, dazu zusätzliche unregelmäßige Fahrten.
+const CLOCK_LINES = [
+  {type:'RE',dir:1,minute:10,line:'RE-Takt Ost'},
+  {type:'RE',dir:-1,minute:40,line:'RE-Takt West'},
+  {type:'RB',dir:1,minute:40,line:'RB-Takt Ost'},
+  {type:'RB',dir:-1,minute:10,line:'RB-Takt West'}
+];
+function ensureClockface(horizon) {
+  for (const def of CLOCK_LINES) {
+    const key = def.type + ':' + def.dir;
+    if (S.clockNext[key] == null) {
+      let t = Math.floor(S.t / 3600) * 3600 + def.minute * 60;
+      while (t < S.t + 120) t += 3600;
+      S.clockNext[key] = t;
+    }
+    while (S.clockNext[key] <= horizon) {
+      const tr = addTrain(def.type, def.dir, S.clockNext[key]);
+      tr.takt = true; tr.service = def.line;
+      tr.from = def.dir > 0 ? CFG.townsW[0] : CFG.townsE[0];
+      tr.to = def.dir > 0 ? CFG.townsE[0] : CFG.townsW[0];
+      tr.inboundDelay = Math.random() < 0.15 ? 60 * (1 + Math.floor(Math.random() * 3)) : 0;
+      S.clockNext[key] += 3600;
+    }
+  }
+}
+function ensureSchedule() {
+  const horizon = S.t + 45 * 60;
+  ensureClockface(horizon);
+  while (S.genT < horizon) genNext();
+}
 
 // ---------- Streckennetz / Bk Heidekreuz ----------
 // Übergaben werden pro Browser gespeichert. Es läuft jeweils nur ein Stellwerk aktiv;
@@ -1662,8 +1697,9 @@ function transferTrain(tr) {
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
+  if (BF === 'burgstadt') return;
   for (const transfer of queue) {
-    // Zug bleibt bis zum Ablauf der Streckenfahrzeit auf dem Richtungsgleis.
+    // Nur bereits eingetroffene Züge für dieses Stellwerk übernehmen.
     if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
     const dir = BF === 'neustadt' ? -1 : 1;
     const tr = addTrain(transfer.type, dir, S.t + 150);
@@ -1671,26 +1707,36 @@ function importNetwork() {
     tr.from = STATIONS[transfer.from]?.short || transfer.from;
     tr.inboundDelay = Math.max(0, (transfer.delay || 0) * 60);
     tr.networkOrigin = transfer.from;
+    tr.service = 'Zugübergabe';
     log(tr.num + ' von ' + tr.from + ' über freie Strecke angekündigt.', 'info');
   }
   writeNetwork(remain);
 }
+// Streckenübersicht mit drei zeitlich getrennten Blockabschnitten je Richtung.
 function renderNetwork() {
-  const q = readNetwork();
-  const waiting = q.filter(x => x.to === BF).length;
-  const outbound = q.filter(x => x.from === BF).length;
-  const line = (id, caption, from, to) => {
-    const trains = q.filter(x => x.track === id && x.from === from && x.to === to && Date.now() < x.ready);
-    return '<div class="netline"><span>' + caption + '</span><span>' +
-      (trains.length ? '🚆 ' + trains.map(x => x.num).join(', ') : 'frei') + '</span></div>';
+  const q = readNetwork(), now = Date.now();
+  const waiting = q.filter(x => x.to === BF && x.ready <= now).length;
+  const outbound = q.filter(x => x.from === BF && x.ready > now).length;
+  const blockLine = (track, caption) => {
+    const transfers = q.filter(x => x.track === track && x.ready > now);
+    const cells = [0, 1, 2].map(i => {
+      const occupants = transfers.filter(t => {
+        const d = (t.ready - t.entered) / 3;
+        return now >= t.entered + i * d && now < t.entered + (i + 1) * d;
+      });
+      const future = transfers.filter(t => now < t.entered + i * ((t.ready - t.entered) / 3));
+      const cls = occupants.length ? 'busy' : future.some(t => now < t.entered) ? 'waiting' : '';
+      const label = occupants.length ? occupants.map(t => t.num).join(', ') : 'frei';
+      return '<span class="blockcell ' + cls + '" title="Block ' + (i + 1) + ': ' + label + '">' + label + '</span>';
+    }).join('');
+    return '<div class="blockrow"><span class="blockcap">' + caption + '</span>' + cells + '</div>';
   };
   const netLines = BF === 'burgstadt'
-    ? '<div class="netline"><span>Burgstadt Hbf ist nicht ans Streckennetz angebunden</span><span>–</span></div>'
-    : BF === 'neustadt'
-      ? line('R1','Gleis 1 → Teutschenthal','neustadt','teutschenthal') + line('R2','Gleis 2 ← Teutschenthal','teutschenthal','neustadt')
-      : line('R1','Gleis 1 ← Neustadt','neustadt','teutschenthal') + line('R2','Gleis 2 → Neustadt','teutschenthal','neustadt');
-  $('#network').innerHTML = '<span class="netactive">🚦 Zweigleisige Strecke · ' + ST.short + '</span> · Direktverbindung · ' +
-    waiting + ' Zugmeldung(en) eingehend · ' + outbound + ' ausgehend' +
+    ? '<div class="netline"><span>Burgstadt Hbf · eigener Streckenast in Planung</span></div>'
+    : blockLine('R1','▶ Neustadt → Teutschenthal') + blockLine('R2','◀ Teutschenthal → Neustadt');
+  $('#network').innerHTML = '<span class="netactive">🚦 Streckenbetrieb · ' + ST.short + '</span> · ' +
+    waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
+    '<div class="netcaption">' + (BF === 'burgstadt' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id]) => id !== BF).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
@@ -1991,6 +2037,7 @@ function update(dt) {
   const dp = dayPart(S.t);
   if (dp !== S.dp) { S.dp = dp; log('🕒 ' + DAYPARTS[dp].msg, 'info'); toast('🕒 ' + DAYPARTS[dp].msg); }
   ensureSchedule();
+  if (S.t >= S.nextNetCheck) { S.nextNetCheck = S.t + 15; importNetwork(); }
   resolveConnections();
   computeOcc();
   disruptions();
@@ -2427,7 +2474,7 @@ function renderPanel() {
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
   const rows = [...active.slice(0, 24), ...done];
-  let h = '<colgroup><col style="width:20%"><col style="width:26%"><col style="width:19%"><col style="width:6%"><col style="width:29%"></colgroup>'
+  let h = '<caption style="text-align:left;padding:5px 7px;color:#9fc9de">Linien im Stundentakt: RE und RB · zusätzliche Züge und Rangieraufträge nach Betriebslage</caption><colgroup><col style="width:20%"><col style="width:26%"><col style="width:19%"><col style="width:6%"><col style="width:29%"></colgroup>'
         + '<thead><tr><th>Zug</th><th>Fahrt</th><th>An / Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
@@ -2438,7 +2485,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${priority ? priority.level : st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">${tr.takt ? '⏱ 60-Minuten-Takt · ' : ''}${tr.service && !tr.takt ? tr.service + ' · ' : ''}von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
