@@ -782,7 +782,7 @@ function liveTimetable(points,stops,interval=60){
  // Auch die letzten Meter bis zum Anfang/Ende der Gleisroute animieren.
  const forward=stopKm.map(km=>({km,dwellMs}));
  return {distances,total,stopKm,forward,dwellMs,travelMs,
-   cycleMs:travelMs*2+dwellMs*Math.max(0,stopKm.length-2)*2+dwellMs*2};
+   cycleMs:2*travelMs*(stopKm.at(-1)-stopKm[0])/total+2*dwellMs*(stopKm.length-1)};
 }
 function rideDistanceAt(ride,elapsedMs){
  const plan=ride.plan,stops=plan.stopKm;
@@ -880,7 +880,7 @@ async function calculateLiveLine(line){
   return{points:full,signature:lineSignature(line)};
  }finally{clearTimeout(timer);if(liveAbortController===controller)liveAbortController=null;}
 }
-async function activateLineRide(id){
+async function activateLineRide(id,focus=true){
  const line=S.lines.find(x=>x.id===id);
  if(!line||!S.awards.some(a=>a.id===line.contractId)){note('Die Linie benötigt einen gewonnenen Verkehrsvertrag.');return;}
  const trains=S.fleet.filter(t=>t.operatingLine===line.id&&t.line===line.contractId);
@@ -898,7 +898,7 @@ async function activateLineRide(id){
   route.bindPopup('Live-Linie '+line.name+' · Route aus zusammenhängenden OSM-Gleisen');
   const ride={name:line.name,contractId:line.contractId,points:result.points,distance:plan.distances,plan,started:performance.now(),layer,markers:new Map()};
   liveTrips.set(id,ride);if(!liveAnimation)liveAnimation=requestAnimationFrame(paintLiveTrains);
-  map.fitBounds(route.getBounds(),{padding:[50,50]});
+  if(focus)map.fitBounds(route.getBounds(),{padding:[50,50]});
   note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren – inklusive Aufenthalten an '+line.stops.length+' Halten und Wende am Linienende.');
  }catch(err){note('Keine Live-Zugfahrt: '+err.message);$('railDetail').textContent=err.message;}
  finally{liveLoading.delete(id);}
@@ -907,7 +907,7 @@ function restoreLiveTrips(){
  if(!map)return;
  for(const line of S.lines){
   if(!S.fleet.some(t=>t.operatingLine===line.id))continue;
-  if(liveRouteCache[line.id]?.signature===lineSignature(line))activateLineRide(line.id);
+  if(liveRouteCache[line.id]?.signature===lineSignature(line))activateLineRide(line.id,false);
  }
 }
 function editLine(contractId,lineId=null){
