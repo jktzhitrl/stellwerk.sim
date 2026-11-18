@@ -1,0 +1,27 @@
+name: Railway Empire regression tests
+on:
+  push:
+    branches:
+      - gh-pages
+      - claude/stellwerks-spiel-tablet-dazbgc
+    paths:
+      - 'railway-empire/**'
+      - '.github/workflows/railway-empire-tests.yml'
+  pull_request:
+    paths:
+      - 'railway-empire/**'
+  workflow_dispatch:
+jobs:
+  game-regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout game
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run railway game regression suite
+        run: node --test railway-empire/tests/regression.test.cjs
