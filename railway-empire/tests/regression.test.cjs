@@ -181,3 +181,17 @@ test('Daily finances show a verifiable income and cost breakdown',()=>{
  assert.match(result.S.log[0],/Ausgaben 580 €/);
  assert.match(result.message,/580 € Ausgaben/);
 });
+
+test('Missed tenders reopen in repeating 14-day rounds instead of locking progression',()=>{
+ const source=segment('const serviceForJob=','const euro=');
+ const nextDeadline=new Function(source+'return nextTenderDeadline;')();
+ const job={id:'L01',deadline:2};
+ assert.equal(nextDeadline(job,1),2);
+ assert.equal(nextDeadline(job,2),2);
+ assert.equal(nextDeadline(job,3),16);
+ assert.equal(nextDeadline(job,16),16);
+ assert.equal(nextDeadline(job,17),30);
+ assert.equal(nextDeadline({id:'L13',deadline:15},31),43);
+ assert.match(js,/Frist Tag '\+nextTenderDeadline\(j,S\.day\)/);
+ assert.doesNotMatch(js,/b\.disabled=won\|\|pending\|\|S\.day>j\.deadline/);
+});
