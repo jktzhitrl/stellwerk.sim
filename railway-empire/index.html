@@ -34,6 +34,38 @@ select,input[type=number]{background:#132c3b;color:#e8f6fd;border:1px solid #658
 @media(max-width:700px){#app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}header{grid-column:1;padding:5px 9px;gap:8px}header .logo{font-size:14px!important}header .metric:nth-of-type(n+3){display:none}header .metric strong{font-size:12px}header button{padding:6px;font-size:12px}aside{display:none;position:fixed;top:58px;bottom:58px;left:0;right:0;z-index:900;padding:12px}aside.open{display:block}#mapShell{grid-column:1;grid-row:2}#mobile{display:grid;grid-row:3;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#153044}#mobile button{padding:4px;font-size:11px}#mapTop{top:7px;left:7px;max-width:170px;padding:6px}#selected{top:7px;right:7px;max-width:130px;padding:6px}#mapBottom{bottom:18px;left:7px;padding:6px;max-width:230px}}
 
 
+/* Spielfeldorientiertes Layout: Karte groß, Menüs als einblendbare Spielpanels */
+#app{grid-template-columns:minmax(0,1fr);grid-template-rows:70px minmax(0,1fr)}
+header{grid-column:1;grid-row:1}
+#mapShell{grid-column:1;grid-row:2}
+#left,#right{position:fixed;top:83px;bottom:18px;z-index:950;width:min(345px,calc(100vw - 25px));transition:transform .22s ease,opacity .22s ease;box-shadow:0 15px 45px #081c2a80;border:1px solid #547d8d;border-radius:16px;background:linear-gradient(150deg,#1b4455f7,#102c3df7);backdrop-filter:blur(10px)}
+#left{left:12px}#right{right:12px}
+#left:not(.open){transform:translateX(calc(-100% - 16px));opacity:0;pointer-events:none}
+#right:not(.open){transform:translateX(calc(100% + 16px));opacity:0;pointer-events:none}
+.desktopActions{display:flex;gap:7px}.desktopActions button{white-space:nowrap}
+#mapTop{top:16px;left:16px;max-width:275px;background:#fff9e8ee!important;color:#16384a!important;border-color:#f1c670!important;box-shadow:0 9px 27px #273f4d44}
+#mapTop b{color:#144c53}#mapTop .muted,#mapTop #railDetail{color:#3b6170}
+#mapTop .featureFlag{color:#18664c;border-color:#47ae8e}
+#mapBottom{background:#fcfbf2f0!important;color:#23444c!important;border-color:#a5c7c9!important}
+#selected{background:#fbf6e8eb!important;color:#233f4a!important;border-color:#d6bb7f!important}
+#notice{color:#8e5714}
+#map{filter:saturate(1.14)}
+.station-icon{width:15px;height:15px;background:#ffdb78;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 9px #122a3a9c}
+.station-icon.owned{background:#0ecc9b;width:21px;height:21px;border-color:#fff;box-shadow:0 0 0 3px #1ea57a69,0 3px 9px #122a3aa0}
+.railTrainIcon{background:transparent;border:0}.railTrainIcon>div{background:#fff9ee;border:3px solid #0c9977;color:#17354b;box-shadow:0 2px 15px #07233388;border-radius:19px;padding:5px;font-size:19px;text-align:center;line-height:20px;width:38px;height:38px}
+.railRouteGlow{filter:drop-shadow(0 0 7px #ffe5a1)}
+#routeState{line-height:1.6}
+@media(max-width:850px){.desktopActions button{padding:8px;font-size:12px}header .metric:nth-of-type(n+3){display:none}}
+@media(max-width:700px){
+ #app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}
+ #left,#right{top:64px;bottom:65px;width:min(350px,calc(100vw - 24px));padding:12px;display:block;right:auto;left:12px}
+ #right{right:12px;left:auto}
+ #mapShell{grid-column:1;grid-row:2}
+ .desktopActions{display:none}
+ #mapTop{top:9px;left:9px;max-width:220px}
+ #selected{top:9px;right:9px;max-width:145px}
+ #mobile{grid-row:3}
+}
 /* v0.5: vollflächige Spielkarte mit kompakter Symbolleiste */
 #app{display:grid;grid-template-columns:1fr;grid-template-rows:52px minmax(0,1fr);height:100dvh}
 header{grid-column:1;grid-row:1;padding:5px 13px;gap:14px;z-index:650;min-width:0}
@@ -81,41 +113,28 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
  #mapBottom{bottom:9px;max-width:80vw}
 }
 @media(max-height:630px){#gameDock{gap:3px;padding:4px}#gameDock .dockIcon{height:34px;width:37px;min-height:34px;font-size:18px}}
-/* Spielfeldorientiertes Layout: Karte groß, Menüs als einblendbare Spielpanels */
-#app{grid-template-columns:minmax(0,1fr);grid-template-rows:70px minmax(0,1fr)}
-header{grid-column:1;grid-row:1}
-#mapShell{grid-column:1;grid-row:2}
-#left,#right{position:fixed;top:83px;bottom:18px;z-index:950;width:min(345px,calc(100vw - 25px));transition:transform .22s ease,opacity .22s ease;box-shadow:0 15px 45px #081c2a80;border:1px solid #547d8d;border-radius:16px;background:linear-gradient(150deg,#1b4455f7,#102c3df7);backdrop-filter:blur(10px)}
-#left{left:12px}#right{right:12px}
-#left:not(.open){transform:translateX(calc(-100% - 16px));opacity:0;pointer-events:none}
-#right:not(.open){transform:translateX(calc(100% + 16px));opacity:0;pointer-events:none}
-.desktopActions{display:flex;gap:7px}.desktopActions button{white-space:nowrap}
-#mapTop{top:16px;left:16px;max-width:275px;background:#fff9e8ee!important;color:#16384a!important;border-color:#f1c670!important;box-shadow:0 9px 27px #273f4d44}
-#mapTop b{color:#144c53}#mapTop .muted,#mapTop #railDetail{color:#3b6170}
-#mapTop .featureFlag{color:#18664c;border-color:#47ae8e}
-#mapBottom{background:#fcfbf2f0!important;color:#23444c!important;border-color:#a5c7c9!important}
-#selected{background:#fbf6e8eb!important;color:#233f4a!important;border-color:#d6bb7f!important}
-#notice{color:#8e5714}
-#map{filter:saturate(1.14)}
-.station-icon{width:15px;height:15px;background:#ffdb78;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 9px #122a3a9c}
-.station-icon.owned{background:#0ecc9b;width:21px;height:21px;border-color:#fff;box-shadow:0 0 0 3px #1ea57a69,0 3px 9px #122a3aa0}
-.railTrainIcon{background:transparent;border:0}.railTrainIcon>div{background:#fff9ee;border:3px solid #0c9977;color:#17354b;box-shadow:0 2px 15px #07233388;border-radius:19px;padding:5px;font-size:19px;text-align:center;line-height:20px;width:38px;height:38px}
-.railRouteGlow{filter:drop-shadow(0 0 7px #ffe5a1)}
-#routeState{line-height:1.6}
-@media(max-width:850px){.desktopActions button{padding:8px;font-size:12px}header .metric:nth-of-type(n+3){display:none}}
+
+/* v0.6: Nach allen Altregeln; die Spielkarte ist immer die Hauptansicht. */
+#gettingStarted{position:absolute;z-index:675;right:15px;bottom:24px;width:min(340px,calc(100vw - 95px));background:linear-gradient(150deg,#fff9e8,#f7edd1);color:#173946;border:2px solid #d3b66f;border-radius:17px;box-shadow:0 10px 35px #163b5377;padding:17px;display:grid;gap:9px}
+#gettingStarted[hidden]{display:none}
+#gettingStarted .startOverline{color:#7c5a18;font-size:10px;letter-spacing:1.4px;font-weight:800}
+#gettingStarted strong{font-size:18px;line-height:1.2;color:#124a46}
+#gettingStarted p{margin:0;font-size:12px;line-height:1.55;color:#37515a}
+#gettingStarted #startProgress{font-size:11px;color:#7b663d}
+#gettingStarted #closeStart{position:absolute;right:7px;top:6px;border:0;box-shadow:none;background:transparent;color:#34545c;min-height:26px;height:26px;padding:0;width:30px;font-size:23px}
+#gettingStarted #startAction{font-size:12px}
+#panelScrim.open{background:#071a2350}
+#left.open,#right.open{display:block}
 @media(max-width:700px){
- #app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}
- #left,#right{top:64px;bottom:65px;width:min(350px,calc(100vw - 24px));padding:12px;display:block;right:auto;left:12px}
- #right{right:12px;left:auto}
- #mapShell{grid-column:1;grid-row:2}
- .desktopActions{display:none}
- #mapTop{top:9px;left:9px;max-width:220px}
- #selected{top:9px;right:9px;max-width:145px}
- #mobile{grid-row:3}
+ #gettingStarted{bottom:15px;right:8px;width:min(285px,calc(100vw - 70px));padding:12px;gap:6px;border-radius:13px}
+ #gettingStarted strong{font-size:15px}
+ #gettingStarted p{font-size:11px}
+ #gettingStarted #startAction{font-size:11px;min-height:36px}
 }
+@media(max-height:600px){#gettingStarted{max-height:75%;overflow-y:auto;bottom:5px;padding:9px}}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.5</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.6</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" class="active" aria-pressed="true">🛤️ Bahngleise</button><button id="loadStops">🚉 Stationen</button></div>
@@ -125,7 +144,7 @@ header{grid-column:1;grid-row:1}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Erste Schritte"><button id="closeStart" aria-label="Hinweis schließen" title="Schließen">×</button><span class="startOverline">DEIN ERSTER AUFTRAG</span><strong>Starte deine Eisenbahngesellschaft</strong><p id="startText">Du besitzt Leipzig und Halle sowie zwei Züge. Bewirb dich zuerst auf das Mitteldeutsche S-Bahn-Netz.</p><button id="startAction" class="primary">🏆 Jetzt erstes Los ansehen</button><div id="startProgress"></div></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -425,7 +444,7 @@ rev+=income-penalty;riders+=Math.round(coverage*j.min*180);cost+=(a.trips||j.min
 cost+=S.owned.length*250+S.fleet.reduce((n,v)=>n+TYPES[v.type].upkeep,0);S.money+=rev-cost;S.totalEarned+=rev;S.totalSpent+=cost;S.totalRiders+=riders;log('Tagesergebnis '+euro(rev-cost)+' · '+riders+' Fahrgäste.');save();render();note('Betriebstag abgeschlossen. Ergebnis '+euro(rev-cost));}
 function tab(which){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===which));document.querySelectorAll('.tab').forEach(x=>x.hidden=x.id!=='tab-'+which);}
 function textel(tag,txt){const x=document.createElement(tag);x.textContent=txt;return x;}
-function render(){ $('money').textContent=euro(S.money);$('day').textContent=S.day;$('rep').textContent=S.rep+'/100';$('ownedCount').textContent=S.owned.length;$('awardCount').textContent=S.awards.length;$('fleetCount').textContent=S.fleet.length;
+function render(){ updateTutorial(); $('money').textContent=euro(S.money);$('day').textContent=S.day;$('rep').textContent=S.rep+'/100';$('ownedCount').textContent=S.owned.length;$('awardCount').textContent=S.awards.length;$('fleetCount').textContent=S.fleet.length;
 $('goals').innerHTML=[['Drei Linien gewinnen',S.awards.length>=3],['Fünf Bahnhöfe erschließen',S.owned.length>=5],['Sechs Züge besitzen',S.fleet.length>=6],['1 Mio. € Umsatz erreichen',S.totalEarned>=1000000]].map(([s,v])=>(v?'✅ ':'▫️ ')+s).join('<br>');
 $('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+j.deadline]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':S.day>j.deadline?'Frist abgelaufen':'Angebot erstellen');b.disabled=won||pending||S.day>j.deadline;b.onclick=()=>bidDialog(j.id);c.appendChild(b);
 const view=textel('button','🗺️ Streckenverlauf ansehen');view.onclick=()=>showTenderOnMap(j.id);c.appendChild(view);
@@ -452,6 +471,42 @@ $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;}
 
 $('routeDemo').onclick=()=>calculateRailRoute('L01');$('clearRoute').onclick=clearRailRoute;
 
+
+const TUTORIAL_KEY='railway_empire_tutorial_dismissed_v06';
+function updateTutorial(){
+ const box=$('gettingStarted');if(!box)return;
+ if(sessionStorage.getItem(TUTORIAL_KEY)==='yes'){box.hidden=true;return;}
+ const initial=!S.bids.length&&!S.awards.length;
+ const won=S.awards.length>0;
+ const pending=S.bids.length>0;
+ const text=$('startText'),btn=$('startAction'),progress=$('startProgress');
+ if(initial){
+ text.textContent='Du startest mit Bahnhöfen in Leipzig und Halle und zwei Zügen. Bewirb dich um dein erstes Verkehrsnetz: Fahrzeug auswählen, Angebot einreichen und Zuschlag abwarten.';
+ btn.textContent='🏆 Erstes Verkehrsnetz ansehen';
+ progress.textContent='1 / 3 · Ausschreibung auswählen';
+ }else if(pending){
+ text.textContent='Dein Angebot wurde eingereicht. Jetzt den nächsten Betriebstag starten, damit über den Zuschlag entschieden wird.';
+ btn.textContent='▶ Zuschlagsentscheidung starten';
+ progress.textContent='2 / 3 · Bewerbung läuft';
+ }else if(won){
+ text.textContent='Du hast einen Verkehrsvertrag gewonnen! Auf der Karte kannst du das Streckennetz ansehen. Verdiene Geld, kaufe Züge und bewirb dich auf weitere Lose.';
+ btn.textContent='🗺️ Verkehrsnetz ansehen';
+ progress.textContent='3 / 3 · Dein Unternehmen wächst';
+ }else{
+ text.textContent='Dein Angebot erhielt keinen Zuschlag. Bewirb dich bei einem anderen Verkehrsnetz oder investiere in deine Flotte.';
+ btn.textContent='🏆 Neue Ausschreibung auswählen';
+ progress.textContent='Neue Chance · Vergaben prüfen';
+ }
+ box.hidden=false;
+}
+function dismissTutorial(){sessionStorage.setItem(TUTORIAL_KEY,'yes');$('gettingStarted').hidden=true;}
+$('closeStart').onclick=dismissTutorial;
+$('showHelp').onclick=()=>{sessionStorage.removeItem(TUTORIAL_KEY);updateTutorial();closePanels();};
+$('startAction').onclick=()=>{
+ if(S.bids.length){nextDay();return;}
+ if(S.awards.length){dismissTutorial();showTenderOnMap(S.awards[0].id);return;}
+ dismissTutorial();openPanel('right','tenders','showContracts');setTimeout(()=>{const first=$('tenders').querySelector('button:not(:disabled)');if(first)first.scrollIntoView({block:'nearest',behavior:'smooth'});},160);
+};
 function closePanels(){
  for(const id of ['left','right'])$(id).classList.remove('open');
  $('panelScrim').classList.remove('open');
