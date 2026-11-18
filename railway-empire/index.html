@@ -170,7 +170,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 
 /* v1.0: helle Transport-Tycoon-Stadtkarte statt technischer Gleisübersicht */
 #map{background:#e8f1ed;filter:none}
-#map .leaflet-tile-pane{filter:saturate(1.12) contrast(1.03)}
+#map .leaflet-tile-pane{filter:saturate(1.04) contrast(1.02)}
 #mapShell:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:400;background:linear-gradient(90deg,rgba(13,68,63,.04),transparent 22%,transparent 78%,rgba(20,57,78,.04))}
 .station-icon,.station-icon.owned{width:29px;height:29px;border-radius:9px;border:2px solid white;background:linear-gradient(155deg,#ffc96a,#e59d28);box-shadow:0 3px 12px #2449546b,0 0 0 2px #b17835b8;display:flex;align-items:center;justify-content:center;color:#243e48;transform:rotate(-5deg)}
 .station-icon.owned{background:linear-gradient(155deg,#70e6bc,#0c9c80);box-shadow:0 3px 13px #104a4590,0 0 0 3px #108c75b3}
@@ -185,7 +185,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 .leaflet-control-zoom a{background:#fffdf5!important;color:#174a55!important;border-color:#bbd2c9!important}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.0 · SPIELKARTE</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.0.1 · KARTENFIX</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
@@ -691,7 +691,26 @@ function initMap(){
  if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
  map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
  L.control.zoom({position:'bottomright'}).addTo(map);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+ // Ohne API-Schlüssel: offizielle OSM-Kartenkacheln anstelle des gesperrten CARTO-Endpoints.
+ const baseMap=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+   minZoom:2,maxZoom:19,maxNativeZoom:19,
+   attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>'
+ }).addTo(map);
+ let baseTilesLoaded=0,baseTilesFailed=0;
+ const markMapHealthy=()=>{
+   baseTilesLoaded++;
+   const status=$('mapStatus');
+   if(status&&status.dataset.error==='tiles'){status.textContent='✓ Stadtkarte geladen. Zoome hinein, um weitere Haltepunkte zu entdecken.';status.dataset.error='';}
+ };
+ baseMap.on('tileload',markMapHealthy);
+ baseMap.on('tileerror',()=>{
+   baseTilesFailed++;
+   if(baseTilesFailed>=4&&baseTilesLoaded===0){
+     const status=$('mapStatus');
+     if(status){status.dataset.error='tiles';status.textContent='⚠ Kartenkacheln nicht erreichbar. Bitte Internetverbindung prüfen und die Seite neu laden.';}
+     $('railDetail').textContent='Karte nicht geladen. Bitte neu laden; die Bahnhofssymbole sind kein Ersatz für die Hintergrundkarte.';
+   }
+ });
  railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.55,attribution:'Technische Gleisdetails © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'});
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
  connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
