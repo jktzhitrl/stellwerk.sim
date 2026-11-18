@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#132635"><title>Railway Empire · Eigenständiges Eisenbahn-Tycoon</title>
+<style>
+:root{font:14px system-ui,Arial,sans-serif;color:#e7f1f5;background:#0d1923;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0}button,select,input{font:inherit}button{border:1px solid #52728a;border-radius:8px;color:#eef9ff;background:#284357;padding:10px;cursor:pointer;min-height:39px}
+button:hover{background:#355b74}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:#087e83;border-color:#4dc7c7}.on{background:#236887;border-color:#71dbf4}
+header{background:#172e40;border-bottom:1px solid #3a596b;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 18px;flex-wrap:wrap}
+h1{margin:0;font-size:21px;letter-spacing:.3px}h2{font-size:16px;margin:0 0 11px}h3{font-size:13px;color:#9fd0e7;margin:8px 0}.sub{color:#9fb9c8;font-size:12px}a{color:#93d6f5}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px;padding:12px;max-width:1600px;margin:auto}
+.panel{background:#1b303e;border:1px solid #365669;border-radius:12px;padding:14px;min-width:0}
+.mapPanel{display:flex;flex-direction:column;gap:10px}.topbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.metric{background:#0f2634;border:1px solid #2d526a;border-radius:8px;padding:9px 12px;flex:1;min-width:122px}
+.metric b{font-size:19px;display:block}.metrics{display:flex;gap:9px;flex-wrap:wrap}.mapWrap{position:relative;background:#132831;border-radius:11px;overflow:auto;border:1px solid #315465}
+#world{display:block;width:100%;min-width:720px;aspect-ratio:1000/635;touch-action:pan-x pan-y}
+#world [data-edge],#world [data-city]{cursor:pointer}#world [data-edge]:hover{filter:drop-shadow(0 0 6px #a0e8ff)}
+#world .rail{stroke:#d1d9d2;stroke-width:4;fill:none;stroke-linecap:round}#world .planned{stroke:#557182;stroke-dasharray:7 9;stroke-width:3;fill:none}
+.sidebar{display:flex;flex-direction:column;gap:12px}.scroll{max-height:340px;overflow:auto}
+.info{background:#102938;border-left:3px solid #5ec8dc;padding:10px;border-radius:4px;min-height:42px;line-height:1.5}
+button:focus-visible,select:focus-visible{outline:2px solid #eacb75}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:9px 0}.row>button{flex:1}
+label{display:block;margin:7px 0;color:#bbd4df;font-size:12px}
+select{padding:9px;width:100%;border:1px solid #416378;color:#edf5fa;background:#152b39;border-radius:6px}
+.item{border-bottom:1px solid #38566a;padding:9px 0;line-height:1.5}.item:last-child{border:0}
+.item small{color:#a5c0cc;display:block}.item button{padding:6px 9px;min-height:32px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap}.tabs button{flex:1}.tabs button.on{background:#116b82}
+.log{font-size:12px;max-height:120px;overflow:auto}.log p{margin:5px 0;padding:5px;background:#142c3c;border-radius:4px}
+.notice{color:#efcf8e}.footer{max-width:1600px;margin:0 auto 22px;padding:0 16px;color:#99b4c3;font-size:12px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}}
+</style></head><body>
+<header><div><h1>🚆 Railway Empire</h1><div class="sub">Ein eigenständiges Eisenbahn-Aufbauspiel · Spielbare Alpha 0.1</div></div><div class="row"><a href="../index.html">Zum Stellwerk</a><a href="../editor.html">Bahnhofseditor</a><button id="reset">Neues Unternehmen</button></div></header>
+<div class="layout"><section class="panel mapPanel">
+<div class="metrics"><div class="metric"><span class="sub">Vermögen</span><b id="money"></b></div><div class="metric"><span class="sub">Spieltag</span><b id="day"></b></div><div class="metric"><span class="sub">Ansehen</span><b id="rep"></b></div><div class="metric"><span class="sub">Erfüllte Aufträge</span><b id="delivered"></b></div></div>
+<div class="topbar"><button class="primary" id="run">▶ Betrieb starten</button><button id="slow">1×</button><button id="fast">4×</button><button id="nextday">+ 1 Tag</button><span id="clock" class="sub"></span><span class="sub">Karte antippen: Bahnhöfe und Strecken</span></div>
+<div class="mapWrap"><svg id="world" viewBox="0 0 1000 635" xmlns="http://www.w3.org/2000/svg" aria-label="Interaktive Karte mit Städten, Strecken und fahrenden Zügen"></svg></div>
+<div class="info" id="selection">Wähle einen gestrichelten Streckenabschnitt auf der Karte, um ihn zu bauen. Errichte anschließend Linien und kaufe Züge.</div>
+<div class="log" id="log"></div>
+</section><aside class="sidebar">
+<section class="panel"><h2>🏗️ Strecken und Infrastruktur</h2><div class="sub">Strecken auf der Karte auswählen. Jeder gebaute Abschnitt verbindet zwei Orte; erst dann können Linien darüber fahren.</div><div id="buildInfo" class="item"></div><div class="row"><button id="build" class="primary">Strecke bauen</button><button id="upgrade">Zweites Gleis</button></div><div id="networkStats" class="sub"></div></section>
+<section class="panel"><h2>🚂 Fahrzeugmarkt</h2><label for="vehicle">Fahrzeug wählen</label><select id="vehicle"></select><div class="item" id="vehicleInfo"></div><button id="purchase" class="primary">Fahrzeug kaufen</button><h3>Dein Fuhrpark</h3><div class="scroll" id="fleet"></div></section>
+<section class="panel"><h2>📋 Eigene Zuglinien</h2>
+<label for="from">Startbahnhof</label><select id="from"></select>
+<label for="to">Zielbahnhof</label><select id="to"></select>
+<label for="assigned">Zug zuweisen</label><select id="assigned"></select>
+<div class="row"><button id="line" class="primary">Linie einrichten</button></div><div class="scroll" id="lines"></div></section>
+<section class="panel"><h2>🏭 Unternehmen und Ziele</h2><div id="contracts"></div><div class="item" id="balance"></div><button id="save">Spielstand speichern</button><div id="feedback" class="notice"></div></section>
+</aside></div>
+<div class="footer">Eigenständige Spielwelt mit fiktiven Orten. Züge bewegen sich auf gebauten Verbindungen und befahren ihre zugewiesenen Linien. Diese Alpha bildet Tageserlöse, Streckenkosten und Kapazität vereinfacht ab; eine vollständige Stellwerks- und Signaltechnik folgt später. Speichert automatisch lokal im Browser.</div>
+<script>
+'use strict';
+const $=x=>document.getElementById(x),KEY='railway_empire_alpha_01';
+const CITIES=[
+ {id:'ns',name:'Neustadt',x:139,y:326,pop:155,industry:2},
+ {id:'tt',name:'Teutschenthal',x:350,y:321,pop:95,industry:4},
+ {id:'bg',name:'Burgstadt',x:570,y:295,pop:265,industry:2},
+ {id:'ha',name:'Hafenau',x:790,y:325,pop:205,industry:5},
+ {id:'wd',name:'Waldheim',x:218,y:115,pop:72,industry:1},
+ {id:'sb',name:'Sonnenberg',x:486,y:99,pop:115,industry:1},
+ {id:'ei',name:'Eisenfeld',x:754,y:112,pop:81,industry:6},
+ {id:'al',name:'Altdorf',x:122,y:529,pop:150,industry:2},
+ {id:'rb',name:'Rosenbach',x:445,y:536,pop:91,industry:2},
+ {id:'sw',name:'Seewald',x:830,y:528,pop:74,industry:1}
+];
+const RAW_EDGES=[['ns','tt',42000],['tt','bg',68000],['bg','ha',73000],['ns','wd',45000],['wd','sb',68000],['sb','ei',70000],['ei','ha',49000],['tt','sb',52000],['bg','ei',58000],['ns','al',39000],['al','rb',61000],['rb','bg',66000],['rb','sw',72000],['sw','ha',56000],['tt','rb',49000]];
+const EDGES=RAW_EDGES.map(([a,b,cost],i)=>({id:i,a,b,cost})),CITY=Object.fromEntries(CITIES.map(c=>[c.id,c]));
+const VEHICLES=[
+ {id:'rb',name:'Dieseltriebwagen',price:32000,cap:90,speed:80,cost:570,category:'Reisende',color:'#6bd7f3'},
+ {id:'re',name:'Regionalexpress',price:58000,cap:190,speed:120,cost:920,category:'Reisende',color:'#85edbc'},
+ {id:'ic',name:'Intercity',price:115000,cap:320,speed:160,cost:1550,category:'Reisende',color:'#e5b3f6'},
+ {id:'gc',name:'Diesel-Güterlok',price:75000,cap:145,speed:80,cost:1280,category:'Güter',color:'#f5b16c'},
+ {id:'heavy',name:'Schwere Güterlok',price:155000,cap:330,speed:95,cost:1980,category:'Güter',color:'#ed886f'}
+];
+function defaultGame(){return{version:1,money:195000,day:1,hour:6,rep:60,delivered:0,edges:{0:1},fleet:[{id:1,type:'rb'}],lines:[],nextId:2,log:['Unternehmen gegründet. Die Strecke Neustadt–Teutschenthal ist betriebsbereit.']};}
+let G=defaultGame(),selectedEdge=1,playing=false,speed=1,lastTick=null;
+const format=n=>Math.round(n).toLocaleString('de-DE')+' €',sum=arr=>arr.reduce((a,b)=>a+b,0);
+function note(s){$('feedback').textContent=s;G.log.unshift('Tag '+G.day+': '+s);G.log=G.log.slice(0,24);renderLog();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(G));$('feedback').textContent='Gespeichert.';}catch(e){$('feedback').textContent='Speichern nicht möglich.';}}
+function load(){try{const data=JSON.parse(localStorage.getItem(KEY)||'null');if(data&&data.version===1&&Array.isArray(data.fleet)&&Array.isArray(data.lines)&&data.edges&&Number.isFinite(data.money))G=data;}catch(e){}}
+function owned(edge){return Number(G.edges[edge.id]||0);}
+function path(from,to){const dist={[from]:0},prev={},queue=new Set(CITIES.map(x=>x.id));while(queue.size){let cur=null;for(const k of queue)if(cur===null||(dist[k]??Infinity)<(dist[cur]??Infinity))cur=k;if(cur===null||!Number.isFinite(dist[cur]))break;queue.delete(cur);if(cur===to)break;for(const e of EDGES){if(!owned(e))continue;let other=e.a===cur?e.b:e.b===cur?e.a:null;if(!other||!queue.has(other))continue;const v=dist[cur]+Math.hypot(CITY[cur].x-CITY[other].x,CITY[cur].y-CITY[other].y);if(v<(dist[other]??Infinity)){dist[other]=v;prev[other]={node:cur,edge:e.id};}}}
+if(!Number.isFinite(dist[to]))return null;const nodes=[to],edges=[];let cur=to;while(cur!==from){const p=prev[cur];if(!p)return null;edges.unshift(p.edge);nodes.unshift(p.node);cur=p.node;}return{nodes,edges,length:dist[to]};}
+function spend(v){if(G.money<v){note('Nicht genug Kapital: '+format(v)+' nötig.');return false;}G.money-=v;return true;}
+function build(){const e=EDGES[selectedEdge];if(!e)return;if(owned(e)){note('Diese Strecke wurde bereits gebaut.');return;}if(!spend(e.cost))return;G.edges[e.id]=1;note('Strecke '+CITY[e.a].name+' – '+CITY[e.b].name+' eröffnet.');save();render();}
+function upgrade(){const e=EDGES[selectedEdge];if(!e||!owned(e)){note('Baue zuerst die Strecke.');return;}if(owned(e)>=2){note('Diese Strecke ist bereits zweigleisig.');return;}const cost=Math.round(e.cost*.55);if(!spend(cost))return;G.edges[e.id]=2;note('Strecke '+CITY[e.a].name+' – '+CITY[e.b].name+' zweigleisig ausgebaut.');save();render();}
+function purchase(){const t=VEHICLES.find(v=>v.id===$('vehicle').value);if(!t||!spend(t.price))return;G.fleet.push({id:G.nextId++,type:t.id});note(t.name+' gekauft.');save();render();}
+function createLine(){const a=$('from').value,b=$('to').value,id=Number($('assigned').value);if(a===b){note('Start und Ziel müssen unterschiedlich sein.');return;}const p=path(a,b);if(!p){note('Keine durchgehende gebaute Strecke zwischen diesen Orten.');return;}const train=G.fleet.find(f=>f.id===id);if(!train||G.lines.some(l=>l.train===id)){note('Dieser Zug ist bereits zugewiesen.');return;}const line={id:G.nextId++,a,b,train:id,progress:0,round:0};G.lines.push(line);note('Linie '+CITY[a].name+' – '+CITY[b].name+' mit '+getVehicle(train).name+' eröffnet.');save();render();}
+function getVehicle(train){return VEHICLES.find(v=>v.id===train.type)||VEHICLES[0];}
+function removeLine(id){G.lines=G.lines.filter(l=>l.id!==id);note('Linie eingestellt.');save();render();}
+function operatingCost(){const infrastructure=sum(EDGES.map(e=>owned(e)?(owned(e)===2?440:280):0)),fleet=sum(G.fleet.map(f=>getVehicle(f).cost)),admin=1700;return{infrastructure,fleet,admin,total:infrastructure+fleet+admin};}
+function dailyRevenue(line){const train=G.fleet.find(f=>f.id===line.train);const t=train&&getVehicle(train),p=path(line.a,line.b);if(!t||!p)return{revenue:0,loads:0,missed:true};
+const endA=CITY[line.a],endB=CITY[line.b],demand=t.category==='Güter'?(endA.industry+endB.industry)*32:(endA.pop+endB.pop)*.48;
+const bottleneck=p.edges.length?Math.min(...p.edges.map(i=>Number(G.edges[i]||0))):0;
+const trainsOnSegments=p.edges.reduce((n,i)=>n+G.lines.filter(l=>{const q=path(l.a,l.b);return q&&q.edges.includes(i)}).length,0);
+const capacityFactor=Math.min(1,(bottleneck*3.8)/Math.max(1,trainsOnSegments/p.edges.length));
+const carried=Math.max(0,Math.floor(Math.min(t.cap,demand)*capacityFactor));
+return{revenue:Math.round(carried*(t.category==='Güter'?33:23)),loads:carried,missed:capacityFactor<.99};}
+function nextDay(){const reports=G.lines.map(l=>({l,r:dailyRevenue(l)})),revenue=sum(reports.map(x=>x.r.revenue)),cost=operatingCost(),result=revenue-cost.total;
+G.money+=result;const served=sum(reports.map(x=>x.r.loads));G.delivered+=served;const congested=reports.filter(x=>x.r.missed).length;
+G.rep=Math.min(100,Math.max(0,G.rep+(G.lines.length?(congested?-2:1):0)));G.day++;G.hour=6;
+note('Bilanz: '+format(revenue)+' Erlöse − '+format(cost.total)+' Kosten = '+format(result)+'. '+served+' Transporte, '+congested+' überlastete Linien.');save();render();}
+function tick(delta){G.hour+=delta;for(const l of G.lines){const tr=G.fleet.find(f=>f.id===l.train),t=tr&&getVehicle(tr),p=path(l.a,l.b);if(!t||!p)continue;l.progress=(l.progress+delta*t.speed/(Math.max(40,p.length)*10))%2;}
+while(G.hour>=24){G.hour-=18;nextDay();}updateTrains();updateClock();}
+function updateClock(){$('clock').textContent='Betriebszeit '+String(Math.floor(G.hour)).padStart(2,'0')+':'+String(Math.floor((G.hour%1)*60)).padStart(2,'0');}
+function renderMap(){const svg=$('world');let str='<defs><pattern id="grass" patternUnits="userSpaceOnUse" width="44" height="44"><rect width="44" height="44" fill="#1b353a"/><path d="M0 22H44M22 0V44" stroke="#2b4645" opacity=".22"/></pattern></defs><rect width="1000" height="635" fill="url(#grass)"/>';
+str+='<path d="M0 130 Q190 80 300 140 T600 92 T1000 120 V0 H0Z" fill="#213f3e" opacity=".8"/><path d="M0 565 Q220 610 420 552 T820 590 T1000 530 V635 H0Z" fill="#26423e"/><path d="M820 0 Q790 130 862 248 T870 505 T980 635" fill="none" stroke="#326d82" stroke-width="20" opacity=".65"/>';
+for(const e of EDGES){const a=CITY[e.a],b=CITY[e.b],on=owned(e),sel=e.id===selectedEdge;
+str+='<g data-edge="'+e.id+'"><line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="transparent" stroke-width="24"/>';
+if(on===2){for(const off of [-4,4])str+='<line x1="'+(a.x+off)+'" y1="'+(a.y+off)+'" x2="'+(b.x+off)+'" y2="'+(b.y+off)+'" class="rail"/>';}
+else str+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" class="'+(on?'rail':'planned')+'"/>';
+if(sel)str+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="#f4cb61" stroke-width="2" stroke-dasharray="2 7"/>';
+str+='</g>';}
+for(const c of CITIES){const neighbors=EDGES.filter(e=>owned(e)&&(e.a===c.id||e.b===c.id)).length;str+='<g data-city="'+c.id+'"><circle cx="'+c.x+'" cy="'+c.y+'" r="'+(c.pop>200?21:17)+'" fill="#16334b" stroke="'+(neighbors?'#7fdbb0':'#88a6b2')+'" stroke-width="3"/><circle cx="'+c.x+'" cy="'+c.y+'" r="5" fill="'+(neighbors?'#7fdbb0':'#778b96')+'"/><rect x="'+(c.x-46)+'" y="'+(c.y+22)+'" width="92" height="22" rx="5" fill="#102532" opacity=".95"/><text x="'+c.x+'" y="'+(c.y+37)+'" text-anchor="middle" fill="#eaf5f8" font-size="12" font-weight="bold">'+c.name+'</text></g>';}
+str+='<g id="trainsLayer"></g><text x="26" y="32" font-size="19" fill="#d8eaf0" font-weight="bold">EISENBAHNNETZ</text><text x="26" y="51" font-size="12" fill="#a4c3cf">Grün: angeschlossen · Weiß: Gleise · gestrichelt: Bauvorhaben</text>';
+svg.innerHTML=str;updateTrains();}
+function updateTrains(){const layer=$('trainsLayer');if(!layer)return;let str='';for(const l of G.lines){const tr=G.fleet.find(f=>f.id===l.train),t=tr&&getVehicle(tr),p=path(l.a,l.b);if(!t||!p||!p.edges.length)continue;const prog=(l.progress||0)%2,q=prog<=1?prog:2-prog,segments=p.nodes.map((id,i)=>{if(!i)return null;const a=CITY[p.nodes[i-1]],b=CITY[id];return{a,b,len:Math.hypot(a.x-b.x,a.y-b.y)}}).filter(Boolean);let travel=q*sum(segments.map(x=>x.len)),point=null;for(const seg of segments){if(travel<=seg.len){const k=travel/seg.len;point={x:seg.a.x+(seg.b.x-seg.a.x)*k,y:seg.a.y+(seg.b.y-seg.a.y)*k};break;}travel-=seg.len;}if(!point){const c=CITY[l.b];point={x:c.x,y:c.y};}
+str+='<g><circle cx="'+point.x+'" cy="'+point.y+'" r="12" fill="'+t.color+'" stroke="#10252d" stroke-width="3"/><text x="'+point.x+'" y="'+(point.y+4)+'" font-size="10" font-weight="bold" text-anchor="middle" fill="#172a35">'+t.id.toUpperCase().slice(0,2)+'</text></g>';}layer.innerHTML=str;}
+function renderSelects(){const option=(items,name)=>items.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
+const vals={vehicle:$('vehicle').value,from:$('from').value,to:$('to').value,assigned:$('assigned').value};
+$('vehicle').innerHTML=option(VEHICLES);$('from').innerHTML=option(CITIES);$('to').innerHTML=option(CITIES);
+$('assigned').innerHTML=option(G.fleet.filter(f=>!G.lines.some(l=>l.train===f.id)).map(f=>({id:f.id,name:'#'+f.id+' '+getVehicle(f).name})));
+for(const [id,val]of Object.entries(vals))if(val&&[...$(id).options].some(o=>o.value===val))$(id).value=val;
+if(!$('to').value||$('to').value===$('from').value)$('to').selectedIndex=1;}
+function render(){renderSelects();$('money').textContent=format(G.money);$('day').textContent=G.day;$('rep').textContent=G.rep+' / 100';$('delivered').textContent=G.delivered.toLocaleString('de-DE');
+$('vehicle').dispatchEvent(new Event('change'));const e=EDGES[selectedEdge];$('buildInfo').innerHTML=e?'<b>'+CITY[e.a].name+' – '+CITY[e.b].name+'</b><small style="display:block;color:#abc7d2">Status: '+(owned(e)===2?'zweigleisig':owned(e)===1?'eingleisig in Betrieb':'nicht gebaut')+' · Baupreis '+format(e.cost)+'</small>':'Strecke auswählen';
+$('build').disabled=!e||!!owned(e);$('upgrade').disabled=!e||owned(e)!==1;
+$('networkStats').textContent=EDGES.filter(e=>owned(e)).length+' von '+EDGES.length+' Strecken gebaut · '+CITIES.filter(c=>EDGES.some(e=>owned(e)&&(e.a===c.id||e.b===c.id))).length+' Orte erreichbar';
+$('fleet').innerHTML=G.fleet.map(f=>'<div class="item"><b>#'+f.id+' '+getVehicle(f).name+'</b><small>'+getVehicle(f).category+' · '+getVehicle(f).cap+' Plätze/t · '+(G.lines.some(l=>l.train===f.id)?'Im Liniendienst':'Verfügbar')+'</small></div>').join('');
+$('lines').innerHTML=G.lines.length?G.lines.map(l=>'<div class="item"><b>'+CITY[l.a].name+' ↔ '+CITY[l.b].name+'</b><small>'+getVehicle(G.fleet.find(f=>f.id===l.train)).name+' · Zug #'+l.train+' · '+format(dailyRevenue(l).revenue)+' Tageserlös</small><button data-remove="'+l.id+'">Linie aufgeben</button></div>').join(''):'<div class="sub">Noch keine Linie. Kaufe einen Zug und verbinde zwei Städte.</div>';
+const operating=operatingCost();$('balance').innerHTML='<b>Fixkosten pro Tag: '+format(operating.total)+'</b><small>Fuhrpark '+format(operating.fleet)+' · Gleisunterhalt '+format(operating.infrastructure)+' · Verwaltung '+format(operating.admin)+'</small>';
+const goals=[['Mindestens 5 Städte verbinden',CITIES.filter(c=>EDGES.some(e=>owned(e)&&(e.a===c.id||e.b===c.id))).length>=5],['Drei Linien betreiben',G.lines.length>=3],['500 Transporte durchführen',G.delivered>=500],['Vermögen 500.000 €',G.money>=500000]];
+$('contracts').innerHTML=goals.map(([name,yes])=>'<div class="item">'+(yes?'✅':'◯')+' '+name+'</div>').join('');
+$('lines').querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>removeLine(Number(b.dataset.remove))));
+renderMap();updateClock();}
+function renderLog(){$('log').innerHTML=G.log.slice(0,5).map(x=>'<p>'+x.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</p>').join('');}
+$('world').addEventListener('click',ev=>{const t=ev.target.closest('[data-edge],[data-city]');if(!t)return;if(t.hasAttribute('data-edge')){selectedEdge=Number(t.dataset.edge);render();$('selection').textContent='Strecke '+CITY[EDGES[selectedEdge].a].name+' – '+CITY[EDGES[selectedEdge].b].name+' ausgewählt. Rechts kannst du sie bauen oder zweigleisig ausbauen.';}else{$('selection').textContent=CITY[t.dataset.city].name+': '+CITY[t.dataset.city].pop*1000+' Einwohner · Industrieindex '+CITY[t.dataset.city].industry+'. Verbinde diesen Ort mit deinem Netz und eröffne eine Zuglinie.';}});
+$('vehicle').onchange=()=>{const t=VEHICLES.find(x=>x.id===$('vehicle').value);if(!t)return;$('vehicleInfo').innerHTML='<b>'+format(t.price)+'</b><small style="display:block;color:#abc7d2">'+t.category+' · Kapazität '+t.cap+' · '+t.speed+' km/h · Unterhalt '+format(t.cost)+'/Tag</small>';};
+$('build').onclick=build;$('upgrade').onclick=upgrade;$('purchase').onclick=purchase;$('line').onclick=createLine;$('nextday').onclick=nextDay;$('save').onclick=()=>{save();};
+$('reset').onclick=()=>{if(!confirm('Neues Eisenbahnunternehmen gründen? Der bisherige Spielstand wird überschrieben.'))return;G=defaultGame();selectedEdge=1;playing=false;save();render();renderLog();};
+$('run').onclick=()=>{playing=!playing;$('run').textContent=playing?'⏸ Betrieb pausieren':'▶ Betrieb starten';$('run').classList.toggle('on',playing);};
+$('slow').onclick=()=>{speed=1;$('slow').classList.add('on');$('fast').classList.remove('on');};
+$('fast').onclick=()=>{speed=4;$('fast').classList.add('on');$('slow').classList.remove('on');};
+function loop(now){if(lastTick!==null&&playing){const delta=Math.min(.1,(now-lastTick)/1000)*speed*.5;tick(delta);}lastTick=now;requestAnimationFrame(loop);}
+load();render();renderLog();requestAnimationFrame(loop);
+</script></body></html>
