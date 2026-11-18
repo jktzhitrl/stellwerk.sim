@@ -105,3 +105,21 @@ test('Live animation has pause and speed controls',()=>{
  assert.match(js,/livePaused/);
  assert.match(js,/liveClock\+=frameMs\*liveSpeed/);
 });
+
+test('Overpass provider fallback succeeds after a temporary primary error',async()=>{
+ const source=segment('async function fetchOverpass(options){','function note(s){');
+ const requested=[];
+ const fetchMock=async(url)=>{requested.push(url);return {ok:requested.length===2,status:requested.length===2?200:503};};
+ const query=new Function('fetch',source+'return fetchOverpass;')(fetchMock);
+ const response=await query({signal:{aborted:false}});
+ assert.equal(response.status,200);
+ assert.equal(requested.length,2);
+});
+
+test('Aborted railway requests do not retry alternate providers',async()=>{
+ const source=segment('async function fetchOverpass(options){','function note(s){');
+ let calls=0;
+ const query=new Function('fetch',source+'return fetchOverpass;')(async()=>{calls++;throw Error('network');});
+ await assert.rejects(query({signal:{aborted:true}}));
+ assert.equal(calls,0);
+});
