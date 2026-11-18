@@ -765,6 +765,47 @@ function onRailAtDistance(points,cumulative,km){
  const i=lo,a=points[i-1],b=points[i],den=cumulative[i]-cumulative[i-1],f=den>0?Math.max(0,Math.min(1,(km-cumulative[i-1])/den)):0;
  return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
 }
+/* Halte-/Wende-Simulation mit konstantem Weg und kurzen Aufenthalten.
+   Fahrzeit ist Spielzeit; Zugbelegung/Signale sind noch keine Echtzeitsimulation. */
+function liveTimetable(points,stops,interval=60){
+ const distances=distanceArray(points),total=distances.at(-1),stopKm=[];
+ if(!total||!Number.isFinite(total))return null;
+ for(const stop of stops||[]){
+  const p=routeStopPosition([stop.lat,stop.lng],points);
+  if(!p||p.offset>1.0)return null;
+  const km=Math.max(0,Math.min(total,p.position*total));
+  if(stopKm.length&&km<=stopKm.at(-1)+.001)return null;
+  stopKm.push(km);
+ }
+ if(stopKm.length<2)return null;
+ const dwellMs=1800,travelMs=Math.max(40000,Math.min(240000,total*2600));
+ // Auch die letzten Meter bis zum Anfang/Ende der Gleisroute animieren.
+ const forward=stopKm.map(km=>({km,dwellMs}));
+ return {distances,total,stopKm,forward,dwellMs,travelMs,
+   cycleMs:travelMs*2+dwellMs*Math.max(0,stopKm.length-2)*2+dwellMs*2};
+}
+function rideDistanceAt(ride,elapsedMs){
+ const plan=ride.plan,stops=plan.stopKm;
+ const begin=stops[0],end=stops.at(-1),span=end-begin;
+ if(span<=.001)return begin;
+ const travel=plan.travelMs*(span/plan.total),dwell=plan.dwellMs;
+ // Vorwärts bis zum letzten Halt, Zwischenstopps mit kurzer Pause.
+ let t=((elapsedMs%plan.cycleMs)+plan.cycleMs)%plan.cycleMs;
+ function leg(reverse){
+  const seq=reverse?stops.slice().reverse():stops;
+  for(let i=1;i<seq.length;i++){
+   const dist=Math.abs(seq[i]-seq[i-1]),legMs=travel*dist/span;
+   if(t<=legMs)return seq[i-1]+(seq[i]-seq[i-1])*(legMs?Math.max(0,t/legMs):1);
+   t-=legMs;
+   if(t<=dwell)return seq[i];
+   t-=dwell;
+  }
+  return null;
+ }
+ const outbound=leg(false);if(outbound!==null)return outbound;
+ const inbound=leg(true);if(inbound!==null)return inbound;
+ return begin;
+}
 function paintLiveTrains(now){
  liveAnimation=requestAnimationFrame(paintLiveTrains);
  for(const [id,ride] of liveTrips){
@@ -772,18 +813,18 @@ function paintLiveTrains(now){
   if(!trains.length){if(ride.layer)map.removeLayer(ride.layer);liveTrips.delete(id);continue;}
   const seen=new Set(trains.map(t=>t.id));
   for(const [tid,m] of ride.markers)if(!seen.has(tid)){ride.layer.removeLayer(m);ride.markers.delete(tid);}
-  const total=ride.distance[ride.distance.length-1],duration=Math.max(35000,Math.min(240000,total*2100)); // beschleunigte Spielzeit
+  const plan=ride.plan,duration=plan.cycleMs;
   for(const [index,t]of trains.entries()){
    let m=ride.markers.get(t.id);
    if(!m){
     const icon=L.divIcon({className:'liveTrainIcon',html:'<div>🚆</div>',iconSize:[36,36],iconAnchor:[18,18]});
     m=L.marker(ride.points[0],{icon,zIndexOffset:900});ride.layer.addLayer(m);
-    m.bindTooltip('Zug '+t.id+' · '+ride.name+' · simulierte Fahrt auf OSM-Gleisen');
+    m.bindTooltip('Zug '+t.id+' · '+ride.name+' · simulierte Fahrt mit Halten und Wende');
     ride.markers.set(t.id,m);
    }
-   const tms=((now-ride.started+(index*duration/Math.max(1,trains.length)))%(duration*2)+duration*2)%(duration*2);
-   const fraction=tms<=duration?tms/duration:2-tms/duration;
-   m.setLatLng(onRailAtDistance(ride.points,ride.distance,total*fraction));
+   const tms=now-ride.started+(index*duration/Math.max(1,trains.length));
+   const kilometer=rideDistanceAt(ride,tms);
+   m.setLatLng(onRailAtDistance(ride.points,ride.distance,kilometer));
   }
  }
 }
@@ -851,12 +892,14 @@ async function activateLineRide(id){
   const result=await calculateLiveLine(line);
   if(!S.lines.some(x=>x.id===id&&lineSignature(x)===result.signature))return;
   liveRouteCache[id]=result;try{localStorage.setItem(LIVE_ROUTE_KEY,JSON.stringify(liveRouteCache));}catch(e){}
+  const plan=liveTimetable(result.points,line.stops,line.interval);
+  if(!plan)throw Error('Die Zwischenhalte liegen nicht in befahrbarer Reihenfolge auf dem Gleisweg. Bitte Haltefolge prüfen.');
   const layer=L.layerGroup().addTo(map),route=L.polyline(result.points,{color:'#0ea7c1',weight:5,opacity:.91}).addTo(layer);
   route.bindPopup('Live-Linie '+line.name+' · Route aus zusammenhängenden OSM-Gleisen');
-  const ride={name:line.name,contractId:line.contractId,points:result.points,distance:distanceArray(result.points),started:performance.now(),layer,markers:new Map()};
+  const ride={name:line.name,contractId:line.contractId,points:result.points,distance:plan.distances,plan,started:performance.now(),layer,markers:new Map()};
   liveTrips.set(id,ride);if(!liveAnimation)liveAnimation=requestAnimationFrame(paintLiveTrains);
   map.fitBounds(route.getBounds(),{padding:[50,50]});
-  note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren jetzt live auf der berechneten Gleisroute.');
+  note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren – inklusive Aufenthalten an '+line.stops.length+' Halten und Wende am Linienende.');
  }catch(err){note('Keine Live-Zugfahrt: '+err.message);$('railDetail').textContent=err.message;}
  finally{liveLoading.delete(id);}
 }
