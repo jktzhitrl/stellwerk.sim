@@ -1,169 +1,47 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#182630"><title>Stellwerk Tycoon · Prototyp</title>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121e27"><title>Stellwerk Tycoon · Eisenbahnimperium</title>
 <style>
-:root{font-family:system-ui,Arial,sans-serif;color:#e2edf3;background:#111b22;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh}
-header{padding:15px max(14px,calc((100vw - 1050px)/2));background:#223440;border-bottom:1px solid #4b6576;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 12px}h3{font-size:14px;color:#a9d3ec;margin:6px 0}
-a{color:#8fceef}main{max-width:1080px;margin:auto;padding:16px;display:grid;grid-template-columns:repeat(12,1fr);gap:13px}
-.card{grid-column:span 12;background:#1e303b;border:1px solid #47606f;border-radius:12px;padding:16px}.half{grid-column:span 6}.third{grid-column:span 4}
-@media(max-width:700px){.half,.third{grid-column:span 12}main{padding:10px;gap:9px}.card{padding:12px}}
-button{padding:10px 13px;min-height:44px;border-radius:8px;border:1px solid #7a9caf;background:#35586d;color:white;font:inherit;cursor:pointer}button:hover{background:#41728f}button:disabled{opacity:.38;cursor:not-allowed}
-button.primary{background:#096b80;border-color:#63d0df;font-weight:700}button.danger{background:#593b3b}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.metric{background:#11232d;border:1px solid #395a6c;padding:12px;border-radius:9px}.metric strong{display:block;font-size:23px}.muted{color:#b0c6d2;font-size:13px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-#map{width:100%;height:auto;min-width:850px;max-width:none;display:block;background:#11222c;cursor:pointer}
-.mapscroll{width:100%;overflow:auto;border:1px solid #4b6573;border-radius:10px;background:#11222c;touch-action:pan-x}
-.maptoolbar{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:10px 0;font-size:13px}
-.maptoolbar label{display:flex;gap:6px;align-items:center}
-.routeInfo{padding:12px;margin:9px 0;background:#152c39;border-left:3px solid #75c5e7;min-height:55px;font-size:13px}
-#map [data-inspect]{cursor:pointer}#map [data-inspect]:hover{filter:drop-shadow(0 0 6px #84d8ff)}
-#map .route-rail{fill:none;stroke:#a4c1cd;stroke-width:4;stroke-linecap:round}#map .future-rail{stroke:#4a606c;stroke-dasharray:9 7}
-#map .signal-lamp{stroke:#c1dce9;stroke-width:2}#map .train-marker{filter:drop-shadow(0 1px 5px #000);pointer-events:none}.notice{color:#f5d390;font-size:13px}
-.item{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #3b5260;padding:10px 0}.item small{display:block;color:#a8c2d0}#log{max-height:195px;overflow:auto;margin:0;padding-left:19px;font-size:13px;line-height:1.8}
-</style></head><body>
-<header><div><h1>🏗️ Stellwerk Tycoon</h1><div class="muted">Spielbarer Wirtschafts-Prototyp · getrennt vom Stellwerksbetrieb</div></div><a href="./index.html">← Zur Spielauswahl</a><a href="./editor.html">🛠️ Baumodus</a></header>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e9f3f8;background:#101820;color-scheme:dark;--bg:#111e27;--panel:#192b36;--panel2:#203743;--border:#385766;--muted:#afc7d2;--accent:#62c8ef;--green:#70d5a5;--amber:#deb174}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% 0,#233c4a 0,#101820 62%)}button,input,select{font:inherit}button{background:#2c4758;border:1px solid #648192;color:#f3f9fc;border-radius:8px;padding:9px 13px;min-height:42px;cursor:pointer;transition:background .13s}button:hover{background:#3b6479}button:disabled{opacity:.43;cursor:not-allowed}
+button.primary{background:#136e86;border-color:#64cce7;font-weight:750}button.primary:hover{background:#1a829e}button.danger{background:#593a3d;border-color:#9a666e}a{color:#a1e3fa}h1{font-size:21px;margin:0;letter-spacing:.01em}h2{font-size:18px;margin:0 0 10px}h3{font-size:15px;margin:12px 0;color:#cee9f4}p{line-height:1.5}small,.sub{color:var(--muted);font-size:12px}b,strong{font-weight:750}
+header{border-bottom:1px solid #436273;background:#1c303d;position:sticky;top:0;z-index:10;box-shadow:0 4px 20px #070e16aa}header .head{max-width:1460px;margin:auto;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header .head .brand{display:flex;align-items:center;gap:13px}header .logo{width:47px;height:47px;border-radius:12px;background:linear-gradient(135deg,#2b8c9f,#173a61);display:grid;place-items:center;font-size:24px;border:1px solid #78d2eb}header .links{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px}
+main{max-width:1460px;margin:auto;padding:14px 18px 40px}.statistics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:8px 0 14px}
+.metric{background:#1c3341;border:1px solid #3b6073;padding:11px 13px;border-radius:10px;min-width:0}.metric strong{display:block;font-size:clamp(15px,1.6vw,23px);letter-spacing:-.03em;overflow-wrap:anywhere;margin-top:5px}.statlabel{font-size:12px;color:#acc9d7;font-weight:650}
+.commandbar{display:flex;align-items:center;justify-content:space-between;gap:11px;flex-wrap:wrap;background:#1b2e39;border:1px solid #466577;border-radius:11px;padding:10px 13px;margin-bottom:12px}
+.commandbar .actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.clock{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#91f3bc;font-size:18px;font-weight:800}.notice{color:#f2d394;font-size:12px;line-height:1.4;min-height:16px;margin:4px 0}
+nav{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:3px;scrollbar-width:thin}nav button{white-space:nowrap;background:#1b2d39;min-width:145px;font-weight:750;border-radius:9px}nav button.active{border-color:#70dcfa;background:#1b5772;box-shadow:inset 0 -3px 0 #64cde9}
+#viewRoot{min-height:440px}.layout{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(270px,1fr);gap:13px}.worldblock,.inspector,.pane,.vehicle,.block{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px}.worldblock{min-width:0}.inspector{min-width:0;align-self:start}.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.maphead h2{margin-bottom:2px}#world{display:block;width:100%;height:auto;aspect-ratio:1180/680;border:1px solid #456373;border-radius:10px;background:#10222c;margin:10px 0;touch-action:none;user-select:none;cursor:grab}#world:active{cursor:grabbing}#world .stationNode,#world .linkgroup{cursor:pointer}#world .stationNode:hover,#world .linkgroup:hover{filter:drop-shadow(0 0 4px #73d4fa)}
+.stationDiagram{display:block;width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid #476674}.stationDiagram path{stroke-linecap:round}.legend{display:flex;align-items:center;gap:13px;flex-wrap:wrap;font-size:12px;color:#c4d9e4}.dot{display:inline-block;width:10px;height:10px;border-radius:100%;margin-right:5px;background:#617987}.dot.green{background:#64d2a1}.dot.amber{background:#d6a45e}.dot.gray{background:#6d8799}.dot.cyan{background:#6bd9ed}
+.sectionhead{background:#1c3543;padding:17px;border:1px solid #416276;border-radius:12px;margin-bottom:13px}.sectionhead h2{font-size:21px}.sectionhead p{margin:4px 0;color:#bad1dd;font-size:13px}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.pane{min-width:0}.block{background:#152733;margin:10px 0;border-color:#3f5967}.blockhead{display:flex;align-items:start;justify-content:space-between;gap:8px}.blockhead strong{font-size:14px}.blockhead small{display:block;margin-top:4px}.block p{color:#b9cbd6;font-size:13px;margin:8px 0}.tag{font-size:11px;border-radius:6px;padding:5px 7px;background:#3b4651;color:#d4e2ea;white-space:nowrap}.tag.green{background:#1e5b4b;color:#b6ffdb}.pills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pills span{font-size:11px;border:1px solid #4b697a;border-radius:7px;padding:5px 7px;color:#c3d6df}
+.actionbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0}.actionbar button{font-size:12px;min-height:37px;padding:6px 10px}
+.tinyline{padding:9px;border-bottom:1px solid #385261;font-size:13px;cursor:pointer}.tinyline:hover{background:#27495b}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.formgrid label{font-size:12px;color:#c6dce6;display:flex;flex-direction:column;gap:5px}.formgrid input,.formgrid select{background:#101f28;border:1px solid #607c8b;color:#f0f8fc;border-radius:8px;padding:10px;min-width:0;max-width:100%}.formgrid button{grid-column:span 2}
+.vehiclegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:15px}.vehicle{min-width:0}.vehicle h3{font-size:14px}.vehicle p{font-size:12px;color:#bacdd7}.vehicleicon{font-size:29px;min-height:45px}.vehicle button{font-size:12px}.meter{background:#101d26;border-radius:20px;height:7px;overflow:hidden}.meter span{display:block;background:linear-gradient(90deg,#d1ab64,#6dd6b1);height:100%}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}td,th{text-align:right;padding:9px 5px;border-bottom:1px solid #375261}td:first-child,th:first-child{text-align:left}.positive{color:#8ae9b7}.negative{color:#ffb1a4}
+.financeChart{width:100%;height:auto;background:#132833;border:1px solid #3a5766;border-radius:8px}.history{max-height:280px;overflow:auto;font-size:12px}.history p{border-bottom:1px solid #344c5a;margin:0;padding:8px 0}
+.footer{padding:18px;color:#9ab7c6;font-size:12px;line-height:1.6;max-width:1460px;margin:auto}
+@media(max-width:970px){.statistics{grid-template-columns:repeat(3,minmax(0,1fr))}.layout{grid-template-columns:1fr}.twocol{grid-template-columns:1fr}}
+@media(max-width:600px){main{padding:8px 9px 20px}header .head{padding:9px 10px}.statistics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.metric{padding:9px}.metric strong{font-size:18px}nav button{min-width:128px;padding:9px}.worldblock,.inspector,.pane{padding:10px}#world{min-height:240px}.formgrid{grid-template-columns:1fr}.formgrid button{grid-column:span 1}}
+</style></head>
+<body>
+<header><div class="head"><div class="brand"><div class="logo">🚆</div><div><h1>Stellwerk Tycoon</h1><div class="sub">Dein eigenes Eisenbahninfrastruktur- und Verkehrsunternehmen</div></div></div><div class="links"><a href="./index.html">🚦 Stellwerk</a><a href="./editor.html">🛠️ Baumodus</a></div></div></header>
 <main>
-<section class="card"><h2>Deine Eisenbahnverwaltung</h2><div id="stats" class="metrics"></div><div class="buttons"><button class="primary" id="day">▶ Betriebstag durchführen</button><button id="save">Spielstand speichern</button><button id="reset" class="danger">Neustart</button></div><div id="notice" class="notice" role="status" aria-live="polite"></div></section>
-<section class="card"><h2>Streckennetz · detaillierte Gleis- und Betriebsansicht</h2><p class="muted">Schematischer Netzplan, keine geografische Karte. Strecken, Blockabschnitte, Weichen, Signale und Bahnhofsgleise antippen, um Details anzuzeigen. Fahrende Züge dienen hier als anschauliche Vorschau.</p><div class="maptoolbar"><label><input type="checkbox" id="showTrains" checked> Zugbewegungen zeigen</label><label><input type="checkbox" id="showSignals" checked> Signale zeigen</label><button id="mapFit" type="button">Ansicht zurücksetzen</button></div>
-<div class="mapscroll"><svg id="map" viewBox="0 0 1120 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detaillierter schematischer Gleis- und Streckennetzplan"></svg></div>
-<div class="routeInfo" id="routeInfo" aria-live="polite">Tippe auf ein Gleis, eine Station oder einen Streckenblock, um die Betriebsdetails zu sehen.</div><div id="infrastructure"></div></section>
-<section class="card half"><h2>Fahrplan und Zugbetrieb</h2><div class="muted">Du kaufst Zugverbände und bestellst tägliche Fahrten. Mehr Züge benötigen genügend Streckenkapazität.</div><div class="buttons"><button id="buyTrain">+ Zugverband · 38.000 €</button><button id="addService">+ tägliche Fahrt · 2.500 €</button><button id="removeService">− Fahrt streichen</button></div><div id="services"></div></section>
-<section class="card third"><h2>Investitionen</h2><div id="investments"></div></section>
-<section class="card third"><h2>Spielziele</h2><div id="goals"></div></section>
-<section class="card third"><h2>Betriebsbericht</h2><ol id="log"></ol></section>
-<section class="card"><div class="muted"><strong>Prototyp-Grenzen:</strong> Die detaillierte Streckenansicht ist eine schematische Vorschau, keine reale Streckentopologie. Zugbewegungen sind illustrative Animationen, keine Echtzeit-Züge aus dem Stellwerk. Geld, Tagesabrechnung, Streckenausbau und Zugflotte sind unabhängig vom bestehenden Stellwerksimulator. Es gibt noch keine automatische Übergabe der Tycoon-Züge an die ESTW-Gleisbilder und keine spielbare Gleisverlegung auf der Karte. Der Bahnhofseditor bleibt als eigener Baumodus erhalten.</div></section>
+<section class="statistics" id="stats" aria-label="Unternehmenskennzahlen"></section>
+<section class="commandbar"><div class="actions"><button class="primary" id="day">Betriebstag abschließen ▶</button><button id="speed">⏩ 4× Vorschau</button><strong class="clock" id="clock">06:30</strong></div><div class="actions"><button id="save">💾 Speichern</button><button id="reset" class="danger">Neues Unternehmen</button></div><div id="notice" class="notice" role="status" aria-live="polite" hidden></div></section>
+<nav aria-label="Tycoon-Bereiche">
+<button data-view="world" aria-pressed="true" class="active">🗺️ Eisenbahnwelt</button>
+<button data-view="build" aria-pressed="false">🛤️ Streckenbau</button>
+<button data-view="lines" aria-pressed="false">📅 Linien & Fahrplan</button>
+<button data-view="fleet" aria-pressed="false">🚄 Zugkatalog</button>
+<button data-view="finance" aria-pressed="false">💶 Finanzen & Ziele</button>
+</nav>
+<section id="viewRoot" aria-live="polite"></section>
 </main>
-<script>
-'use strict';
-const KEY='stw_tycoon_v1',$=id=>document.getElementById(id);
-const initial=()=>({v:1,day:1,money:170000,reputation:70,stations:2,links:1,trains:2,services:4,signals:0,log:['Betrieb gegründet: Neustadt–Teutschenthal.']});
-let S=initial();
-function money(v){return Math.round(v).toLocaleString('de-DE')+' €';}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));notice('Spielstand gespeichert.');}catch(e){notice('Speichern nicht möglich: '+e.message);}}
-function notice(m){$('notice').textContent=m;}
-function addLog(m){S.log.unshift('Tag '+S.day+': '+m);S.log=S.log.slice(0,30);}
-function can(cost){if(S.money<cost){notice('Nicht genug Budget: '+money(cost)+' erforderlich.');return false;}return true;}
-function spend(cost){if(!can(cost))return false;S.money-=cost;return true;}
-function capacity(){return Math.max(2, Math.min(S.trains*3,S.links*8+(S.signals*2)));}
-function performDay(){const cap=capacity(),served=Math.min(S.services,cap),missing=S.services-served;
-const revenue=served*4400,operating=S.trains*1000+S.stations*750+S.links*850+S.signals*180+served*1150;
-const profit=revenue-operating;S.money+=profit;S.reputation=Math.max(0,Math.min(100,S.reputation+(missing?-missing*4:1)));S.day++;
-addLog(served+' Fahrten · Erlöse '+money(revenue)+' · Kosten '+money(operating)+' · Ergebnis '+money(profit)+(missing?' · '+missing+' Fahrten ausgefallen':''));
-notice('Betriebstag abgeschlossen. '+served+' von '+S.services+' Fahrten durchgeführt.');save();render();}
-function buildLine(){if(S.links>=2){notice('Beide Strecken sind bereits gebaut.');return;}if(!spend(80000))return;S.links=2;addLog('Strecke Teutschenthal–Burgstadt gebaut.');save();render();}
-function openStation(){if(S.stations>=3){notice('Alle drei Bahnhöfe aktiv.');return;}if(S.links<2){notice('Baue zuerst die Strecke nach Burgstadt.');return;}if(!spend(45000))return;S.stations=3;addLog('Burgstadt für den Tycoon-Betrieb eröffnet.');save();render();}
-function upgradeSignals(){if(S.signals>=3){notice('Signalausbau vollständig.');return;}if(!spend(18000))return;S.signals++;addLog('Blocksignale ausgebaut: zusätzliche Streckenkapazität.');save();render();}
-function buyTrain(){if(!spend(38000))return;S.trains++;addLog('Neuer Zugverband in Dienst gestellt.');save();render();}
-function addService(){if(!spend(2500))return;S.services++;addLog('Zusätzliche tägliche Zugfahrt bestellt.');save();render();}
-function removeService(){if(S.services<=1){notice('Mindestens eine tägliche Fahrt bleibt bestehen.');return;}S.services--;addLog('Eine tägliche Zugfahrt gestrichen.');save();render();}
-
-const ROUTE_DETAILS={
-  a:'Strecke Neustadt–Teutschenthal: zweigleisige Hauptstrecke, zwei Richtungsgleise. Im Tycoon bereits in Betrieb. Blockabschnitte und Signale sind schematisch dargestellt.',
-  b:'Strecke Teutschenthal–Burgstadt: Ausbauprojekt. Nach dem Streckenbau werden beide Richtungsgleise sowie die Blockabschnitte sichtbar aktiv.',
-  neustadt:'Bahnhof Neustadt: Personenverkehr, sechs Gleise im klassischen Stellwerksmodus, Weichenstraßen und Ausfahrsignale. Die Tycoon-Skizze zeigt die Bahnhofsköpfe vereinfacht.',
-  teutschenthal:'Bahnhof Teutschenthal: Personenhaltepunkt, Güterbahnhof und Gleisanschluss. Im Stellwerksmodus gibt es zusätzlich Rangieraufträge.',
-  burgstadt:'Burgstadt Hbf: zehn Bahnsteiggleise und Güterbereich im klassischen Stellwerksmodus. Im Tycoon wird der Bahnhof nach Streckenbau und Eröffnung freigeschaltet.',
-  switch:'Weichenverbindung: Verbindet Gleise, damit Züge den Fahrweg wechseln können. In dieser Tycoon-Vorschau noch nicht von Hand stellbar.',
-  signal:'Haupt- oder Blocksignal: Trennt Zugfolgeabschnitte und sichert die nächste Fahrt. Eine echte Signalstellung aus dem Tycoon heraus folgt erst mit der Stellwerksanbindung.',
-  siding:'Abstell- und Gütergleis: Platz für Fahrzeuge und Güterzüge, noch ohne eigene Ladungswirtschaft in dieser Vorschau.',
-  block:'Blockabschnitt auf freier Strecke: Ein Zug darf erst einfahren, wenn sein Abschnitt frei und die Fahrt gesichert ist. Der Tycoon bildet dies derzeit nur grafisch ab.'
-};
-let selectedRoute='a',animationStart=performance.now();
-const escapeSvg=str=>String(str).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function inspect(id){
-  selectedRoute=id;
-  const text=ROUTE_DETAILS[id]||ROUTE_DETAILS.block;
-  $('routeInfo').textContent=text;
-  $('map').querySelectorAll('[data-inspect]').forEach(e=>e.setAttribute('opacity',e.dataset.inspect===id?'1':e.dataset.baseOpacity||'1'));
-}
-function stationSvg(x,title,id,active,trackCount){
-  const left=x-65,right=x+65;
-  let out='<g data-inspect="'+id+'" data-base-opacity="1">';
-  out+='<rect x="'+(x-83)+'" y="81" width="166" height="255" rx="10" fill="'+(active?'#254657':'#24323c')+'" stroke="'+(active?'#6aaec9':'#4e626d')+'" stroke-width="2"/>';
-  out+='<text x="'+x+'" y="108" text-anchor="middle" font-size="16" font-weight="bold" fill="#ecf4f8">'+escapeSvg(title)+'</text>';
-  for(let i=0;i<trackCount;i++){
-    const y=140+i*33;
-    out+='<line x1="'+left+'" y1="'+y+'" x2="'+right+'" y2="'+y+'" stroke="'+(active?'#b4c7d0':'#586a75')+'" stroke-width="3"/>';
-    out+='<text x="'+(left+12)+'" y="'+(y-7)+'" font-size="10" fill="#d5e7ee">Gl '+(i+1)+'</text>';
-  }
-  out+='<rect x="'+(x-39)+'" y="162" width="78" height="9" rx="2" fill="#71858e"/>';
-  out+='<rect x="'+(x-39)+'" y="228" width="78" height="9" rx="2" fill="#71858e"/>';
-  out+='<path d="M'+left+' 140 L'+(left+24)+' 173 M'+left+' 239 L'+(left+24)+' 206 M'+(right-24)+' 173 L'+right+' 140 M'+(right-24)+' 206 L'+right+' 239" fill="none" stroke="'+(active?'#d0ad68':'#687984')+'" stroke-width="2"/>';
-  out+='<text x="'+x+'" y="320" text-anchor="middle" font-size="11" fill="'+(active?'#87e3b7':'#9eabb5')+'">'+(active?'in Betrieb':'noch nicht eröffnet')+'</text></g>';
-  return out;
-}
-function trackSvg(id,x1,x2,active){
- const cls=active?'route-rail':'route-rail future-rail';
- const color=active?'#b4c7d0':'#506573';
- let out='<g data-inspect="'+id+'">';
- for(const y of [173,206]){
-   out+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" class="'+cls+'"/>';
-   for(let x=x1+65;x<x2;x+=76)out+='<line x1="'+x+'" y1="'+(y-8)+'" x2="'+x+'" y2="'+(y+8)+'" stroke="'+(active?'#5b7887':'#394c56')+'" stroke-width="1" />';
- }
- for(const x of [x1+110,x2-105]){
-  out+='<path d="M'+(x-19)+' 173 L'+(x+19)+' 206" fill="none" stroke="'+(active?'#cda55b':'#4b6472')+'" stroke-width="2.5"/>';
-  out+='<circle data-inspect="switch" cx="'+(x-19)+'" cy="173" r="8" fill="'+(active?'#bd955a':'#475e68')+'" stroke="#1a2d36"/>';
- }
- for(let i=1;i<=3;i++){
-  const x=x1+((x2-x1)*i)/4;
-  out+='<line x1="'+x+'" y1="155" x2="'+x+'" y2="225" stroke="'+(active?'#58778a':'#3a4c57')+'" stroke-width="1" stroke-dasharray="3 4"/>';
-  out+='<text x="'+x+'" y="250" text-anchor="middle" font-size="10" fill="'+(active?'#afd3e4':'#697b88')+'">B'+i+'</text>';
-  out+='<rect data-inspect="block" x="'+(x-28)+'" y="166" width="56" height="46" fill="transparent"/>';
- }
- out+='</g>';
- return out;
-}
-function signalSvg(x,y,active,direction){
-return '<g data-inspect="signal" class="signal-group" data-enabled="'+(active?'1':'0')+'"><path d="M'+x+' '+y+' v-20" stroke="#d4e3ea" stroke-width="2"/><rect x="'+(x-9)+'" y="'+(y-35)+'" width="18" height="23" rx="3" fill="#16242b" class="signal-lamp"/><circle cx="'+x+'" cy="'+(y-27)+'" r="4" fill="'+(active?'#55dfa0':'#dd815f')+'"/><path d="M'+(x-5*direction)+' '+(y+5)+' l'+(10*direction)+' 0" stroke="#90bdcf" stroke-width="2"/></g>';}
-function renderMap(){
- const open=S.links>1,burg=S.stations>=3;
- let out='<rect width="1120" height="420" fill="#12222b"/>';
- for(let x=0;x<1120;x+=28)out+='<path d="M'+x+' 0 V420" stroke="#243a45" opacity=".4"/>';
- for(let y=0;y<420;y+=28)out+='<path d="M0 '+y+' H1120" stroke="#243a45" opacity=".4"/>';
- out+='<text x="25" y="38" fill="#d3e7ef" font-size="18" font-weight="bold">NETZÜBERSICHT</text>';
- out+='<text x="25" y="56" fill="#88a6b5" font-size="12">Schematische Betriebsdarstellung – keine geografische Lage</text>';
- out+=trackSvg('a',205,485,true)+trackSvg('b',645,925,open);
- out+=stationSvg(130,'NEUSTADT','neustadt',true,4);
- out+=stationSvg(565,'TEUTSCHENTHAL','teutschenthal',true,4);
- out+=stationSvg(1000,'BURGSTADT','burgstadt',burg,4);
- out+='<g data-inspect="siding"><line x1="516" y1="239" x2="488" y2="299" stroke="#c7a76e" stroke-width="3"/><line x1="488" y1="299" x2="430" y2="299" stroke="#a8bec9" stroke-width="3"/><path d="M430 289 V309" stroke="#cbdbe0" stroke-width="4"/><text x="452" y="320" text-anchor="middle" font-size="10" fill="#a8bdc9">Gütergleis</text></g>';
- for(const [x,on] of [[225,true],[468,true],[668,open],[903,open]]){out+=signalSvg(x,173,on,1)+signalSvg(x,206,on,-1);}
- out+='<text x="343" y="132" text-anchor="middle" fill="#b1d9e8" font-size="13">Strecke 1 · zweigleisig</text>';
- out+='<text x="784" y="132" text-anchor="middle" fill="'+(open?'#b1d9e8':'#899ca9')+'" font-size="13">Strecke 2 · '+(open?'gebaut':'geplant')+'</text>';
- out+='<g id="trainLayer"></g>';
- out+='<text x="35" y="383" fill="#8edaad" font-size="12">━ In Betrieb</text><text x="200" y="383" fill="#a0b2bf" font-size="12">┄ Geplant</text><text x="354" y="383" fill="#c9b075" font-size="12">╱ Weichen</text><text x="515" y="383" fill="#efc58d" font-size="12">● Zugpositionen (Vorschau)</text>';
- $('map').innerHTML=out;
- $('map').querySelectorAll('.signal-group').forEach(e=>e.style.display=$('showSignals').checked?'':'none');
- animateMap(performance.now());
-}
-function animateMap(now){
- const layer=$('trainLayer');if(!layer)return;
- if(!$('showTrains').checked){layer.innerHTML='';return;}
- const t=((now-animationStart)/1000)%24;
- const positions=[
-  {x:205+(t/24)*280,y:173,name:'RE',color:'#64daec'},
-  {x:485-(t/24)*280,y:206,name:'RB',color:'#bfa9ff'}
- ];
- if(S.links>1)positions.push({x:645+(t/24)*280,y:173,name:'GZ',color:'#e3ac69'});
- layer.innerHTML=positions.map(p=>'<g class="train-marker"><rect x="'+(p.x-17)+'" y="'+(p.y-10)+'" width="34" height="20" rx="5" fill="'+p.color+'" stroke="#101e27" stroke-width="2"/><text x="'+p.x+'" y="'+(p.y+4)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="#142832">'+p.name+'</text></g>').join('');
-}
-$('map').addEventListener('click',ev=>{const node=ev.target.closest('[data-inspect]');if(node)inspect(node.dataset.inspect);});
-$('showTrains').addEventListener('change',()=>animateMap(performance.now()));
-$('showSignals').addEventListener('change',()=>renderMap());
-$('mapFit').addEventListener('click',()=>{$('map').parentElement.scrollLeft=0;selectedRoute='a';inspect('a');});
-function animationLoop(t){animateMap(t);requestAnimationFrame(animationLoop);}
-requestAnimationFrame(animationLoop);
-function render(){
-$('stats').innerHTML=[['Kontostand',money(S.money)],['Betriebstag',S.day],['Ansehen',S.reputation+' / 100'],['Züge',S.trains],['Fahrten / Tag',S.services],['Kapazität / Tag',capacity()]].map(([k,v])=>'<div class="metric"><span class="muted">'+k+'</span><strong>'+v+'</strong></div>').join('');
-renderMap();
-$('infrastructure').innerHTML='<div class="item"><div><strong>Neustadt–Teutschenthal</strong><small>Im Betrieb</small></div><span>✓</span></div><div class="item"><div><strong>Teutschenthal–Burgstadt</strong><small>'+(S.links>1?'gebaut':'noch nicht gebaut')+'</small></div><button id="buildLine" '+(S.links>1?'disabled':'')+'>80.000 €</button></div>';
-$('buildLine').onclick=buildLine;
-$('services').innerHTML='<div class="item"><div><strong>'+S.services+' bestellte Fahrten</strong><small>Davon maximal '+capacity()+' pro Betriebstag möglich</small></div></div><div class="item"><div><strong>'+S.trains+' Zugverbände</strong><small>Jeder Verband erlaubt bis zu drei Fahrten pro Tag</small></div></div>'+(S.services>capacity()?'<p class="notice">⚠ Dein Fahrplan überlastet die Infrastruktur. Baue Kapazität aus oder streiche Fahrten.</p>':'<p class="muted">✓ Aktueller Fahrplan ist kapazitiv möglich.</p>');
-$('investments').innerHTML='<div class="item"><div><strong>Blocksignale</strong><small>+2 Kapazität pro Ausbau · '+S.signals+'/3</small></div><button id="signals" '+(S.signals>=3?'disabled':'')+'>18.000 €</button></div><div class="item"><div><strong>Burgstadt eröffnen</strong><small>Benötigt zweite Strecke</small></div><button id="station" '+(S.stations>=3||S.links<2?'disabled':'')+'>45.000 €</button></div>';
-$('signals').onclick=upgradeSignals;$('station').onclick=openStation;
-$('goals').innerHTML=[['Dritte Betriebsstelle eröffnen',S.stations>=3],['Zwei Strecken betreiben',S.links>=2],['10 Fahrten pro Tag anbieten',S.services>=10],['Ansehen auf 85 erhöhen',S.reputation>=85]].map(([v,ok])=>'<div class="item">'+(ok?'✅':'○')+' '+v+'</div>').join('');
-$('log').replaceChildren(...S.log.slice(0,12).map(x=>{const li=document.createElement('li');li.textContent=x;return li;}));
-}
-$('day').onclick=performDay;$('buyTrain').onclick=buyTrain;$('addService').onclick=addService;$('removeService').onclick=removeService;$('save').onclick=save;
-$('reset').onclick=()=>{if(confirm('Tycoon-Spielstand wirklich neu beginnen?')){S=initial();save();render();}};
-try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1&&Number.isFinite(v.money)&&Number.isFinite(v.day)&&Array.isArray(v.log))S=v;}catch(e){}
-render();
-</script></body></html>
+<footer class="footer">Tycoon 2.1 · Eigenständiger Spielstand und eigener Zugverkehr. Die Karte zeigt ein fiktives schematisches Netz mit interaktiven Strecken und Bahnhofsknoten. Die wirtschaftlichen Fahrten werden täglich abgerechnet; sichtbare Züge stellen die eingestellten Linien grafisch dar. Die Fahrstraßensteuerung der bestehenden Stellwerke und der freie Gleiseditor sind noch nicht mit dem Tycoon gekoppelt.</footer>
+<script src="./tycoon-engine.js?v=2.1"></script>
+</body></html>
