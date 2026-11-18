@@ -69,7 +69,7 @@ const JOBS=[
 const TYPES={rb:{name:'Regionaltriebwagen',price:65000,seats:180,upkeep:330},emu:{name:'S-Bahn-Triebwagen',price:98000,seats:320,upkeep:470},re:{name:'Regionalexpress',price:153000,seats:560,upkeep:720},ic:{name:'Fernverkehrszug',price:242000,seats:780,upkeep:1050}};
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
-let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,selected=null,action=null,lastStops=0,loadToken=0;
+let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=true,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
@@ -79,10 +79,56 @@ function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.')
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent='Standort auswählen';b.onclick=()=>{select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
 function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]});}
-function renderMap(){if(!map)return;connections.clearLayers();stationsLayer.clearLayers();for(const j of JOBS){const a=station(j.a),b=station(j.b),owned=S.awards.some(x=>x.id===j.id),bid=S.bids.some(x=>x.id===j.id);
-const line=L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{weight:owned?5:2,color:owned?'#05ac8c':bid?'#e4a943':'#658c9d',opacity:owned?.9:.55,dashArray:owned?null:'6 7'}).addTo(connections);
-line.bindTooltip(j.name,{sticky:true});line.on('click',()=>bidDialog(j.id));}
-for(const s of [...ST,...(S.customStations||[])]){const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));}}
+function renderMap(){
+ if(!map)return;
+ // Ausschreibungen sind Verkehrsverträge, keine belegten Gleisgeometrien.
+ // Deshalb KEINE erfundenen geraden Streckenlinien zwischen Städten zeichnen.
+ connections.clearLayers();stationsLayer.clearLayers();
+ for(const s of [...ST,...(S.customStations||[])]){
+   const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);
+   m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));
+ }
+}
+function scheduleRailLoad(){clearTimeout(railTimer);railTimer=setTimeout(loadRailGeometry,800);}
+async function loadRailGeometry(){
+ if(!map||!railVisible||map.getZoom()<12){if(railGeometry)railGeometry.clearLayers();$('railDetail').textContent='Reale Gleise weltweit im Kartenausschnitt sichtbar. Für anklickbare Gleise bitte auf Zoom 12 oder höher gehen.';return;}
+ const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());
+ if(area>.12){$('railDetail').textContent='Ausschnitt noch zu groß für Gleisdetails. Bitte weiter heranzoomen.';return;}
+ const now=Date.now();
+ if(now-lastRailQuery<12000)return;lastRailQuery=now;
+ if(railController)railController.abort();
+ const controller=new AbortController();railController=controller;
+ const token=++railToken;
+ const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(v=>v.toFixed(5)).join(',');
+ const query='[out:json][timeout:16];(way["railway"~"^(rail|light_rail|narrow_gauge|subway)$"]('+bbox+');node["railway"="switch"]('+bbox+'););out geom;';
+ $('railDetail').textContent='Lade reale Gleise und Weichen im Kartenausschnitt …';
+ const timeout=setTimeout(()=>controller.abort(),20000);
+ try{
+  const res=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  if(!res.ok)throw Error('HTTP '+res.status);
+  const data=await res.json();if(token!==railToken)return;
+  railGeometry.clearLayers();let ways=0,switches=0;
+  for(const el of (data.elements||[]).slice(0,4500)){
+   if(el.type==='way'&&Array.isArray(el.geometry)&&el.geometry.length>1){
+     const pts=el.geometry.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>[p.lat,p.lon]);
+     if(pts.length<2)continue;
+     const service=el.tags&&el.tags.service;
+     const track=L.polyline(pts,{color:service?'#6d96a1':'#3be4b5',weight:service?2.5:3.3,opacity:service?.7:.85,interactive:true,pane:'overlayPane'}).addTo(railGeometry);
+     const content=document.createElement('div');content.textContent='🛤️ Echtes Gleis · OSM '+el.id+(service?' · '+service:'');
+     track.bindPopup(content);ways++;
+   }else if(el.type==='node'&&el.tags&&el.tags.railway==='switch'&&Number.isFinite(el.lat)&&Number.isFinite(el.lon)){
+     const marker=L.circleMarker([el.lat,el.lon],{radius:3.5,color:'#142c38',fillColor:'#ffd27b',fillOpacity:1,weight:1}).addTo(railGeometry);
+     const content=document.createElement('div');content.textContent='🔀 Reale Weiche · OSM '+el.id;marker.bindPopup(content);switches++;
+   }
+  }
+  $('railDetail').textContent='✓ '+ways+' echte Gleisabschnitte und '+switches+' Weichen geladen · antippen für Details.';
+  $('railStatus').textContent='Echte OpenRailwayMap-Gleise + '+ways+' verifizierte OSM-Gleisabschnitte im aktuellen Ausschnitt.';
+ }catch(e){
+  if(token!==railToken)return;
+  $('railDetail').textContent='Detaildaten gerade nicht verfügbar. Das OpenRailwayMap-Gleisbild bleibt sichtbar.';
+  $('railStatus').textContent='OpenRailwayMap-Kartenebene aktiv; Detailabfrage derzeit nicht erreichbar.';
+ }finally{clearTimeout(timeout);}
+}
 function loadStops(force){if(!map||map.getZoom()<10){stopsLayer.clearLayers();return;}if(!force&&Date.now()-lastStops<30000)return;const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());if(area>2){$('mapStatus').textContent='Bitte weiter hineinzoomen, damit reale Haltepunkte geladen werden.';return;}
 lastStops=Date.now();const token=++loadToken;const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(4)).join(',');
 const query='[out:json][timeout:15];(node["railway"~"station|halt"]('+bbox+');way["railway"~"station|halt"]('+bbox+'););out center 140;';
@@ -168,11 +214,19 @@ $('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c
 $('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);if(!a.type||a.type===t.type)sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{const target=sel.value;const contract=S.awards.find(a=>a.id===target);if(target&&contract&&contract.type&&contract.type!==t.type){note('Falscher Fahrzeugtyp für diesen Verkehrsvertrag.');render();return;}t.line=target||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
 $('finances').innerHTML=[['Bisherige Einnahmen',euro(S.totalEarned)],['Bisherige Ausgaben',euro(S.totalSpent)],['Beförderte Fahrgäste',S.totalRiders.toLocaleString('de-DE')],['Offene Bewerbungen',S.bids.length]].map(([a,b])=>'<div class="row"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
 $('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();if(selected)select(selected);}
-function initMap(){if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
-map=L.map('map',{preferCanvas:true}).setView([51.16,10.45],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap-Mitwirkende'}).addTo(map);
-connections=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);map.on('moveend',()=>loadStops(false));renderMap();}
+function initMap(){
+ if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
+ map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
+ L.control.zoom({position:'bottomright'}).addTo(map);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.93,attribution:'Gleise © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'}).addTo(map);
+ railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
+ connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
+ map.on('moveend',()=>{loadStops(false);scheduleRailLoad();});
+ renderMap();scheduleRailLoad();
+}
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
-$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
+$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Gleise ausgeblendet.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
 document.querySelectorAll('[data-mobile]').forEach(b=>b.onclick=()=>{const which=b.dataset.mobile;for(const id of ['left','right'])$(id).classList.toggle('open',id===which&&!$(id).classList.contains('open'));if(which==='map'&&map)setTimeout(()=>map.invalidateSize(),100);});
