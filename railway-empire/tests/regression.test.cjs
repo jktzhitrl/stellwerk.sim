@@ -162,3 +162,22 @@ test('Damaged save data cannot replace a healthy new game state',()=>{
  assert.equal(recovered.S.nextLine,1);
  assert.equal(recovered.dyn.size,0);
 });
+
+test('Daily finances show a verifiable income and cost breakdown',()=>{
+ const source=segment('function nextDay(){','function tab(');
+ const result=new Function(
+  "const S={day:1,money:1000,owned:['leipzig'],fleet:[{type:'rb'}],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,rep:67,log:[]};"+
+  "const TYPES={rb:{upkeep:330}};const JOBS=[];const SERVICES={};"+
+  "const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';"+
+  "function resolveBids(){};function save(){};function render(){};"+
+  "let message='';function note(s){message=s;}function log(s){S.log.push(s);}"+
+  source+"nextDay();return {S,message};"
+ )();
+ assert.equal(result.S.day,2);
+ assert.equal(result.S.money,420);
+ assert.equal(result.S.totalSpent,580);
+ assert.equal(result.S.totalEarned,0);
+ assert.match(result.S.log[0],/Einnahmen 0 €/);
+ assert.match(result.S.log[0],/Ausgaben 580 €/);
+ assert.match(result.message,/580 € Ausgaben/);
+});
