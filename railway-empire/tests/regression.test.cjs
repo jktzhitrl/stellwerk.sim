@@ -144,3 +144,70 @@ test('Winning first Leipzig–Halle S-Bahn tender assigns and procures the promi
  assert.equal(lose.awards.length,0);
  assert.equal(lose.fleet.length,2);
 });
+
+test('Damaged save data cannot replace a healthy new game state',()=>{
+ const source=segment('function load(){','function debit(');
+ const restore=new Function('saved',
+  "let S={v:2,money:500000,day:1,owned:[],bids:[],awards:[],fleet:[],log:[],customStations:[],lines:[],nextLine:1};"+
+  "const KEY='save';const dyn=new Map();const localStorage={getItem:()=>JSON.stringify(saved)};"+
+  'function note(){};'+source+'load();return {S,dyn};');
+ const invalid=restore({v:2,money:'broken',day:2,owned:[],bids:[],awards:[],fleet:[],log:[]});
+ assert.equal(invalid.S.money,500000);
+ assert.equal(invalid.S.day,1);
+ const recovered=restore({v:2,money:200000,day:3,owned:[],bids:[],awards:[],fleet:[],log:[],
+  customStations:{not:'an array'},lines:'invalid',nextLine:-5});
+ assert.equal(recovered.S.money,200000);
+ assert.deepEqual(recovered.S.customStations,[]);
+ assert.deepEqual(recovered.S.lines,[]);
+ assert.equal(recovered.S.nextLine,1);
+ assert.equal(recovered.dyn.size,0);
+});
+
+test('Daily finances show a verifiable income and cost breakdown',()=>{
+ const source=segment('function nextDay(){','function tab(');
+ const result=new Function(
+  "const S={day:1,money:1000,owned:['leipzig'],fleet:[{type:'rb'}],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,rep:67,log:[]};"+
+  "const TYPES={rb:{upkeep:330}};const JOBS=[];const SERVICES={};"+
+  "const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';"+
+  "function resolveBids(){};function save(){};function render(){};"+
+  "let message='';function note(s){message=s;}function log(s){S.log.push(s);}"+
+  source+"nextDay();return {S,message};"
+ )();
+ assert.equal(result.S.day,2);
+ assert.equal(result.S.money,420);
+ assert.equal(result.S.totalSpent,580);
+ assert.equal(result.S.totalEarned,0);
+ assert.match(result.S.log[0],/Einnahmen 0 €/);
+ assert.match(result.S.log[0],/Ausgaben 580 €/);
+ assert.match(result.message,/580 € Ausgaben/);
+});
+
+test('Missed tenders reopen in repeating 14-day rounds instead of locking progression',()=>{
+ const source=segment('const serviceForJob=','const euro=');
+ const nextDeadline=new Function(source+'return nextTenderDeadline;')();
+ const job={id:'L01',deadline:2};
+ assert.equal(nextDeadline(job,1),2);
+ assert.equal(nextDeadline(job,2),2);
+ assert.equal(nextDeadline(job,3),16);
+ assert.equal(nextDeadline(job,16),16);
+ assert.equal(nextDeadline(job,17),30);
+ assert.equal(nextDeadline({id:'L13',deadline:15},31),43);
+ assert.match(js,/Frist Tag '\+nextTenderDeadline\(j,S\.day\)/);
+ assert.doesNotMatch(js,/b\.disabled=won\|\|pending\|\|S\.day>j\.deadline/);
+});
+
+test('Tender profitability preview matches expected daily contract arithmetic',()=>{
+ const setup=segment('const ST=[','let S=fresh()');
+ const economics=segment('function estimateBidEconomics(','// Ungewonnene Verkehrslose');
+ const calculate=new Function(setup+economics+'return estimateBidEconomics;')();
+ const profitable=calculate(12500,4,2,'emu','sb');
+ assert.equal(profitable.capacity,1);
+ assert.equal(profitable.revenue,12500);
+ assert.equal(profitable.operating,4*730+2*470);
+ assert.equal(profitable.profit,8640);
+ const loss=calculate(1000,25,1,'rb','rb');
+ assert.ok(loss.profit<0);
+ assert.ok(loss.capacity<1);
+ assert.equal(calculate(1000,0,1,'rb','rb'),null);
+ assert.match(js,/offerEl,tripsEl,vehicle,countEl/);
+});
