@@ -369,8 +369,8 @@ function nearestTrackNodes(graph,point,limit=12){
  }
  return found.length?found.filter(node=>node.dist<=Math.min(1.8,found[0].dist+.16)):found;
 }
-function shortestRailPath(graph,from,to){
- const starts=nearestTrackNodes(graph,from),ends=nearestTrackNodes(graph,to);
+function shortestRailPath(graph,from,to,fromNode=null,toNode=null){
+ const starts=fromNode?[{id:fromNode,dist:0}]:nearestTrackNodes(graph,from),ends=toNode?[{id:toNode,dist:0}]:nearestTrackNodes(graph,to);
  if(!starts.length||!ends.length)return null;
  const endSet=new Set(ends.map(x=>x.id)),endDist=new Map(ends.map(x=>[x.id,x.dist]));
  const heap=[],cost=new Map(),prev=new Map();
@@ -710,9 +710,11 @@ async function calculateLiveLine(line){
   if(!resp.ok)throw Error('Gleisdaten HTTP '+resp.status);
   const data=await resp.json(),graph=graphFromWays(data.elements);
   if(!graph.ways)throw Error('Keine Gleisdaten gefunden.');
+  const snaps=points.map(p=>nearestTrackNodes(graph,[p.lat,p.lng])[0]);
+  for(let i=0;i<snaps.length;i++)if(!snaps[i]||snaps[i].dist>.8)throw Error('Haltestelle '+points[i].name+' liegt nicht nachweisbar an der berechneten Bahnstrecke.');
   let full=[];
   for(let i=1;i<points.length;i++){
-   const a=points[i-1],b=points[i],segment=shortestRailPath(graph,[a.lat,a.lng],[b.lat,b.lng]);
+   const a=points[i-1],b=points[i],segment=shortestRailPath(graph,[a.lat,a.lng],[b.lat,b.lng],snaps[i-1].id,snaps[i].id);
    if(!segment||!segment.points?.length)throw Error('Kein durchgehendes Gleis zwischen '+a.name+' und '+b.name+' nachgewiesen.');
    if(full.length){
     if(degKm(full.at(-1),segment.points[0])>.06)throw Error('Gleisverbindung bei '+a.name+' nicht eindeutig. Keine falsche Fahrstrecke zeichnen.');
@@ -1008,7 +1010,7 @@ function initMap(){
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
  connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
  map.on('moveend',()=>{loadStops(false);if(railVisible)scheduleRailLoad();});
- renderMap();restoreLiveTrips();
+ renderMap();
 }
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
 $('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
@@ -1094,5 +1096,5 @@ $('toggleRail').onclick=()=>{$('showRail').click();$('toggleRail').classList.tog
 $('showInfo').onclick=()=>{const button=$('showInfo'),isOpen=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!isOpen));$('mapTop').style.display=isOpen?'none':'block';button.classList.toggle('selected',!isOpen);};
 $('panelScrim').onclick=closePanels;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();if($('dialog').classList.contains('show'))$('closeDialog').click();}});
-load();initMap();render();
+load();initMap();render();restoreLiveTrips();
 </script></body></html>
