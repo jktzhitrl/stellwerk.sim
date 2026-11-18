@@ -80,7 +80,7 @@ return {edges,cities,km:d[to]};
 function availableTrains(){return S.fleet.filter(t=>!S.lines.some(l=>l.vehicle===t.id));}
 function lineVehicle(l){return S.fleet.find(x=>x.id===l.vehicle);}
 function trainMaxTrips(train,km){const t=TRAINS[train.model];return Math.max(1,Math.min(8,Math.floor(1100/(Math.max(50,km*2/t.speed*60)+50))));}
-function edgeCapacity(id){const a=S.tracks[id];if(!a)return 0;return (a.double?14:7)+Math.min(3,a.signals||0)*3;}
+function edgeCapacity(id){const a=S.tracks[id];if(!a)return 0;const base=(a.double?14:7)+Math.min(3,a.signals||0)*3;return Math.max(2,Math.floor(base*(a.condition<45?.6:a.condition<70?.85:1)));}
 function routeIsElectric(route){return route.edges.every(id=>S.tracks[id].electric);}
 function validateLine(from,to,vehicleId){const route=networkRoute(from,to),veh=S.fleet.find(v=>v.id===vehicleId);if(!route||!route.edges.length)return 'Es gibt keine befahrbare Verbindung zwischen diesen Bahnhöfen.';if(!veh)return 'Bitte einen vorhandenen Zug auswählen.';if(S.lines.some(l=>l.vehicle===vehicleId))return 'Der Zug ist bereits einer Linie zugeteilt.';if(TRAINS[veh.model].fuel==='Elektro'&&!routeIsElectric(route))return 'Die ganze Strecke muss für diesen Zug elektrifiziert sein.';return null;}
 function buildTrack(id){
@@ -163,10 +163,27 @@ const stations=Object.keys(S.stations).length,tracks=Object.keys(S.tracks).lengt
 return [['Kontostand',money(S.money),'wallet'],['Betriebstag',S.day,'calendar'],['Ansehen',S.reputation+' / 100','star'],['Betriebsstellen',stations,'building'],['Streckennetz',S.kmBuilt+' km','route'],['Tagesergebnis',money(profit),'activity']].map(([label,value,icon])=>'<div class="metric"><div class="statlabel">'+label+'</div><strong>'+value+'</strong></div>').join('');
 }
 const BUTTON=(action,id,label,disabled=false,cls='')=>'<button class="'+cls+'" data-action="'+action+'" data-id="'+id+'" '+(disabled?'disabled':'')+'>'+label+'</button>';
+function stationDiagram(level){
+const count=Math.min(10,2+level*2),H=65+count*22;
+let out='<svg class="stationDiagram" viewBox="0 0 420 '+H+'" role="img" aria-label="Schematischer Bahnhofsgleisplan mit Weichen, Bahnsteigen und Signalen">';
+out+='<rect x="1" y="1" width="418" height="'+(H-2)+'" rx="8" fill="#10242e" stroke="#416377"/>';
+out+='<text x="20" y="22" fill="#bbd4e3" font-size="12">Westkopf</text><text x="328" y="22" fill="#bbd4e3" font-size="12">Ostkopf</text>';
+for(let k=0;k<count;k++){
+const y=40+k*22;
+out+='<path d="M20 '+(40+(count-1)*11)+' L84 '+y+' H335 L400 '+(40+(count-1)*11)+'" fill="none" stroke="#b4c8d3" stroke-width="2.9" stroke-linejoin="round"/>';
+out+='<text x="190" y="'+(y-5)+'" fill="#cfe0e8" text-anchor="middle" font-size="10">Gleis '+(k+1)+'</text>';
+out+='<circle cx="100" cy="'+y+'" r="4" fill="#db5959" stroke="#dce5ed"/>';
+out+='<circle cx="320" cy="'+y+'" r="4" fill="#db5959" stroke="#dce5ed"/>';
+if(k%2===0&&k<count-1)out+='<rect x="205" y="'+(y+6)+'" width="75" height="6" rx="2" fill="#7f9097"/>';
+out+='<circle cx="84" cy="'+y+'" r="3" fill="#d9bd86"/><circle cx="335" cy="'+y+'" r="3" fill="#d9bd86"/>';
+}
+out+='<text x="210" y="'+(H-11)+'" text-anchor="middle" fill="#91a9b6" font-size="10">Vereinfachter Ausbauplan · keine fahrbaren Fahrstraßen</text></svg>';
+return out;
+}
 function stationCard(id){
 const c=city(id),level=S.stations[id]?.level||0;
 return '<div class="block"><div class="blockhead"><div><strong>'+c.name+'</strong><small>'+c.pop*1000+' Einwohner · Industrie '+c.industry+'</small></div><span class="tag '+(level?'green':'')+'">'+(level?'Stufe '+level:'nicht erschlossen')+'</span></div>'+
-(level?'<p>'+((level+1)*2)+' nutzbare Bahnsteig-/Betriebsgleise (vereinfacht). Ausbau erhöht die Bahnhofskapazität um 4 Fahrten pro Tag und die Nachfrage.</p><div class="actionbar">'+BUTTON('upgrade-station',id,'Bahnhof ausbauen · '+money(16000*level),level>=4)+'</div>':'<p>Baue eine anschließende Strecke, um den Bahnhof freizuschalten.</p>')+'</div>';
+(level?stationDiagram(level)+'<p>'+((level+1)*2)+' nutzbare Bahnsteig-/Betriebsgleise (vereinfacht). Maximal '+(6+level*4)+' Fahrten/Tag pro Bahnhof; Ausbau erhöht auch die Nachfrage.</p><div class="actionbar">'+BUTTON('upgrade-station',id,'Bahnhof ausbauen · '+money(16000*level),level>=4)+'</div>':'<p>Baue eine anschließende Strecke, um den Bahnhof freizuschalten.</p>')+'</div>';
 }
 function trackCard(id){
 const e=edge(id),t=S.tracks[id],accessible=linked(e),cost=costEdge(e);
