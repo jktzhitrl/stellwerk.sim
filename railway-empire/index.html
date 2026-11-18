@@ -1,131 +1,111 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover"><title>Railway Empire · Eisenbahn-Tycoon</title><meta name="theme-color" content="#122734">
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Railway Empire Deutschland</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{font:14px system-ui,-apple-system,Segoe UI,sans-serif;color:#e6f2f6;background:#0e1a22;color-scheme:dark}*{box-sizing:border-box}
-body{margin:0;min-height:100dvh;display:flex;flex-direction:column}
-header{background:#152b38;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid #456273}
-h1{font-size:21px;margin:0;letter-spacing:.3px}header small{color:#a7c1d0}button,select{font:inherit;cursor:pointer;color:#edf8ff;background:#294b5e;border:1px solid #517889;border-radius:8px;padding:9px 11px;min-height:40px}
-button:hover{background:#36677c}button.active{background:#137697;border-color:#85d9f4}button:disabled{opacity:.4;cursor:default}button.primary{background:#147e6f;border-color:#59c5b1}
-main{flex:1;min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr) 315px}
-aside{background:#162935;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:12px;border-right:1px solid #385461}aside:last-child{border-right:0;border-left:1px solid #385461}
-h2{font-size:15px;margin:0 0 9px}h3{font-size:13px;color:#a9cddb;margin:8px 0}.panel{border:1px solid #365769;border-radius:10px;padding:11px;background:#1c3441}
-.gridbuttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}.gridbuttons button{font-size:12px;min-height:53px}
-#boardShell{min-width:0;position:relative;overflow:hidden;background:#192b31}
-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
-#hud{position:absolute;left:12px;top:12px;pointer-events:none;background:#102833dc;border:1px solid #43687a;border-radius:10px;padding:10px;max-width:min(340px,80%);font-size:12px;line-height:1.5}
-#toast{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);padding:9px 14px;background:#1b4256ed;border:1px solid #7cb3ce;border-radius:9px;pointer-events:none;max-width:90%;text-align:center}
-.stat{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #315160}.stat:last-child{border:0}.muted{color:#a9c0cc;font-size:12px;line-height:1.5}
-.money{color:#8ae6af}.warn{color:#ffc17e}.tip{font-size:12px;color:#c6dbe5;line-height:1.6}
-#fleet .vehicle{padding:8px;margin-top:7px;border:1px solid #42687b;border-radius:8px;background:#203b49}
-.pill{font-size:10px;border-radius:5px;background:#345e72;padding:3px 6px}
-#log{margin:0;padding:0;list-style:none;max-height:145px;overflow-y:auto;font-size:11px;color:#b7d2df}
-#log li{padding:5px 0;border-bottom:1px solid #2c4a5a}
-select{max-width:100%;width:100%}
-footer{padding:6px 12px;background:#142a37;font-size:11px;color:#95b2c0;border-top:1px solid #2c4a5b}
-@media(max-width:900px){main{grid-template-columns:180px minmax(0,1fr) 230px}.gridbuttons{grid-template-columns:1fr}header{gap:9px}aside{padding:8px}}
-@media(max-width:650px){main{display:flex;flex-direction:column}aside{flex-direction:row;flex-wrap:wrap;max-height:170px;overflow:auto;border:0;border-bottom:1px solid #3a5b6b}.panel{min-width:175px;flex:1}#boardShell{min-height:55dvh;flex:1}aside:last-child{max-height:230px;border:0;border-top:1px solid #385461}.gridbuttons{grid-template-columns:1fr 1fr}#hud{font-size:11px;padding:6px}}
-</style></head><body>
-<header><div><h1>🚂 Railway Empire</h1><small>Eigenständiger Eisenbahn-Tycoon · spielbare Alpha 0.1</small></div><div style="flex:1"></div><button id="pause">⏸ Pause</button><button id="speed">⏩ 1×</button><button id="save">💾 Speichern</button><button id="reset">↺ Neustart</button></header>
-<main><aside>
-<div class="panel"><h2>🏗️ Bauwerkzeuge</h2><div class="gridbuttons" id="tools">
-<button data-tool="track" class="active">🛤️ Gleis<br><small>180 €/Feld</small></button>
-<button data-tool="station">🏢 Bahnhof<br><small>25.000 €</small></button>
-<button data-tool="depot">🏭 Depot<br><small>14.000 €</small></button>
-<button data-tool="remove">⌫ Abriss<br><small>50 % zurück</small></button>
-<button data-tool="inspect">🔎 Prüfen</button>
-</div></div>
-<div class="panel"><h2>🎮 So baust du</h2><div class="tip">Klicke zwei Rasterfelder, um eine Strecke zu ziehen. Mit weiteren Klicks kannst du sie verlängern.<br><br>Baue an bestehenden Gleisen neue Bahnhöfe. Züge fahren selbstständig zwischen verbundenen Stationen.</div><button id="endTrack" style="width:100%;margin-top:7px">Zeichnen beenden</button></div>
-<div class="panel"><h2>🌎 Entwicklung</h2><div id="objectives" class="tip"></div></div>
+:root{font:14px system-ui;color:#e4f3fa;background:#0d1c2a;color-scheme:dark}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
+button,select,input{font:inherit}button{background:#24465c;color:#e8f4fb;border:1px solid #507a8c;border-radius:9px;padding:9px 11px;cursor:pointer;min-height:40px}button:hover{background:#35647a}button:disabled{opacity:.4;cursor:default}button.primary{background:#098078;border-color:#67dec0;font-weight:bold}
+#app{height:100dvh;display:grid;grid-template-columns:242px minmax(0,1fr) 315px;grid-template-rows:64px minmax(0,1fr)}
+header{grid-column:1/4;display:flex;align-items:center;gap:15px;background:#153044;border-bottom:1px solid #416174;padding:8px 14px}header .logo{font-size:20px;font-weight:800;white-space:nowrap}header .logo small{display:block;font-size:10px;font-weight:400;color:#acc7d4;letter-spacing:1px}.metric{display:grid;gap:2px;white-space:nowrap}.metric span{font-size:10px;color:#a4c2d1;text-transform:uppercase}.metric strong{font-size:16px}
+aside{overflow-y:auto;padding:12px;background:#192f3f;min-height:0}#left{border-right:1px solid #35596e}#right{border-left:1px solid #35596e}
+.panel{padding:12px;border:1px solid #3e6579;border-radius:13px;background:#203a4b;margin-bottom:12px}h2{font-size:15px;margin:0 0 9px}h3{font-size:12px;margin:0 0 8px;color:#98c9df}.muted{font-size:12px;line-height:1.5;color:#b3cbd6}.row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #315264}.row:last-child{border:0}.stack{display:grid;gap:7px}
+#mapShell{position:relative;min-width:0;min-height:0}#map{position:absolute;inset:0}
+.floating{position:absolute;z-index:500;background:#123044ee;color:#dff2fa;border:1px solid #628ba0;border-radius:12px;box-shadow:0 5px 20px #0005;padding:9px 12px;font-size:12px}
+#mapTop{top:12px;left:12px;max-width:250px}#mapBottom{bottom:21px;left:12px;max-width:400px}#selected{top:12px;right:12px;max-width:200px}
+.tabs{display:flex;gap:5px;margin-bottom:12px}.tabs button{flex:1;padding:6px 2px;font-size:12px;min-height:36px}.tabs .active{background:#1688a1}
+.tab[hidden]{display:none}.tender,.vehicle{padding:11px;background:#192f40;border:1px solid #486e82;border-radius:11px;margin-bottom:10px}.tender strong{display:block}.tender button{margin-top:8px;width:100%}.badges{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.badge{padding:3px 5px;border-radius:4px;background:#315b72;color:#daebf4;font-size:10px}.vehicle select{width:100%;margin-top:7px}
+select,input[type=number]{background:#132c3b;color:#e8f6fd;border:1px solid #658b9d;border-radius:7px;padding:9px;width:100%}label{font-size:12px;color:#afcedc;display:block;margin:10px 0 5px}
+#dialog{position:fixed;inset:0;background:#06131ac9;z-index:2000;display:none;justify-content:center;align-items:center;padding:15px}#dialog.show{display:flex}#dialogCard{background:#203c50;border:1px solid #83b2c9;border-radius:15px;padding:20px;width:min(480px,100%)}#dialogActions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+#notice{min-height:12px;color:#ffdb9b}#log{list-style:none;padding:0;margin:0;max-height:310px;overflow:auto;font-size:12px}#log li{padding:8px 0;border-bottom:1px solid #335267;color:#c1d9e5}
+#mobile{display:none}.station-icon{width:13px;height:13px;border:2px solid #e3f6ff;background:#37617a;border-radius:50%;box-shadow:0 0 3px #000}.station-icon.owned{background:#3bdfa6;width:17px;height:17px}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#18384a;color:#eff9fb}
+@media(max-width:1010px){#app{grid-template-columns:190px minmax(0,1fr) 275px}aside{padding:8px}.logo{font-size:15px!important}}
+@media(max-width:700px){#app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}header{grid-column:1;padding:5px 9px;gap:8px}header .logo{font-size:14px!important}header .metric:nth-of-type(n+3){display:none}header .metric strong{font-size:12px}header button{padding:6px;font-size:12px}aside{display:none;position:fixed;top:58px;bottom:58px;left:0;right:0;z-index:900;padding:12px}aside.open{display:block}#mapShell{grid-column:1;grid-row:2}#mobile{display:grid;grid-row:3;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#153044}#mobile button{padding:4px;font-size:11px}#mapTop{top:7px;left:7px;max-width:170px;padding:6px}#selected{top:7px;right:7px;max-width:130px;padding:6px}#mapBottom{bottom:18px;left:7px;padding:6px;max-width:230px}}
+</style></head>
+<body><div id="app">
+<header><div class="logo">🚆 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.2 ALPHA</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next">▶ Tag abschließen</button></header>
+<aside id="left">
+<div class="panel"><h2>🗺️ Deutschlandkarte</h2><div class="muted">Echte OpenStreetMap-Karte. Beim Hineinzoomen kannst du reale Bahnhöfe und Haltepunkte entdecken und erschließen.</div><div class="stack" style="margin-top:9px"><button id="allGermany">Ganz Deutschland</button><button id="myMap">Mein Streckennetz</button><button id="loadStops">Haltepunkte nachladen</button></div><p id="mapStatus" class="muted">Bundesweite Bahnhöfe verfügbar.</p></div>
+<div class="panel"><h2>🏗️ Infrastruktur</h2><div class="row"><span>Eigene Bahnhöfe</span><b id="ownedCount"></b></div><div class="row"><span>Gewonnene Linien</span><b id="awardCount"></b></div><div class="row"><span>Züge</span><b id="fleetCount"></b></div><p class="muted">Wähle auf der Karte einen realen Bahnhof, um dort eine eigene Betriebsstelle zu eröffnen.</p><button id="build" style="width:100%">Bahnhof auswählen</button></div>
+<div class="panel"><h2>🏆 Ziele</h2><div id="goals" class="muted"></div></div>
+<div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="boardShell"><canvas id="game" aria-label="Interaktive Eisenbahnkarte mit Städten und Gleisen"></canvas><div id="hud">Karte wird vorbereitet …</div><div id="toast"></div></div>
-<aside>
-<div class="panel"><h2>🏦 Unternehmen</h2><div id="stats"></div></div>
-<div class="panel"><h2>🚆 Zugmarkt</h2><select id="model"><option value="rb">Regionaltriebwagen · 32.000 €</option><option value="re">Regionalexpress · 59.000 €</option><option value="freight">Güterlok · 78.000 €</option></select><button id="buy" class="primary" style="width:100%;margin-top:7px">Zug kaufen</button><div class="muted" style="margin-top:7px">Neue Züge starten im ersten Depot bzw. Bahnhof. Wähle dann eine Ziellinie.</div></div>
-<div class="panel"><h2>🚉 Eigene Fahrzeugflotte</h2><div id="fleet"></div></div>
-<div class="panel"><h2>📊 Betriebsberichte</h2><ul id="log"></ul></div>
-</aside></main>
-<footer>Eigenständiger Prototyp • Fiktive Karte • Betriebsmodell vereinfacht • Gleisplan und Fahrten werden lokal im Browser gespeichert</footer>
+<div id="mapShell"><div id="map"></div><div class="floating" id="mapTop"><b>🇩🇪 Deutschland</b><div class="muted">Echte Karte · fiktive Vergaben</div></div><div class="floating" id="selected">📍 Bahnhof wählen</div><div class="floating" id="mapBottom"><div style="color:#52e2b4">━ Gewonnener Verkehrsvertrag</div><div style="color:#edc681">┄ Bewerbungsphase</div><div id="notice"></div></div></div>
+<aside id="right"><div class="tabs"><button class="active" data-tab="tenders">Vergaben</button><button data-tab="fleet">Fuhrpark</button><button data-tab="finance">Firma</button></div>
+<div class="tab" id="tab-tenders"><h2>📋 Streckenausschreibungen</h2><p class="muted">Bewirb dich um fiktive öffentliche Verkehrsverträge zwischen realen Bahnhöfen. Angebotspreis, Fahrtenzahl und Fuhrpark beeinflussen deine Chancen.</p><div id="tenders"></div></div>
+<div class="tab" id="tab-fleet" hidden><h2>🚈 Zugmarkt</h2><div id="shop"></div><h2>Meine Fahrzeuge</h2><div id="fleet"></div></div>
+<div class="tab" id="tab-finance" hidden><h2>📊 Unternehmenszentrale</h2><div id="finances"></div><h3>Berichte</h3><ul id="log"></ul></div>
+</aside>
+<div id="mobile"><button data-mobile="left">🗺️ Karte & Bau</button><button data-mobile="map">🚆 Karte</button><button data-mobile="right">📋 Management</button></div>
+</div>
+<div id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div id="dialogCard"><h2 id="dialogTitle"></h2><div id="dialogContent"></div><div id="dialogActions"><button id="closeDialog">Abbrechen</button><button id="acceptDialog" class="primary">Angebot abgeben</button></div></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 'use strict';
-const $=id=>document.getElementById(id),W=42,H=28,TILE=27,KEY='railway_empire_alpha_01';
-const MODELS={rb:{name:'Regionaltriebwagen',cost:32000,speed:3.5,capacity:105,upkeep:28,color:'#7cd9ef'},re:{name:'Regionalexpress',cost:59000,speed:4.3,capacity:195,upkeep:54,color:'#f2c87b'},freight:{name:'Güterlok',cost:78000,speed:2.7,capacity:125,upkeep:65,color:'#d7a3ff'}};
-const citySpecs=[['Lindenau',6,7,120],['Neustadt',15,12,190],['Teutschenthal',29,10,140],['Burgstadt',35,20,230],['Seestadt',10,21,110],['Altdorf',22,23,150],['Waldheim',20,4,95]];
-const terrain=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>{let q=Math.sin(x*1.7+y*.59)*Math.cos(y*1.03+x*.4);return q>.55?'forest':q<-.68?'water':'grass'}));
-const cityByCoord=(x,y)=>citySpecs.find(c=>Math.abs(c[1]-x)<=1&&Math.abs(c[2]-y)<=1);
-function fresh(){
- const rails=[];for(let x=6;x<=15;x++)rails.push([x,12]);for(let y=7;y<=12;y++)rails.push([6,y]);
- return{v:1,clock:0,money:185000,earned:0,spent:0,stations:[{id:1,x:6,y:7,name:'Lindenau'},{id:2,x:15,y:12,name:'Neustadt'}],depots:[{x:15,y:12}],rails,trains:[],nextTrain:1,logs:['Unternehmen gegründet. Strecke Lindenau–Neustadt in Betrieb.']};
-}
-let S=fresh(),tool='track',anchor=null,paused=false,speed=1,cam={x:0,y:0,z:1},pointer=null,lastTime=performance.now(),reportTime=0,dirty=false;
-const key=(x,y)=>x+','+y,railSet=()=>new Set(S.rails.map(p=>key(...p))),inBounds=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
-const distance=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-const money=n=>Math.round(n).toLocaleString('de-DE')+' €';
-function toast(t){$('toast').textContent=t;clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>$('toast').textContent='',3800);}
-function msg(t){S.logs.unshift('Tag '+(1+Math.floor(S.clock/90))+': '+t);S.logs=S.logs.slice(0,45);dirty=true;}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));dirty=false;toast('Spielstand gespeichert.');}catch(e){toast('Speichern fehlgeschlagen.');}}
-function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1&&Array.isArray(v.rails)&&Array.isArray(v.trains)&&Array.isArray(v.stations))S=v;}catch(e){}}
-function spend(n){if(S.money<n){toast('Nicht genügend Geld: '+money(n));return false;}S.money-=n;S.spent+=n;dirty=true;return true;}
-function neighbors(x,y,set=railSet()){return[[x+1,y],[x-1,y],[x,y+1],[x,y-1]].filter(p=>inBounds(...p)&&set.has(key(...p)));}
-function findRoute(a,b){const set=railSet(),start=key(a.x,a.y),end=key(b.x,b.y);if(!set.has(start)||!set.has(end))return null;const q=[[a.x,a.y]],parents=new Map([[start,null]]);
-for(let z=0;z<q.length;z++){const p=q[z],k=key(...p);if(k===end){const path=[];let at=end;while(at){path.push(at.split(',').map(Number));at=parents.get(at);}return path.reverse();}
-for(const n of neighbors(...p,set)){const nk=key(...n);if(!parents.has(nk)){parents.set(nk,k);q.push(n);}}}return null;}
-function city(x,y){return citySpecs.reduce((best,c)=>Math.hypot(c[1]-x,c[2]-y)<Math.hypot(best[1]-x,best[2]-y)?c:best,citySpecs[0]);}
-function stationAt(x,y){return S.stations.find(s=>s.x===x&&s.y===y);}
-function addRail(x,y){if(!inBounds(x,y))return false;if(railSet().has(key(x,y)))return true;if(cityByCoord(x,y)&&!stationAt(x,y)){toast('Hier liegt eine Stadt. Baue dort zuerst einen Bahnhof.');return false;}if(!spend(180))return false;S.rails.push([x,y]);return true;}
-function layTo(a,b){let p=[a.x,a.y],count=0;const step=()=>{
- if(p[0]===b.x&&p[1]===b.y)return;
- if(Math.abs(b.x-p[0])>=Math.abs(b.y-p[1]))p[0]+=Math.sign(b.x-p[0]);else p[1]+=Math.sign(b.y-p[1]);
- if(addRail(...p))count++;else return false;return true;};
- while((p[0]!==b.x||p[1]!==b.y)&&step()!==false){}if(count)msg(count+' Gleisfelder verlegt.');renderUi();}
-function placeStation(x,y){if(stationAt(x,y)){toast('Hier steht bereits ein Bahnhof.');return;}if(S.stations.some(s=>distance(s,{x,y})<4)){toast('Zu nahe am nächsten Bahnhof.');return;}const near=city(x,y),name=Math.hypot(x-near[1],y-near[2])<=3?near[0]:'Bahnhof '+(S.stations.length+1);if(!spend(25000))return;S.stations.push({id:Math.max(0,...S.stations.map(s=>s.id))+1,x,y,name});if(!railSet().has(key(x,y)))S.rails.push([x,y]);msg('Bahnhof '+name+' eröffnet.');renderUi();}
-function placeDepot(x,y){if(S.depots.some(d=>d.x===x&&d.y===y)){toast('Depot existiert hier bereits.');return;}if(!railSet().has(key(x,y))){toast('Depots müssen an einem Gleis stehen.');return;}if(!spend(14000))return;S.depots.push({x,y});msg('Depot eröffnet.');renderUi();}
-function demolish(x,y){const station=stationAt(x,y),depot=S.depots.find(d=>d.x===x&&d.y===y);if(station){if(S.stations.length<2){toast('Mindestens zwei Bahnhöfe erforderlich.');return;}if(S.trains.some(t=>t.from===station.id||t.to===station.id)){toast('Bahnhof hat aktive Linien.');return;}S.stations=S.stations.filter(s=>s!==station);S.money+=12500;toast('Bahnhof abgerissen.');}
-else if(depot){S.depots=S.depots.filter(d=>d!==depot);S.money+=7000;toast('Depot abgerissen.');}
-else{if(!railSet().has(key(x,y)))return;if(S.trains.some(t=>t.x===x&&t.y===y)){toast('Gleis durch Zug belegt.');return;}S.rails=S.rails.filter(p=>p[0]!==x||p[1]!==y);S.money+=90;}dirty=true;renderUi();}
-function clickCell(x,y){if(!inBounds(x,y))return;
-if(tool==='track'){if(!anchor){if(!railSet().has(key(x,y))&&!addRail(x,y))return;anchor={x,y};toast('Endpunkt wählen – du kannst die Strecke danach verlängern.');}else{layTo(anchor,{x,y});anchor={x,y};}}
-else if(tool==='station')placeStation(x,y);
-else if(tool==='depot')placeDepot(x,y);
-else if(tool==='remove')demolish(x,y);
-else if(tool==='inspect'){const st=stationAt(x,y);toast(st?'Bahnhof '+st.name:railSet().has(key(x,y))?'Gleisabschnitt: '+neighbors(x,y).length+' Anschlüsse':'Gelände '+terrain[y][x]);}
-renderUi();}
-function buyTrain(){const type=$('model').value,m=MODELS[type];if(!spend(m.cost))return;const pos=S.depots[0]||S.stations[0];S.trains.push({id:S.nextTrain++,type,x:pos.x,y:pos.y,from:null,to:null,path:[],progress:0,direction:1,earnings:0,completed:0});msg(m.name+' gekauft.');renderUi();}
-function setLine(id,raw){const tr=S.trains.find(x=>x.id===id);if(!tr)return;if(!raw){tr.from=null;tr.to=null;tr.path=[];renderUi();return;}const ids=raw.split(':').map(Number),from=S.stations.find(s=>s.id===ids[0]),to=S.stations.find(s=>s.id===ids[1]);if(!from||!to)return;const path=findRoute(from,to);if(!path){toast('Keine durchgängige Gleisverbindung zwischen den Bahnhöfen.');return;}tr.from=from.id;tr.to=to.id;tr.path=path;tr.progress=0;tr.direction=1;tr.x=from.x;tr.y=from.y;msg('Zug '+id+' auf Linie '+from.name+'–'+to.name+' eingesetzt.');renderUi();}
-function simulate(dt){S.clock+=dt*speed;
-for(const tr of S.trains){if(!tr.path||tr.path.length<2)continue;const m=MODELS[tr.type];tr.progress+=dt*speed*m.speed*.16;
-while(tr.progress>=tr.path.length-1){tr.progress-=tr.path.length-1;tr.direction*=-1;const dest=S.stations.find(s=>s.id===(tr.direction<0?tr.to:tr.from));if(dest){const base=tr.type==='freight'?1900:1250;const revenue=Math.round((base+city(dest.x,dest.y)[3]*5)*(.85+Math.random()*.4));S.money+=revenue;S.earned+=revenue;tr.earnings+=revenue;tr.completed++;if(tr.completed%5===0)msg('Zug '+tr.id+' hat '+tr.completed+' Fahrten absolviert.');}}
-const f=tr.direction>0?tr.progress:(tr.path.length-1-tr.progress),i=Math.min(tr.path.length-2,Math.floor(f)),k=f-i;tr.x=tr.path[i][0]*(1-k)+tr.path[i+1][0]*k;tr.y=tr.path[i][1]*(1-k)+tr.path[i+1][1]*k;
-}
-if(S.clock-reportTime>=30){reportTime=S.clock;const cost=S.trains.reduce((a,t)=>a+MODELS[t.type].upkeep*5,0)+S.stations.length*30+S.rails.length*2;S.money-=cost;S.spent+=cost;dirty=true;msg('Betriebskosten: −'+money(cost));}
-}
-function draw(){const c=$('game'),ctx=c.getContext('2d'),dpr=Math.min(2,devicePixelRatio||1),r=c.getBoundingClientRect();if(!r.width||!r.height)return;
-if(c.width!==Math.round(r.width*dpr)||c.height!==Math.round(r.height*dpr)){c.width=Math.round(r.width*dpr);c.height=Math.round(r.height*dpr);}
-ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.fillStyle='#253b38';ctx.fillRect(0,0,r.width,r.height);
-const ts=TILE*cam.z;ctx.save();ctx.translate(cam.x,cam.y);ctx.scale(cam.z,cam.z);
-for(let y=0;y<H;y++)for(let x=0;x<W;x++){const px=x*TILE,py=y*TILE,t=terrain[y][x];ctx.fillStyle=t==='water'?'#214b62':t==='forest'?'#244d40':((x+y)%2?'#385a45':'#3a6048');ctx.fillRect(px,py,TILE+.5,TILE+.5);if(t==='forest'){ctx.fillStyle='#1e4432';ctx.beginPath();ctx.arc(px+13,py+11,7,0,7);ctx.fill();}if(t==='water'){ctx.fillStyle='#4b8996';ctx.fillRect(px+6,py+17,12,1);}}
-ctx.strokeStyle='#7e9380';ctx.lineWidth=.5;for(let y=0;y<=H;y++){ctx.beginPath();ctx.moveTo(0,y*TILE);ctx.lineTo(W*TILE,y*TILE);ctx.stroke();}for(let x=0;x<=W;x++){ctx.beginPath();ctx.moveTo(x*TILE,0);ctx.lineTo(x*TILE,H*TILE);ctx.stroke();}
-for(const city of citySpecs){const [name,x,y,pop]=city;ctx.fillStyle='#b1a68b';ctx.fillRect((x-1)*TILE+3,(y-1)*TILE+3,3*TILE-6,3*TILE-6);ctx.fillStyle='#5e5449';for(let i=0;i<4;i++)ctx.fillRect((x-.7+(i%2)*.95)*TILE,(y-.7+Math.floor(i/2)*.9)*TILE,TILE*.7,TILE*.65);ctx.fillStyle='#e4ecdf';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText(name,x*TILE+13,(y-1)*TILE-4);}
-const set=railSet();for(const [x,y] of S.rails){const cx=(x+.5)*TILE,cy=(y+.5)*TILE;ctx.lineWidth=8;ctx.strokeStyle='#6e6863';ctx.beginPath();for(const [nx,ny] of neighbors(x,y,set)){ctx.moveTo(cx,cy);ctx.lineTo((nx+.5)*TILE,(ny+.5)*TILE);}ctx.stroke();ctx.strokeStyle='#c6b3a0';ctx.lineWidth=4;ctx.beginPath();for(const [nx,ny]of neighbors(x,y,set)){ctx.moveTo(cx,cy);ctx.lineTo((nx+.5)*TILE,(ny+.5)*TILE);}ctx.stroke();ctx.fillStyle='#d0c7ad';ctx.fillRect(cx-3,cy-3,6,6);}
-for(const s of S.stations){const x=(s.x+.5)*TILE,y=(s.y+.5)*TILE;ctx.fillStyle='#f2d18a';ctx.strokeStyle='#262f38';ctx.lineWidth=2;ctx.fillRect(x-13,y-10,26,20);ctx.strokeRect(x-13,y-10,26,20);ctx.fillStyle='#14262f';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.fillText('BF',x,y+3);}
-for(const d of S.depots){const x=(d.x+.5)*TILE,y=(d.y+.5)*TILE;ctx.fillStyle='#9ec9e2';ctx.fillRect(x-11,y-19,22,8);ctx.fillStyle='#162631';ctx.font='8px system-ui';ctx.textAlign='center';ctx.fillText('DEP',x,y-12);}
-for(const t of S.trains){const m=MODELS[t.type],x=(t.x+.5)*TILE,y=(t.y+.5)*TILE;ctx.fillStyle=m.color;ctx.strokeStyle='#152634';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x-11,y-7,22,14,4);ctx.fill();ctx.stroke();ctx.fillStyle='#112a36';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.fillText(t.id,x,y+3);}
-if(anchor){ctx.strokeStyle='#fce89b';ctx.lineWidth=3;ctx.strokeRect(anchor.x*TILE+1,anchor.y*TILE+1,TILE-2,TILE-2);}ctx.restore();
-$('hud').innerHTML='<b>🗺️ '+S.stations.length+' Bahnhöfe · '+S.rails.length+' Gleisfelder</b><br>Werkzeug: '+({track:'Gleise bauen',station:'Bahnhof',depot:'Depot',remove:'Abriss',inspect:'Prüfen'}[tool])+' · '+(paused?'Pause':'Betrieb läuft')+'<br><span style="color:#a7c7d4">Karte ziehen = verschieben · Mausrad = zoomen</span>';
-}
-function renderUi(){$('stats').innerHTML=[['Kontostand',money(S.money)],['Einnahmen',money(S.earned)],['Ausgaben',money(S.spent)],['Betriebstag',1+Math.floor(S.clock/90)],['Bahnhöfe',S.stations.length],['Streckenfelder',S.rails.length],['Fahrzeuge',S.trains.length]].map(([a,b])=>'<div class="stat"><span class="muted">'+a+'</span><b'+(a==='Kontostand'?' class="money"':'')+'>'+b+'</b></div>').join('');
-const opts=[];for(const a of S.stations)for(const b of S.stations)if(a!==b){opts.push({value:a.id+':'+b.id,text:a.name+' ⇄ '+b.name});}
-$('fleet').innerHTML=S.trains.length?'':'<div class="muted">Noch keine Züge gekauft. Kaufe einen Triebwagen und weise eine Strecke zu.</div>';
-for(const tr of S.trains){const d=document.createElement('div');d.className='vehicle';const title=document.createElement('div');title.innerHTML='<b>Zug '+tr.id+'</b> <span class="pill">'+MODELS[tr.type].name+'</span>';d.appendChild(title);const line=document.createElement('select');const idle=document.createElement('option');idle.value='';idle.textContent='Ohne Linie';line.appendChild(idle);for(const o of opts){const op=document.createElement('option');op.value=o.value;op.textContent=o.text;line.appendChild(op);}line.value=tr.from&&tr.to?tr.from+':'+tr.to:'';line.onchange=()=>setLine(tr.id,line.value);d.appendChild(line);const sub=document.createElement('div');sub.className='muted';sub.textContent=tr.completed+' Fahrten · '+money(tr.earnings)+' Erlöse';d.appendChild(sub);$('fleet').appendChild(d);}
-$('objectives').innerHTML=[['4 Bahnhöfe betreiben',S.stations.length>=4],['3 Züge einsetzen',S.trains.length>=3],['400.000 € Umsatz',S.earned>=400000],['50 Gleisfelder bauen',S.rails.length>=50]].map(([text,ok])=>(ok?'✅':'◻️')+' '+text).join('<br>');
-$('log').replaceChildren(...S.logs.slice(0,12).map(l=>{const li=document.createElement('li');li.textContent=l;return li;}));}
-function coords(e){const r=$('game').getBoundingClientRect();return{x:Math.floor((e.clientX-r.left-cam.x)/cam.z/TILE),y:Math.floor((e.clientY-r.top-cam.y)/cam.z/TILE)};}
-const canvas=$('game');canvas.addEventListener('pointerdown',e=>{pointer={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,camX:cam.x,camY:cam.y,moved:false};canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(!pointer)return;const dx=e.clientX-pointer.startX,dy=e.clientY-pointer.startY;if(Math.hypot(dx,dy)>8)pointer.moved=true;if(pointer.moved){cam.x=pointer.camX+dx;cam.y=pointer.camY+dy;}});
-canvas.addEventListener('pointerup',e=>{if(pointer&&!pointer.moved){const p=coords(e);clickCell(p.x,p.y);}pointer=null;});
-canvas.addEventListener('pointercancel',()=>pointer=null);
-canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,old=cam.z;cam.z=Math.max(.55,Math.min(2.5,cam.z*(e.deltaY<0?1.1:.9)));cam.x=x-(x-cam.x)*cam.z/old;cam.y=y-(y-cam.y)*cam.z/old;},{passive:false});
-document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{tool=b.dataset.tool;anchor=null;document.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));}));
-$('endTrack').onclick=()=>{anchor=null;toast('Gleisbau beendet.');};$('buy').onclick=buyTrain;$('save').onclick=save;$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'▶ Weiter':'⏸ Pause';};$('speed').onclick=()=>{speed=speed===1?2:speed===2?4:1;$('speed').textContent='⏩ '+speed+'×';};
-$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Spielstand wird überschrieben.')){S=fresh();anchor=null;save();renderUi();}};
-function loop(now){const dt=Math.min(.09,(now-lastTime)/1000);lastTime=now;if(!paused){simulate(dt);if(Math.floor(now/1200)!==Math.floor((now-16)/1200))renderUi();}draw();requestAnimationFrame(loop);}
-load();renderUi();requestAnimationFrame(loop);setInterval(()=>{if(dirty)save();},30000);
+const $=id=>document.getElementById(id),KEY='railway_empire_germany_v02';
+const ST=[
+['leipzig','Leipzig Hbf',51.3452,12.382],['halle','Halle (Saale) Hbf',51.477,11.9856],['dresden','Dresden Hbf',51.0403,13.7325],['chemnitz','Chemnitz Hbf',50.8404,12.9303],['berlin','Berlin Hbf',52.5251,13.3694],['potsdam','Potsdam Hbf',52.3919,13.0678],['hamburg','Hamburg Hbf',53.5525,10.0067],['hannover','Hannover Hbf',52.3769,9.7428],['erfurt','Erfurt Hbf',50.9844,11.0389],['magdeburg','Magdeburg Hbf',52.1304,11.6269],['frankfurt','Frankfurt (Main) Hbf',50.1071,8.6638],['koeln','Köln Hbf',50.943,6.9588],['nuernberg','Nürnberg Hbf',49.4458,11.0825],['muenchen','München Hbf',48.1403,11.558],['rostock','Rostock Hbf',54.0778,12.1323],['bremen','Bremen Hbf',53.0834,8.8135],['stuttgart','Stuttgart Hbf',48.7839,9.1829],['kassel','Kassel-Wilhelmshöhe',51.3127,9.4474],['saarbruecken','Saarbrücken Hbf',49.2418,7.0004]
+].map(([id,name,lat,lng])=>({id,name,lat,lng}));
+const JOBS=[
+['L01','Mitteldeutsches S-Bahn-Netz','leipzig','halle',4,12500,2],['L02','Sachsen-Express','leipzig','dresden',3,18500,4],['L03','Elbe-Saale-Netz','halle','magdeburg',3,16000,5],['L04','Havel-Pendel','berlin','potsdam',5,24000,6],['L05','Nordexpress','hamburg','hannover',3,25500,7],['L06','Thüringen-Express','erfurt','leipzig',3,18400,8],['L07','Sachsenbogen','dresden','chemnitz',4,19300,9],['L08','Rhein-Main-Linie','frankfurt','koeln',4,27500,10],['L09','Bayern-Regionalnetz','nuernberg','muenchen',4,27000,11],['L10','Ostsee-Express','berlin','rostock',2,21000,12],['L11','Hanselinie','bremen','hamburg',4,22500,13],['L12','Leinetal-Linie','kassel','hannover',3,15800,14],['L13','Südwest-Express','stuttgart','nuernberg',3,21900,15]
+].map(([id,name,a,b,min,guide,deadline])=>({id,name,a,b,min,guide,deadline}));
+const TYPES={rb:{name:'Regionaltriebwagen',price:65000,seats:180,upkeep:330},emu:{name:'S-Bahn-Triebwagen',price:98000,seats:320,upkeep:470},re:{name:'Regionalexpress',price:153000,seats:560,upkeep:720},ic:{name:'Fernverkehrszug',price:242000,seats:780,upkeep:1050}};
+const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
+const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
+let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,selected=null,action=null,lastStops=0,loadToken=0;
+const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
+function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
+function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){note('Speichern fehlgeschlagen.');}}
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet))S=x;}catch(e){}}
+function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.');return false;}S.money-=n;S.totalSpent+=n;return true;}
+function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
+function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent='Standort auswählen';b.onclick=()=>{select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
+function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]});}
+function renderMap(){if(!map)return;connections.clearLayers();stationsLayer.clearLayers();for(const j of JOBS){const a=station(j.a),b=station(j.b),owned=S.awards.some(x=>x.id===j.id),bid=S.bids.some(x=>x.id===j.id);
+const line=L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{weight:owned?5:2,color:owned?'#05ac8c':bid?'#e4a943':'#658c9d',opacity:owned?.9:.55,dashArray:owned?null:'6 7'}).addTo(connections);
+line.bindTooltip(j.name,{sticky:true});line.on('click',()=>bidDialog(j.id));}
+for(const s of ST){const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));}}
+function loadStops(force){if(!map||map.getZoom()<10){stopsLayer.clearLayers();return;}if(!force&&Date.now()-lastStops<30000)return;const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());if(area>2){$('mapStatus').textContent='Bitte weiter hineinzoomen, damit reale Haltepunkte geladen werden.';return;}
+lastStops=Date.now();const token=++loadToken;const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(4)).join(',');
+const query='[out:json][timeout:15];(node["railway"~"station|halt"]('+bbox+');way["railway"~"station|halt"]('+bbox+'););out center 140;';
+$('mapStatus').textContent='Lade Bahnhöfe und Haltepunkte aus OpenStreetMap …';
+const ctl=new AbortController();setTimeout(()=>ctl.abort(),18000);
+fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal})
+.then(r=>{if(!r.ok)throw Error('Status '+r.status);return r.json();}).then(v=>{if(token!==loadToken)return;stopsLayer.clearLayers();let found=0;
+for(const n of v.elements||[]){const lat=n.lat||(n.center&&n.center.lat),lng=n.lon||(n.center&&n.center.lon),name=n.tags&&n.tags.name;if(!name||!Number.isFinite(lat)||!Number.isFinite(lng))continue;const id='osm-'+n.type+'-'+n.id,s={id,lat,lng,name};dyn.set(id,s);const m=L.circleMarker([lat,lng],{radius:5,color:'#33617e',weight:1,fillColor:S.owned.includes(id)?'#43d9ab':'#f6d581',fillOpacity:.9}).addTo(stopsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));found++;}
+$('mapStatus').textContent=found+' reale Bahnhöfe/Haltepunkte geladen (OpenStreetMap).';})
+.catch(()=>{$('mapStatus').textContent='Stationsdienst gerade nicht erreichbar; Hauptbahnhöfe bleiben verfügbar.';});}
+function build(){if(!selected){note('Bitte zuerst einen Bahnhof auf der Karte wählen.');return;}if(S.owned.includes(selected.id))return;if(!debit(28000))return;S.owned.push(selected.id);log(selected.name+' als Betriebsstelle erschlossen.');save();render();note('Neue Betriebsstelle: '+selected.name);}
+function modal(title,body,fn){$('dialogTitle').textContent=title;$('dialogContent').replaceChildren(body);action=fn;$('dialog').classList.add('show');}
+function bidDialog(id){const j=JOBS.find(x=>x.id===id);if(!j)return;if(S.awards.some(x=>x.id===id)){note('Diese Linie betreibst du bereits.');return;}if(S.bids.some(x=>x.id===id)){note('Angebot bereits abgegeben.');return;}if(S.day>j.deadline){note('Bewerbungsfrist abgelaufen.');return;}
+const body=document.createElement('div');const txt=document.createElement('p');txt.className='muted';txt.textContent=station(j.a).name+' ↔ '+station(j.b).name+' · mindestens '+j.min+' Fahrten pro Tag. Richtwert '+euro(j.guide)+'/Tag.';body.appendChild(txt);
+for(const [id,label,value,min] of [['bidPrice','Preis pro Betriebstag (€)',Math.round(j.guide*.92),1000],['bidTrips','Fahrten pro Tag',j.min,j.min]]){const l=document.createElement('label');l.htmlFor=id;l.textContent=label;const field=document.createElement('input');field.id=id;field.type='number';field.min=min;field.max=id==='bidTrips'?25:999999;field.value=value;body.append(l,field);}
+const hint=document.createElement('p');hint.className='muted';hint.textContent='Bewerbungsgebühr: 1.200 €. Preis, Unternehmensruf und verfügbare Zugkapazität bestimmen die Zuschlagschance. Die Auswahl erfolgt am nächsten Betriebstag.';body.appendChild(hint);
+modal('Ausschreibung: '+j.name,body,()=>{const offer=Number($('bidPrice').value),trips=Number($('bidTrips').value);if(!Number.isFinite(offer)||!Number.isInteger(trips)||offer<1000||trips<j.min||trips>25){note('Bitte gültiges Angebot abgeben.');return false;}if(!debit(1200))return false;S.bids.push({id,offer,trips});log('Bewerbung eingereicht: '+j.name+'.');save();render();note('Angebot eingereicht. Die Entscheidung fällt morgen.');return true;});}
+function resolveBids(){const bids=S.bids.splice(0);for(const b of bids){const j=JOBS.find(x=>x.id===b.id);if(!j)continue;
+const seats=S.fleet.reduce((n,t)=>n+TYPES[t.type].seats,0);
+const score=44+S.rep*.22+Math.min(14,seats/100)+Math.min(12,(j.guide-b.offer)/j.guide*70)+(b.trips-j.min)*2;
+if(S.day<=j.deadline&&Math.random()*100<score){S.awards.push({id:j.id,offer:b.offer,trips:b.trips});S.rep=Math.min(100,S.rep+3);log('🏆 Zuschlag gewonnen: '+j.name);}else{S.rep=Math.max(0,S.rep-1);log('Kein Zuschlag: '+j.name);}}}
+function nextDay(){S.day++;resolveBids();let rev=0,cost=0,riders=0;
+for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id),assigned=S.fleet.filter(t=>t.line===a.id),seats=assigned.reduce((n,t)=>n+TYPES[t.type].seats,0),need=j.min*115,coverage=Math.min(1,seats/need);
+const income=Math.round(a.offer*(.25+.75*coverage)),penalty=coverage<.7?Math.round(a.offer*.2):0;
+rev+=income-penalty;riders+=Math.round(coverage*j.min*180);cost+=j.min*650;if(penalty){S.rep=Math.max(0,S.rep-2);log('⚠ Vertragsstrafe '+j.name+': zu wenig Kapazität.');}}
+cost+=S.owned.length*250+S.fleet.reduce((n,v)=>n+TYPES[v.type].upkeep,0);S.money+=rev-cost;S.totalEarned+=rev;S.totalSpent+=cost;S.totalRiders+=riders;log('Tagesergebnis '+euro(rev-cost)+' · '+riders+' Fahrgäste.');save();render();note('Betriebstag abgeschlossen. Ergebnis '+euro(rev-cost));}
+function tab(which){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===which));document.querySelectorAll('.tab').forEach(x=>x.hidden=x.id!=='tab-'+which);}
+function textel(tag,txt){const x=document.createElement(tag);x.textContent=txt;return x;}
+function render(){ $('money').textContent=euro(S.money);$('day').textContent=S.day;$('rep').textContent=S.rep+'/100';$('ownedCount').textContent=S.owned.length;$('awardCount').textContent=S.awards.length;$('fleetCount').textContent=S.fleet.length;
+$('goals').innerHTML=[['Drei Linien gewinnen',S.awards.length>=3],['Fünf Bahnhöfe erschließen',S.owned.length>=5],['Sechs Züge besitzen',S.fleet.length>=6],['1 Mio. € Umsatz erreichen',S.totalEarned>=1000000]].map(([s,v])=>(v?'✅ ':'▫️ ')+s).join('<br>');
+$('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+j.deadline]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':S.day>j.deadline?'Frist abgelaufen':'Angebot erstellen');b.disabled=won||pending||S.day>j.deadline;b.onclick=()=>bidDialog(j.id);c.appendChild(b);$('tenders').appendChild(c);}
+$('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c=document.createElement('div');c.className='tender';c.append(textel('strong',t.name),textel('div',t.seats+' Plätze · '+euro(t.upkeep)+'/Tag Unterhalt'));const b=textel('button','Kaufen · '+euro(t.price));b.onclick=()=>{if(!debit(t.price))return;S.fleet.push({id:S.nextTrain++,type,line:null});log(t.name+' gekauft.');save();render();};c.appendChild(b);$('shop').appendChild(c);}
+$('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{t.line=sel.value||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
+$('finances').innerHTML=[['Bisherige Einnahmen',euro(S.totalEarned)],['Bisherige Ausgaben',euro(S.totalSpent)],['Beförderte Fahrgäste',S.totalRiders.toLocaleString('de-DE')],['Offene Bewerbungen',S.bids.length]].map(([a,b])=>'<div class="row"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
+$('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();if(selected)select(selected);}
+function initMap(){if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
+map=L.map('map',{preferCanvas:true}).setView([51.16,10.45],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap-Mitwirkende'}).addTo(map);
+connections=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);map.on('moveend',()=>loadStops(false));renderMap();}
+$('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
+$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
+$('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+$('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
+document.querySelectorAll('[data-mobile]').forEach(b=>b.onclick=()=>{const which=b.dataset.mobile;for(const id of ['left','right'])$(id).classList.toggle('open',id===which&&!$(id).classList.contains('open'));if(which==='map'&&map)setTimeout(()=>map.invalidateSize(),100);});
+load();initMap();render();
 </script></body></html>
