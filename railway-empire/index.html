@@ -33,6 +33,54 @@ select,input[type=number]{background:#132c3b;color:#e8f6fd;border:1px solid #658
 @media(max-width:1010px){#app{grid-template-columns:190px minmax(0,1fr) 275px}aside{padding:8px}.logo{font-size:15px!important}}
 @media(max-width:700px){#app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}header{grid-column:1;padding:5px 9px;gap:8px}header .logo{font-size:14px!important}header .metric:nth-of-type(n+3){display:none}header .metric strong{font-size:12px}header button{padding:6px;font-size:12px}aside{display:none;position:fixed;top:58px;bottom:58px;left:0;right:0;z-index:900;padding:12px}aside.open{display:block}#mapShell{grid-column:1;grid-row:2}#mobile{display:grid;grid-row:3;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#153044}#mobile button{padding:4px;font-size:11px}#mapTop{top:7px;left:7px;max-width:170px;padding:6px}#selected{top:7px;right:7px;max-width:130px;padding:6px}#mapBottom{bottom:18px;left:7px;padding:6px;max-width:230px}}
 
+
+/* v0.5: vollflächige Spielkarte mit kompakter Symbolleiste */
+#app{display:grid;grid-template-columns:1fr;grid-template-rows:52px minmax(0,1fr);height:100dvh}
+header{grid-column:1;grid-row:1;padding:5px 13px;gap:14px;z-index:650;min-width:0}
+header .logo{font-size:16px;letter-spacing:.3px}
+header .logo small{font-size:9px;letter-spacing:.6px}
+header .metric strong{font-size:14px}
+header .metric span{font-size:9px}
+header #next{min-height:36px;padding:6px 12px;font-size:12px}
+#mapShell{grid-column:1;grid-row:2;min-height:0}
+#gameDock{position:absolute;top:50%;left:12px;transform:translateY(-50%);z-index:710;display:flex;flex-direction:column;gap:7px;padding:8px;background:#103345ed;border:1px solid #81a6ad;border-radius:17px;box-shadow:0 8px 25px #00172470;backdrop-filter:blur(8px)}
+#gameDock .dockIcon{width:47px;height:47px;min-height:47px;padding:0;display:grid;place-items:center;font-size:23px;border-radius:12px;background:linear-gradient(150deg,#315a6e,#1b4053);border:1px solid #6b98aa;color:#fff;box-shadow:0 2px 4px #05182388}
+#gameDock .dockIcon:hover,#gameDock .dockIcon.selected{background:linear-gradient(150deg,#2d907e,#0c655f);border-color:#b5f3d7}
+#gameDock .dockSep{height:1px;background:#628594;margin:3px 4px}
+#left,#right{position:absolute;top:12px;bottom:12px;z-index:960;width:min(340px,calc(100vw - 105px));height:auto;max-height:calc(100% - 24px);overflow-y:auto;box-shadow:0 14px 35px #051623ae;transition:transform .22s ease,opacity .22s ease}
+#left{left:76px;right:auto}#right{left:76px;right:auto}
+#left:not(.open),#right:not(.open){transform:translateX(-28px);opacity:0;visibility:hidden;pointer-events:none}
+#left.open,#right.open{transform:translateX(0);opacity:1;visibility:visible;pointer-events:auto}
+#panelScrim{position:absolute;inset:0;z-index:690;background:#081e2961;display:none}
+#panelScrim.open{display:block}
+#mapTop{top:11px;left:80px;max-width:min(330px,calc(100vw - 178px));padding:8px 11px;border-radius:10px;pointer-events:none}
+#mapTop b{font-size:13px}
+#mapTop #railDetail{font-size:10px;max-height:43px;overflow:hidden}
+#selected{top:11px;right:12px;max-width:min(230px,30vw);padding:8px 10px;border-radius:9px;font-size:11px;pointer-events:none}
+#mapBottom{bottom:15px;left:50%;transform:translateX(-50%);padding:0;max-width:min(70vw,500px);min-width:0;background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none}
+#notice:not(:empty){background:#fff6dcef;color:#6a4116;border:1px solid #d7b567;border-radius:10px;padding:10px 13px;box-shadow:0 3px 12px #11314755}
+#mobile,.desktopActions{display:none!important}
+.leaflet-bottom.leaflet-right{right:8px}
+@media(max-width:700px){
+ #app{grid-template-columns:1fr;grid-template-rows:51px minmax(0,1fr)}
+ header{grid-column:1;grid-row:1;padding:4px 8px;gap:8px}
+ header .logo{font-size:13px!important}
+ header .logo small{font-size:8px}
+ header .metric{gap:0}
+ header .metric strong{font-size:12px}
+ header .metric:nth-of-type(n+3){display:none}
+ header #next{min-height:35px;padding:5px 9px;font-size:11px}
+ header .nextLabel{display:none}
+ #mapShell{grid-column:1;grid-row:2}
+ #gameDock{left:7px;gap:5px;padding:5px;border-radius:12px}
+ #gameDock .dockIcon{height:41px;width:41px;min-height:41px;font-size:21px;border-radius:9px}
+ #left,#right{display:block;position:absolute;top:7px;bottom:7px;left:57px;right:auto;max-height:calc(100% - 14px);width:min(340px,calc(100vw - 66px));padding:11px;border-radius:12px}
+ #mapTop{top:7px;left:58px;max-width:min(240px,calc(100vw - 135px));padding:6px 9px}
+ #mapTop #railDetail{display:none}
+ #selected{top:7px;right:7px;max-width:120px;font-size:10px;padding:6px 8px}
+ #mapBottom{bottom:9px;max-width:80vw}
+}
+@media(max-height:630px){#gameDock{gap:3px;padding:4px}#gameDock .dockIcon{height:34px;width:37px;min-height:34px;font-size:18px}}
 /* Spielfeldorientiertes Layout: Karte groß, Menüs als einblendbare Spielpanels */
 #app{grid-template-columns:minmax(0,1fr);grid-template-rows:70px minmax(0,1fr)}
 header{grid-column:1;grid-row:1}
@@ -67,7 +115,7 @@ header{grid-column:1;grid-row:1}
 }
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.4 · ECHTE ZUGFAHRTEN</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><div class="desktopActions"><button id="showBuild">🏗️ Bauen</button><button id="showContracts">🏆 Aufträge</button><button id="showFleet">🚆 Züge</button></div><button class="primary" id="next">▶ Nächster Tag</button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.5</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" class="active" aria-pressed="true">🛤️ Bahngleise</button><button id="loadStops">🚉 Stationen</button></div>
@@ -77,16 +125,16 @@ header{grid-column:1;grid-row:1}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div>
-<div class="floating" id="mapTop"><b>🚂 DEIN EISENBAHN-IMPERIUM</b><div class="featureFlag">ECHTE GLEISDATEN</div><div class="muted">Bahnhöfe erschließen · Verkehrslose gewinnen · Strecken entdecken</div><div id="railDetail">Echte Gleise entdecken, Verkehrslose gewinnen und deine Züge beobachten.</div></div>
-<div class="floating" id="selected">📍 Bahnhof auf der Karte antippen</div>
-<div class="floating" id="mapBottom"><div style="color:#73e4be">● Eigene Betriebsstelle</div><div style="color:#f1cc7f">● Noch erschließbar</div><div style="color:#b7d7e6">━ Reale Gleise (OpenRailwayMap)</div><div id="notice"></div></div></div>
+<div id="mapShell"><div id="map"></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
+<div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
+<div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
 <aside id="right"><div class="tabs"><button class="active" data-tab="tenders">Vergaben</button><button data-tab="fleet">Fuhrpark</button><button data-tab="finance">Firma</button></div>
 <div class="tab" id="tab-tenders"><h2>🏆 Verkehrslose gewinnen</h2><p class="muted">Bewirb dich um fiktive öffentliche Verkehrsverträge zwischen realen Bahnhöfen. Angebotspreis, Fahrtenzahl und Fuhrpark beeinflussen deine Chancen.</p><div id="tenders"></div></div>
 <div class="tab" id="tab-fleet" hidden><h2>🚄 Fahrzeughändler</h2><div id="shop"></div><h2>Meine Fahrzeuge</h2><div id="fleet"></div></div>
 <div class="tab" id="tab-finance" hidden><h2>🏦 Dein Unternehmen</h2><div id="finances"></div><h3>Berichte</h3><ul id="log"></ul></div>
 </aside>
-<div id="mobile"><button data-mobile="left">🏗️ Bauen</button><button data-mobile="map">🗺️ Weltkarte</button><button data-mobile="right">🏆 Aufträge</button></div>
+
 </div>
 <div id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div id="dialogCard"><h2 id="dialogTitle"></h2><div id="dialogContent"></div><div id="dialogActions"><button id="closeDialog">Abbrechen</button><button id="acceptDialog" class="primary">Angebot abgeben</button></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -401,9 +449,34 @@ $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save()
 $('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Gleise ausgeblendet.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
-document.querySelectorAll('[data-mobile]').forEach(b=>b.onclick=()=>{const which=b.dataset.mobile;const open=which!=='map'&&!$(which).classList.contains('open');for(const id of ['left','right'])$(id).classList.toggle('open',id===which&&open);if(which==='map'&&map)setTimeout(()=>map.invalidateSize(),100);});
+
 $('routeDemo').onclick=()=>calculateRailRoute('L01');$('clearRoute').onclick=clearRailRoute;
-function openPanel(panel,section){const target=$(panel),other=panel==='left'?'right':'left';$(other).classList.remove('open');target.classList.toggle('open');if(section)tab(section);if(map)setTimeout(()=>map.invalidateSize(),180);}
-$('showBuild').onclick=()=>openPanel('left');$('showContracts').onclick=()=>openPanel('right','tenders');$('showFleet').onclick=()=>openPanel('right','fleet');
+
+function closePanels(){
+ for(const id of ['left','right'])$(id).classList.remove('open');
+ $('panelScrim').classList.remove('open');
+ for(const id of ['showBuild','showContracts','showFleet','showFinance']){$(id).classList.remove('selected');$(id).setAttribute('aria-expanded','false');}
+}
+function openPanel(panel,section,trigger){
+ const target=$(panel),wasOpen=target.classList.contains('open');
+ const sameTab=panel==='left'||document.querySelector('.tabs .active')?.dataset.tab===section;
+ closePanels();
+ if(!wasOpen||!sameTab){
+  if(section)tab(section);
+  target.classList.add('open');$('panelScrim').classList.add('open');
+  if(trigger){$(trigger).classList.add('selected');$(trigger).setAttribute('aria-expanded','true');}
+ }
+ if(map)setTimeout(()=>map.invalidateSize(),220);
+}
+$('showBuild').onclick=()=>openPanel('left',null,'showBuild');
+$('showContracts').onclick=()=>openPanel('right','tenders','showContracts');
+$('showFleet').onclick=()=>openPanel('right','fleet','showFleet');
+$('showFinance').onclick=()=>openPanel('right','finance','showFinance');
+$('showWorld').onclick=()=>{closePanels();$('allGermany').click();};
+$('showHome').onclick=()=>{closePanels();$('myMap').click();};
+$('toggleRail').onclick=()=>{$('showRail').click();$('toggleRail').classList.toggle('selected',railVisible);$('toggleRail').setAttribute('aria-pressed',String(railVisible));};
+$('showInfo').onclick=()=>{const button=$('showInfo'),isOpen=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!isOpen));$('mapTop').style.display=isOpen?'none':'block';button.classList.toggle('selected',!isOpen);};
+$('panelScrim').onclick=closePanels;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();if($('dialog').classList.contains('show'))$('closeDialog').click();}});
 load();initMap();render();
 </script></body></html>
