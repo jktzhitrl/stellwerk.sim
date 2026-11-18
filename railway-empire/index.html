@@ -167,19 +167,35 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 .lineActions button{font-size:11px;min-height:35px;flex:1}
 #dialogCard{max-height:90dvh;overflow:auto}
 #dialogContent input[type=text]{background:#132c3b;color:#eff9fc;border:1px solid #658b9d;border-radius:7px;padding:9px;width:100%}
+
+/* v1.0: helle Transport-Tycoon-Stadtkarte statt technischer Gleisübersicht */
+#map{background:#e8f1ed;filter:none}
+#map .leaflet-tile-pane{filter:saturate(1.12) contrast(1.03)}
+#mapShell:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:400;background:linear-gradient(90deg,rgba(13,68,63,.04),transparent 22%,transparent 78%,rgba(20,57,78,.04))}
+.station-icon,.station-icon.owned{width:29px;height:29px;border-radius:9px;border:2px solid white;background:linear-gradient(155deg,#ffc96a,#e59d28);box-shadow:0 3px 12px #2449546b,0 0 0 2px #b17835b8;display:flex;align-items:center;justify-content:center;color:#243e48;transform:rotate(-5deg)}
+.station-icon.owned{background:linear-gradient(155deg,#70e6bc,#0c9c80);box-shadow:0 3px 13px #104a4590,0 0 0 3px #108c75b3}
+.station-icon span{font-size:16px;transform:rotate(5deg);line-height:1}
+#mapTop{background:#fffdf5f0!important;color:#284a50!important}
+#mapTop b{color:#197e72}
+#selected{background:#fffdf5f2!important;border:1px solid #c8ad76!important}
+#gameDock{background:#fcfcf0f3;border-color:#bad1c9;box-shadow:0 5px 20px #173d4350}
+#gameDock .dockIcon{background:#fbfffc;border:1px solid #b2cfc6;color:#163f46;box-shadow:0 2px 5px #163e4230}
+#gameDock .dockIcon.selected,#gameDock .dockIcon:hover{background:linear-gradient(140deg,#55d0a8,#148c7d);color:#fff}
+#gameDock .dockSep{background:#c1d3cb}
+.leaflet-control-zoom a{background:#fffdf5!important;color:#174a55!important;border-color:#bbd2c9!important}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.9 · LINIENEDITOR</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.0 · SPIELKARTE</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
-<div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" class="active" aria-pressed="true">🛤️ Bahngleise</button><button id="loadStops">🚉 Stationen</button></div>
-<div id="railStatus" aria-live="polite">Die Karte zeigt echte Gleisverläufe von OpenRailwayMap.</div><button id="routeDemo" style="width:100%;margin-top:10px" class="primary">🚆 Leipzig–Halle: echte Fahrt berechnen</button><button id="clearRoute" style="width:100%;margin-top:6px">✖ Streckenfahrt ausblenden</button><div id="routeState" class="muted" style="margin-top:9px">Noch keine befahrbare Strecke berechnet.</div><p id="mapStatus" class="muted">Bahnhöfe in Deutschland verfügbar.</p>
-<div id="routeLegend">🟢 Eigener Bahnhof · 🟡 Erschließbarer Bahnhof · 🛤️ Gleise aus OpenRailwayMap</div></div>
+<div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
+<div id="railStatus" aria-live="polite">Spielkarte aktiv. Technische Gleisdetails sind standardmäßig ausgeblendet.</div><button id="routeDemo" style="width:100%;margin-top:10px" class="primary">🚆 Leipzig–Halle: echte Fahrt berechnen</button><button id="clearRoute" style="width:100%;margin-top:6px">✖ Streckenfahrt ausblenden</button><div id="routeState" class="muted" style="margin-top:9px">Noch keine befahrbare Strecke berechnet.</div><p id="mapStatus" class="muted">Bahnhöfe in Deutschland verfügbar.</p>
+<div id="routeLegend">🟢 Eigener Bahnhof · 🟡 Neuer Standort · 🟠 Eigene Linienhalte</div></div>
 <div class="panel"><h2>🏗️ Baumenü</h2><div class="row"><span>Eigene Bahnhöfe</span><b id="ownedCount"></b></div><div class="row"><span>Gewonnene Linien</span><b id="awardCount"></b></div><div class="row"><span>Züge</span><b id="fleetCount"></b></div><p class="muted">Wähle auf der Karte einen realen Bahnhof, um dort eine eigene Betriebsstelle zu eröffnen.</p><button id="build" style="width:100%">Bahnhof auswählen</button></div>
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon selected" aria-label="Gleise ein- und ausblenden" title="Gleise ein- und ausblenden" aria-pressed="true">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -206,7 +222,7 @@ const SERVICES={sb:{name:'S-Bahn',pattern:'Alle geeigneten Zwischenhalte',types:
 const serviceForJob=j=>j.id==='L01'?'sb':null;
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],lines:[],nextLine:1,fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
-let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=true,railTimer=null;
+let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
@@ -215,22 +231,24 @@ function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&
 function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.');return false;}S.money-=n;S.totalSpent+=n;return true;}
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent='Standort auswählen';b.onclick=()=>{select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
-function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]});}
+function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"><span>🚉</span></div>',iconSize:[32,32],iconAnchor:[16,16]});}
 function renderMap(){
  if(!map)return;
  // Ausschreibungen sind Verkehrsverträge, keine belegten Gleisgeometrien.
  // Deshalb KEINE erfundenen geraden Streckenlinien zwischen Städten zeichnen.
  connections.clearLayers();stationsLayer.clearLayers();
+ // Eigene Linien nur auf gespeicherter, berechneter Gleisgeometrie sichtbar machen.
+ for(const award of S.awards){const result=routeCache[award.id];if(!result?.points?.length)continue;L.polyline(result.points,{weight:7,color:'#fff7e6',opacity:.9,interactive:false}).addTo(connections);L.polyline(result.points,{weight:4,color:'#0fba98',opacity:.94,interactive:false}).addTo(connections);}
  for(const s of [...ST,...(S.customStations||[])]){
    const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);
-   m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));
+   m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));m.bindTooltip(s.name,{direction:'top',offset:[0,-13]});
  }
 }
 function scheduleRailLoad(){clearTimeout(railTimer);railTimer=setTimeout(loadRailGeometry,800);}
 async function loadRailGeometry(){
- if(!map||!railVisible||map.getZoom()<12){if(railGeometry)railGeometry.clearLayers();$('railDetail').textContent='Reale Gleise weltweit im Kartenausschnitt sichtbar. Für anklickbare Gleise bitte auf Zoom 12 oder höher gehen.';return;}
+ if(!map||!railVisible||map.getZoom()<12){if(railGeometry)railGeometry.clearLayers();return;}
  const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());
- if(area>.12){$('railDetail').textContent='Ausschnitt noch zu groß für Gleisdetails. Bitte weiter heranzoomen.';return;}
+ if(area>.12)return;
  const now=Date.now();
  if(now-lastRailQuery<12000)return;lastRailQuery=now;
  if(railController)railController.abort();
@@ -673,15 +691,15 @@ function initMap(){
  if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
  map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
  L.control.zoom({position:'bottomright'}).addTo(map);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
- railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.74,attribution:'Gleise © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'}).addTo(map);
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+ railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.55,attribution:'Technische Gleisdetails © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'});
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
  connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
  map.on('moveend',()=>{loadStops(false);scheduleRailLoad();});
- renderMap();scheduleRailLoad();
+ renderMap();
 }
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
-$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Gleise ausgeblendet.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
+$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
 
