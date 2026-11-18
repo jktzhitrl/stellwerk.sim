@@ -216,12 +216,12 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 .liveTrainIcon div{width:36px;height:36px;border-radius:50%;background:#fffdf2;border:3px solid #12a486;display:grid;place-items:center;font-size:19px;box-shadow:0 0 0 3px #00d5bd4d,0 4px 12px #113b4a98}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.2 · LIVE-VERKEHR</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.3 · MEINE NETZE</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
 <div id="railStatus" aria-live="polite">Spielkarte aktiv. Technische Gleisdetails sind standardmäßig ausgeblendet.</div><button id="routeDemo" style="width:100%;margin-top:10px" class="primary">🚆 Leipzig–Halle: echte Fahrt berechnen</button><button id="clearRoute" style="width:100%;margin-top:6px">✖ Streckenfahrt ausblenden</button><div id="routeState" class="muted" style="margin-top:9px">Noch keine befahrbare Strecke berechnet.</div><p id="mapStatus" class="muted">Bahnhöfe in Deutschland verfügbar.</p>
-<div id="routeLegend">🟢 Eigener Bahnhof · 🟡 Neuer Standort · 🟠 Eigene Linienhalte</div></div>
+<div id="routeLegend">🟢 Eigene Betriebsstelle · 🔵 Halte im gewonnenen Netz · 🟡 Andere Bahnhöfe</div></div>
 <div class="panel"><h2>🏗️ Baumenü</h2><div class="row"><span>Eigene Bahnhöfe</span><b id="ownedCount"></b></div><div class="row"><span>Gewonnene Linien</span><b id="awardCount"></b></div><div class="row"><span>Züge</span><b id="fleetCount"></b></div><p class="muted">Wähle auf der Karte einen realen Bahnhof, um dort eine eigene Betriebsstelle zu eröffnen.</p><button id="build" style="width:100%">Bahnhof auswählen</button></div>
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
@@ -253,7 +253,7 @@ const SERVICES={sb:{name:'S-Bahn',pattern:'Alle geeigneten Zwischenhalte',types:
 const serviceForJob=j=>j.id==='L01'?'sb':null;
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],lines:[],nextLine:1,fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
-let S=fresh(),map=null,vectorMap=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
+let S=fresh(),map=null,vectorMap=null,connections=null,stationsLayer=null,networkStationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
@@ -263,17 +263,95 @@ function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.')
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent=mapLineMode?'＋ Als Linienhalt hinzufügen':'Standort auswählen';b.onclick=()=>{if(mapLineMode)addMapStop(s);else select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
 function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"><span>🚉</span></div>',iconSize:[32,32],iconAnchor:[16,16]});}
+
+/* Eigene Netze: Stationskorridore unabhängig vom Zoom laden und lokal zwischenspeichern.
+   Stationskandidaten im Netzkorridor sind keine verifizierten fahrplanmäßigen Halte. */
+const OWN_NETWORK_STOPS_KEY='railway_empire_owned_network_stops_v1';
+let wonNetworkStops={};try{wonNetworkStops=JSON.parse(localStorage.getItem(OWN_NETWORK_STOPS_KEY)||'{}')||{};}catch(e){}
+const activeNetworkQueries=new Set();
+let ownedStopsRefreshTimer=null;
+function wonNetworkStationIds(){
+ const ids=new Set(S.owned);
+ for(const award of S.awards){
+  const job=JOBS.find(j=>j.id===award.id);if(!job)continue;
+  ids.add(job.a);ids.add(job.b);
+  for(const st of wonNetworkStops[award.id]||[])ids.add(st.id);
+  for(const line of S.lines.filter(x=>x.contractId===award.id))for(const stop of line.stops||[])ids.add(stop.id);
+ }
+ return ids;
+}
+function renderWonNetworkStations(){
+ if(!networkStationsLayer||!map)return;
+ const mainIds=new Set([...ST,...(S.customStations||[])].map(x=>x.id));
+ const unique=new Map();
+ for(const award of S.awards){
+  for(const st of wonNetworkStops[award.id]||[])if(!mainIds.has(st.id))unique.set(st.id,st);
+  for(const line of S.lines.filter(x=>x.contractId===award.id))for(const st of line.stops||[])if(!mainIds.has(st.id))unique.set(st.id,st);
+ }
+ for(const st of unique.values()){
+  const marker=L.circleMarker([st.lat,st.lng],{radius:8,weight:2.5,color:'#fffdf3',fillColor:S.owned.includes(st.id)?'#10ba83':'#1f9ed8',fillOpacity:1})
+   .addTo(networkStationsLayer);
+  marker.bindTooltip(st.name,{direction:'top',offset:[0,-7]});
+  marker.bindPopup(()=>stationPopup(st));
+  marker.on('click',()=>{if(mapLineMode)addMapStop(st);else select(st);});
+ }
+}
+function scheduleWonNetworkStationLoad(){
+ if(!map||!S.awards.length)return;
+ clearTimeout(ownedStopsRefreshTimer);
+ ownedStopsRefreshTimer=setTimeout(loadWonNetworkStations,650);
+}
+async function loadWonNetworkStations(){
+ const missing=S.awards.map(a=>a.id).filter(id=>!wonNetworkStops[id]&&!activeNetworkQueries.has(id));
+ if(!missing.length)return;
+ const id=missing[0],j=JOBS.find(x=>x.id===id);if(!j)return;
+ activeNetworkQueries.add(id);
+ try{
+  const a=station(j.a),b=station(j.b);
+  const path=routeCache[j.id]?.points,box={
+   south:Math.min(a.lat,b.lat)-.06,north:Math.max(a.lat,b.lat)+.06,
+   west:Math.min(a.lng,b.lng)-.06,east:Math.max(a.lng,b.lng)+.06};
+  if((box.north-box.south)*(box.east-box.west)>.55)return;
+  const bbox=[box.south,box.west,box.north,box.east].map(x=>x.toFixed(5)).join(',');
+  const query='[out:json][timeout:20];(node["railway"~"^(station|halt)$"]('+bbox+');way["railway"~"^(station|halt)$"]('+bbox+'););out center 700;';
+  const ctl=new AbortController(),timeout=setTimeout(()=>ctl.abort(),26000);
+  let response;
+  try{response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal});}
+  finally{clearTimeout(timeout);}
+  if(!response.ok)throw Error('Stationsdaten HTTP '+response.status);
+  const json=await response.json(),unique=new Map();
+  for(const el of json.elements||[]){
+   const lat=el.lat??el.center?.lat,lng=el.lon??el.center?.lon,name=el.tags?.name;
+   if(!name||!Number.isFinite(lat)||!Number.isFinite(lng))continue;
+   const point=[lat,lng],pos=path?.length>1?routeStopPosition(point,path):lateralKm(point,[a.lat,a.lng],[b.lat,b.lng]);
+   if(pos.offset>(path?.length>1?2.4:5)||pos.position<.005||pos.position>.995)continue;
+   if(degKm(point,[a.lat,a.lng])<.3||degKm(point,[b.lat,b.lng])<.3)continue;
+   const key=name.toLocaleLowerCase('de-DE').trim(),st={id:'osm-'+el.type+'-'+el.id,name,lat,lng,position:pos.position,offset:pos.offset};
+   if(!unique.has(key)||unique.get(key).offset>pos.offset)unique.set(key,st);
+  }
+  wonNetworkStops[id]=[...unique.values()].sort((x,y)=>x.position-y.position).slice(0,120);
+  for(const st of wonNetworkStops[id])dyn.set(st.id,st);
+  try{localStorage.setItem(OWN_NETWORK_STOPS_KEY,JSON.stringify(wonNetworkStops));}catch(e){}
+  if(S.awards.some(a=>a.id===id)){renderMap();$('railStatus').textContent=wonNetworkStops[id].length+' Stationen für '+j.name+' geladen. Blaue Punkte zeigen mögliche Halte im gewonnenen Netz.';}
+ }catch(e){
+  $('railStatus').textContent='Halte für '+j.name+' momentan nicht vollständig abrufbar; gewonnene Endbahnhöfe bleiben sichtbar.';
+ }finally{activeNetworkQueries.delete(id);if(S.awards.some(a=>!wonNetworkStops[a.id]&&!activeNetworkQueries.has(a.id)&&a.id!==id))scheduleWonNetworkStationLoad();}
+}
 function renderMap(){
  if(!map)return;
  // Ausschreibungen sind Verkehrsverträge, keine belegten Gleisgeometrien.
  // Deshalb KEINE erfundenen geraden Streckenlinien zwischen Städten zeichnen.
  connections.clearLayers();stationsLayer.clearLayers();
+ if(networkStationsLayer)networkStationsLayer.clearLayers();
  // Eigene Linien nur auf gespeicherter, berechneter Gleisgeometrie sichtbar machen.
  for(const award of S.awards){const result=routeCache[award.id];if(!result?.points?.length)continue;L.polyline(result.points,{weight:7,color:'#fff7e6',opacity:.9,interactive:false}).addTo(connections);L.polyline(result.points,{weight:4,color:'#0fba98',opacity:.94,interactive:false}).addTo(connections);}
+ const coveredIds=wonNetworkStationIds();
  for(const s of [...ST,...(S.customStations||[])]){
+   if(S.awards.length&&!coveredIds.has(s.id)&&!mapLineMode)continue;
    const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);
    m.bindPopup(()=>stationPopup(s));m.on('click',()=>{if(mapLineMode)addMapStop(s);else select(s);});m.bindTooltip(s.name,{direction:'top',offset:[0,-13]});
  }
+ renderWonNetworkStations();
 }
 function scheduleRailLoad(){clearTimeout(railTimer);railTimer=setTimeout(loadRailGeometry,800);}
 async function loadRailGeometry(){
@@ -315,7 +393,7 @@ async function loadRailGeometry(){
   $('railStatus').textContent='OpenRailwayMap-Kartenebene aktiv; Detailabfrage derzeit nicht erreichbar.';
  }finally{clearTimeout(timeout);}
 }
-function loadStops(force){if(!map||map.getZoom()<10){stopsLayer.clearLayers();return;}if(!force&&Date.now()-lastStops<30000)return;const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());if(area>2){$('mapStatus').textContent='Bitte weiter hineinzoomen, damit reale Haltepunkte geladen werden.';return;}
+function loadStops(force){if(S.awards.length&&!mapLineMode){stopsLayer.clearLayers();return;}if(!map||map.getZoom()<10){stopsLayer.clearLayers();return;}if(!force&&Date.now()-lastStops<30000)return;const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());if(area>2){$('mapStatus').textContent='Bitte weiter hineinzoomen, damit reale Haltepunkte geladen werden.';return;}
 lastStops=Date.now();const token=++loadToken;const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(4)).join(',');
 const query='[out:json][timeout:15];(node["railway"~"station|halt"]('+bbox+');way["railway"~"station|halt"]('+bbox+'););out center 140;';
 $('mapStatus').textContent='Lade Bahnhöfe und Haltepunkte aus OpenStreetMap …';
@@ -949,7 +1027,7 @@ $('tenders').appendChild(c);}
 $('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c=document.createElement('div');c.className='tender';c.append(textel('strong',t.name),textel('div',t.seats+' Plätze · '+euro(t.upkeep)+'/Tag Unterhalt'));const b=textel('button','Kaufen · '+euro(t.price));b.onclick=()=>{if(!debit(t.price))return;S.fleet.push({id:S.nextTrain++,type,line:null});log(t.name+' gekauft.');save();render();};c.appendChild(b);$('shop').appendChild(c);}
 $('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));if(t.operatingLine){const lin=S.lines.find(l=>l.id===t.operatingLine);if(lin)c.appendChild(textel('div','🗺️ Linienplan: '+lin.name));}const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);if(!a.type||a.type===t.type)sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{const target=sel.value;const contract=S.awards.find(a=>a.id===target);if(target&&contract&&contract.type&&contract.type!==t.type){note('Falscher Fahrzeugtyp für diesen Verkehrsvertrag.');render();return;}if(t.line!==target)t.operatingLine=null;t.line=target||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
 $('finances').innerHTML=[['Bisherige Einnahmen',euro(S.totalEarned)],['Bisherige Ausgaben',euro(S.totalSpent)],['Beförderte Fahrgäste',S.totalRiders.toLocaleString('de-DE')],['Offene Bewerbungen',S.bids.length]].map(([a,b])=>'<div class="row"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
-$('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();if(selected)select(selected);}
+$('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();scheduleWonNetworkStationLoad();if(selected)select(selected);}
 function initMap(){
  if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
  map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
@@ -1009,12 +1087,12 @@ function initMap(){
 
  railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.55,attribution:'Technische Gleisdetails © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'});
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
- connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
+ connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);networkStationsLayer=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);
  map.on('moveend',()=>{loadStops(false);if(railVisible)scheduleRailLoad();});
- renderMap();
+ renderMap();scheduleWonNetworkStationLoad();
 }
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){for(const ride of liveTrips.values())if(map&&ride.layer)map.removeLayer(ride.layer);liveTrips.clear();stopMapLineMode();S=fresh();selected=null;save();render();}};
-$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
+$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.awards.length?S.awards.flatMap(a=>{const j=JOBS.find(j=>j.id===a.id);return j?[station(j.a),station(j.b),...(wonNetworkStops[a.id]||[])]:[];}):S.owned.map(station).filter(Boolean);const positions=pts.filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lng)).map(x=>[x.lat,x.lng]);if(positions.length)map.fitBounds(positions,{padding:[35,35],maxZoom:11});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
 
