@@ -282,7 +282,19 @@ async function fetchOverpass(options){
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){note('Speichern fehlgeschlagen.');}}
-function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet))S=x;S.customStations=S.customStations||[];S.lines=Array.isArray(S.lines)?S.lines:[];S.nextLine=Number.isInteger(S.nextLine)?S.nextLine:1;for(const st of S.customStations)dyn.set(st.id,st);}catch(e){}}
+function load(){
+ try{
+  const x=JSON.parse(localStorage.getItem(KEY)||'null');
+  // Reject damaged saves instead of loading partial state that breaks rendering.
+  if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet)
+    &&Array.isArray(x.owned)&&Array.isArray(x.log)
+    &&Number.isFinite(x.money)&&Number.isInteger(x.day)&&x.day>=1)S=x;
+  S.customStations=Array.isArray(S.customStations)?S.customStations.filter(st=>st&&typeof st.id==='string'&&typeof st.name==='string'&&Number.isFinite(st.lat)&&Number.isFinite(st.lng)):[];
+  S.lines=Array.isArray(S.lines)?S.lines:[];
+  S.nextLine=Number.isInteger(S.nextLine)&&S.nextLine>0?S.nextLine:1;
+  for(const st of S.customStations)dyn.set(st.id,st);
+ }catch(e){note('Spielstand konnte nicht geladen werden. Ein neuer Spielstand wurde gestartet.');}
+}}
 function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.');return false;}S.money-=n;S.totalSpent+=n;return true;}
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent=mapLineMode?'＋ Als Linienhalt hinzufügen':'Standort auswählen';b.onclick=()=>{if(mapLineMode)addMapStop(s);else select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
