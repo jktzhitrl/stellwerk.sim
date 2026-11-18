@@ -695,7 +695,7 @@ function initMap(){
  railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.55,attribution:'Technische Gleisdetails © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'});
  railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
  connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
- map.on('moveend',()=>{loadStops(false);scheduleRailLoad();});
+ map.on('moveend',()=>{loadStops(false);if(railVisible)scheduleRailLoad();});
  renderMap();
 }
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
