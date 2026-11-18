@@ -260,6 +260,16 @@ const JOBS=[
 const TYPES={rb:{name:'Regionaltriebwagen',price:65000,seats:180,upkeep:330},emu:{name:'S-Bahn-Triebwagen',price:98000,seats:320,upkeep:470},re:{name:'Regionalexpress',price:153000,seats:560,upkeep:720},ic:{name:'Fernverkehrszug',price:242000,seats:780,upkeep:1050}};
 const SERVICES={sb:{name:'S-Bahn',pattern:'Alle geeigneten Zwischenhalte',types:['emu'],demand:135,cost:730,description:'Dichter Haltabstand und hohe Kapazität. S-Bahn-Triebwagen erforderlich.'},rb:{name:'Regionalbahn',pattern:'Die meisten Zwischenhalte',types:['rb','emu','re'],demand:115,cost:650,description:'Regionale Anbindung mit vielen Halten.'},re:{name:'Regionalexpress',pattern:'Wichtige Zwischenhalte',types:['re','emu'],demand:125,cost:590,description:'Weniger Halte und schnellere Reisezeiten.'}};
 const serviceForJob=j=>j.id==='L01'?'sb':null;
+// Reiner Planungswert: Vertragserloes minus fahrplan- und fahrzeugbezogene Tageskosten.
+function estimateBidEconomics(offer,trips,count,type,service){
+ const vehicle=TYPES[type],operation=SERVICES[service];
+ if(!vehicle||!operation||![offer,trips,count].every(Number.isFinite)||trips<=0||count<=0)return null;
+ const capacity=Math.min(1,count*vehicle.seats/(trips*operation.demand));
+ const revenue=Math.round(offer*(.25+.75*capacity));
+ const operating=Math.round(trips*operation.cost+count*vehicle.upkeep);
+ return {revenue,operating,profit:revenue-operating,capacity};
+}
+
 // Ungewonnene Verkehrslose werden alle 14 Spieltage erneut ausgeschrieben.
 const nextTenderDeadline=(j,day)=>j.deadline+14*Math.max(0,Math.ceil((day-j.deadline)/14));
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
@@ -1088,14 +1098,16 @@ function bidDialog(id){$('acceptDialog').textContent='Angebot abgeben';
  const countEl=addNumber('bidCount','Benötigte Fahrzeuganzahl',2,1,20);
  const hint=document.createElement('p');hint.className='muted';body.appendChild(hint);
  const updateHint=()=>{
-  const type=TYPES[vehicle.value],count=Number(countEl.value),trips=Number(tripsEl.value);
+  const type=TYPES[vehicle.value],count=Number(countEl.value),trips=Number(tripsEl.value),offer=Number(offerEl.value);
   const allocated=S.fleet.filter(t=>t.type===vehicle.value&&!t.line).length;
   const missing=Math.max(0,count-allocated);
   const capacity=count*type.seats,needed=trips*SERVICES[mode.value].demand;
   serviceDescription.textContent=SERVICES[mode.value].description+' Die genaue Auswahl einzelner realer Haltepunkte wird in einer späteren Version ergänzt.';
-  hint.textContent='Flottenplan: '+allocated+' verfügbare Fahrzeuge · '+missing+' nötige Neukäufe ('+euro(missing*type.price)+'). Plan-Kapazität '+capacity+' / '+needed+' Plätze. Bewerbungsgebühr 1.200 €. Zuschlag am nächsten Betriebstag. Bei Gewinn werden fehlende Fahrzeuge automatisch gekauft und dem Los zugewiesen.';
+  const forecast=estimateBidEconomics(offer,trips,count,vehicle.value,mode.value);
+  const forecastText=forecast?' Erwarteter Tagesbeitrag: '+euro(forecast.revenue)+' Erlös − '+euro(forecast.operating)+' Betriebskosten = '+euro(forecast.profit)+(forecast.profit<0?' ⚠ Unrentables Angebot.':'')+'.':' Bitte gültige Angebotswerte eingeben.';
+  hint.textContent='Flottenplan: '+allocated+' verfügbare Fahrzeuge · '+missing+' nötige Neukäufe ('+euro(missing*type.price)+'). Plan-Kapazität '+capacity+' / '+needed+' Plätze.'+forecastText+' Ohne anteilige Bahnhofskosten und einmalige Ausgaben. Bewerbungsgebühr 1.200 €. Zuschlag am nächsten Betriebstag. Bei Gewinn werden fehlende Fahrzeuge automatisch gekauft und dem Los zugewiesen.';
  };
- for(const e of [tripsEl,vehicle,countEl])e.addEventListener('change',updateHint);mode.addEventListener('change',()=>{updateVehicles();updateHint();});updateHint();
+ for(const e of [offerEl,tripsEl,vehicle,countEl])e.addEventListener('input',updateHint);mode.addEventListener('change',()=>{updateVehicles();updateHint();});updateHint();
  modal('Ausschreibung: '+j.name,body,()=>{
   const offer=Number(offerEl.value),trips=Number(tripsEl.value),count=Number(countEl.value),type=vehicle.value,service=mode.value;
   if(!Number.isInteger(offer)||offer<1000||offer>999999||!Number.isInteger(trips)||trips<j.min||trips>25||!Number.isInteger(count)||count<1||count>20||!TYPES[type]||!SERVICES[service]||!SERVICES[service].types.includes(type)){note('Bitte alle Angebotsangaben gültig ausfüllen.');return false;}
