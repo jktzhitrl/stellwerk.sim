@@ -206,6 +206,11 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 #plannerFeedback,#plannerInstructions{font-size:11px;line-height:1.4;margin:0}
 .stopNumber{background:#f3a538!important;color:#fff!important;border:0!important;box-shadow:none!important;font-weight:800}
 @media(max-width:700px){#mapLinePlanner{top:7px;right:7px;width:min(270px,calc(100vw - 62px));padding:9px;gap:5px}#mapLinePlanner ol{max-height:95px}}
+#plannerTrainOptions{display:grid;gap:5px;border-top:1px solid #cfba92;padding-top:8px}
+#plannerTrainOptions strong{font-size:11px}
+#plannerTrainOptions label{display:flex;gap:8px;align-items:center;font-size:11px;color:#244953}
+#plannerTrainOptions input{width:17px!important;height:17px;accent-color:#149d7a}
+#plannerTrainOptions small{color:#657c80;font-size:11px}
 </style></head>
 <body><div id="app">
 <header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.2 · LIVE-VERKEHR</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
@@ -218,7 +223,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div id="mapLinePlanner" hidden><div class="plannerHead"><strong>🛤️ Linie auf der Karte bauen</strong><button id="plannerExit" title="Linienbau beenden">✕</button></div><label for="plannerNetwork">Gewonnenes Verkehrsnetz</label><select id="plannerNetwork"></select><label for="plannerName">Linienname</label><input type="text" id="plannerName" maxlength="40" placeholder="z. B. S 3"><div id="plannerInstructions">Tippe die Halte in der gewünschten Reihenfolge auf der Karte an.</div><ol id="plannerStops"></ol><div class="plannerButtons"><button id="plannerUndo">↶ Letzten Halt</button><button id="plannerSave" class="primary">✓ Linie speichern</button></div><p id="plannerFeedback"></p></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="mapLinePlanner" hidden><div class="plannerHead"><strong>🛤️ Linie auf der Karte bauen</strong><button id="plannerExit" title="Linienbau beenden">✕</button></div><label for="plannerNetwork">Gewonnenes Verkehrsnetz</label><select id="plannerNetwork"></select><label for="plannerName">Linienname</label><input type="text" id="plannerName" maxlength="40" placeholder="z. B. S 3"><div id="plannerInstructions">Tippe die Halte in der gewünschten Reihenfolge auf der Karte an.</div><div id="plannerTrainOptions"></div><ol id="plannerStops"></ol><div class="plannerButtons"><button id="plannerUndo">↶ Letzten Halt</button><button id="plannerSave" class="primary">✓ Linie speichern</button></div><p id="plannerFeedback"></p></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -527,15 +532,35 @@ function stopInsideNetwork(j,s){
 }
 function redrawMapLineMode(){
  if(!mapLineMode||!map)return;
+ const state=mapLineMode;
  if(!mapLineMarkers)mapLineMarkers=L.layerGroup().addTo(map);
  mapLineMarkers.clearLayers();
- $('plannerStops').replaceChildren();
- for(const [i,s] of mapLineMode.stops.entries()){
-  const li=document.createElement('li');li.textContent=s.name;$('plannerStops').append(li);
-  L.circleMarker([s.lat,s.lng],{radius:11,weight:3,color:'#fff',fillColor:'#ee9634',fillOpacity:.95}).bindTooltip(String(i+1),{permanent:true,direction:'center',className:'stopNumber'}).addTo(mapLineMarkers);
+ for(const st of state.candidates||[]){
+  if(state.stops.some(s=>s.id===st.id))continue;
+  L.circleMarker([st.lat,st.lng],{radius:8,color:'#fff5df',fillColor:'#2479bf',fillOpacity:.97,weight:2})
+   .bindTooltip(st.name,{direction:'top'}).on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
  }
- $('plannerUndo').disabled=!mapLineMode.stops.length;
- $('plannerInstructions').textContent=mapLineMode.stops.length?'Halte: '+mapLineMode.stops.length+' · Nächsten Bahnhof antippen oder Linie speichern.':'Tippe die Haltestellen in gewünschter Reihenfolge auf der Karte an.';
+ for(const [i,st] of state.stops.entries()){
+  L.circleMarker([st.lat,st.lng],{radius:12,color:'#fff',weight:3,fillColor:'#ee9634',fillOpacity:.98})
+   .bindTooltip(String(i+1),{permanent:true,direction:'center',className:'stopNumber'}).addTo(mapLineMarkers);
+ }
+ $('plannerStops').replaceChildren(...state.stops.map(st=>textel('li',st.name)));
+ $('plannerUndo').disabled=!state.stops.length;
+ $('plannerInstructions').textContent=state.stops.length+' Halte ausgewählt. Tippe weitere Stationen an oder speichere die Linie.';
+}
+function renderPlannerTrains(){
+ if(!mapLineMode)return;
+ const box=$('plannerTrainOptions');box.replaceChildren();
+ const heading=document.createElement('strong');heading.textContent='🚆 Züge für diese Linie';box.append(heading);
+ const trains=S.fleet.filter(t=>t.line===mapLineMode.contractId);
+ if(!trains.length){box.append(textel('small','Noch kein Zug zugeteilt. Im Fuhrpark kannst du Fahrzeuge dem Verkehrsvertrag zuordnen.'));return;}
+ for(const train of trains){
+  const row=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';
+  cb.checked=mapLineMode.selectedTrains.has(train.id);
+  cb.disabled=!!train.operatingLine&&train.operatingLine!==mapLineMode.lineId;
+  cb.onchange=()=>{if(cb.checked)mapLineMode.selectedTrains.add(train.id);else mapLineMode.selectedTrains.delete(train.id);};
+  row.append(cb,textel('span','Zug '+train.id+' · '+TYPES[train.type].name));box.append(row);
+ }
 }
 function addMapStop(s){
  if(!mapLineMode)return;
@@ -555,12 +580,12 @@ function stopMapLineMode(){
 function startMapLineMode(contractId,lineId=null){
  const award=S.awards.find(a=>a.id===contractId);if(!award){note('Zum Linienbau musst du das Verkehrsnetz zuerst gewinnen.');return;}
  const line=S.lines.find(l=>l.id===lineId);
- mapLineMode={contractId,lineId,stops:(line?.stops||[]).map(s=>({...s}))};
+ mapLineMode={contractId,lineId,stops:(line?.stops||[]).map(s=>({...s})),candidates:[],selectedTrains:new Set(S.fleet.filter(t=>t.operatingLine===lineId).map(t=>t.id))};
  const selector=$('plannerNetwork');selector.replaceChildren();
  for(const a of S.awards){const j=JOBS.find(j=>j.id===a.id);if(j)selector.append(new Option(j.name,j.id));}
  selector.value=contractId;selector.onchange=()=>startMapLineMode(selector.value);
  $('plannerName').value=line?.name||((SERVICES[award.service]?.name||'RB')+' '+S.nextLine);
- $('plannerFeedback').textContent='Lade geeignete Haltestellen im Verkehrsnetz …';
+ $('plannerFeedback').textContent='Lade geeignete Haltestellen im Verkehrsnetz …';renderPlannerTrains();
  closePanels();$('mapLinePlanner').hidden=false;redrawMapLineMode();
  const j=JOBS.find(x=>x.id===contractId),a=station(j.a),b=station(j.b);
  map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[70,70],maxZoom:12});
@@ -581,25 +606,8 @@ function startMapLineMode(contractId,lineId=null){
     .bindTooltip(st.name,{direction:'top'})
     .on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
   }
-  redrawMapLineModePreservingCandidates(candidates);
+  mapLineMode.candidates=candidates;redrawMapLineMode();
  });
-}
-function redrawMapLineModePreservingCandidates(candidates){
- if(!mapLineMode||!map)return;
- // Die Kandidaten nach jedem Tipp erhalten, statt sie mit dem Nummern-Overlay zu löschen.
- if(!mapLineMarkers)mapLineMarkers=L.layerGroup().addTo(map);
- mapLineMarkers.clearLayers();
- for(const st of candidates){
-  L.circleMarker([st.lat,st.lng],{radius:7,color:'#fff5df',fillColor:'#297bbd',fillOpacity:.95,weight:2})
-  .bindTooltip(st.name,{direction:'top'}).on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
- }
- for(const [i,s] of mapLineMode.stops.entries()){
-  L.circleMarker([s.lat,s.lng],{radius:11,weight:3,color:'#fff',fillColor:'#ee9634',fillOpacity:.95})
-   .bindTooltip(String(i+1),{permanent:true,direction:'center',className:'stopNumber'}).on('click',()=>addMapStop(s)).addTo(mapLineMarkers);
- }
- $('plannerStops').replaceChildren(...mapLineMode.stops.map(s=>textel('li',s.name)));
- $('plannerUndo').disabled=!mapLineMode.stops.length;
- $('plannerInstructions').textContent=mapLineMode.stops.length+' Halte gewählt · Tippe weitere Halte an oder speichere die Linie.';
 }
 $('plannerExit').onclick=stopMapLineMode;
 $('plannerUndo').onclick=()=>{if(mapLineMode){mapLineMode.stops.pop();redrawMapLineMode();}};
@@ -614,9 +622,11 @@ $('plannerSave').onclick=()=>{
  const line={id,contractId:j.id,name:title,interval:existing?.interval||60,stops:mapLineMode.stops.map(x=>({...x})),created:existing?.created||S.day};
  invalidateLineRoute(id);
  if(existing)S.lines=S.lines.map(l=>l.id===id?line:l);else S.lines.push(line);
+ for(const t of S.fleet){if(t.operatingLine===id&&!mapLineMode.selectedTrains.has(t.id))t.operatingLine=null;else if(t.line===j.id&&mapLineMode.selectedTrains.has(t.id)&&(!t.operatingLine||t.operatingLine===id))t.operatingLine=id;}
  log('Linie '+title+' auf Karte erstellt · '+line.stops.length+' Halte.');save();
  stopMapLineMode();render();showLineOnMap(line);
- note('Linie gespeichert. Unter 🗺️ kannst du passende Züge reservieren und den Fahrweg berechnen.');
+ if(S.fleet.some(t=>t.operatingLine===line.id))activateLineRide(line.id);
+ else note('Linie gespeichert. Weise im Linieneditor einen Zug zu, um die Live-Fahrt zu starten.');
 };
 function editLine(contractId,lineId=null){
  const j=JOBS.find(x=>x.id===contractId),award=S.awards.find(a=>a.id===contractId),old=S.lines.find(l=>l.id===lineId);
