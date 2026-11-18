@@ -191,9 +191,32 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 #map .leaflet-control-attribution{background:#f9fffbe6!important;color:#315255!important}
 #mapTop{box-shadow:0 5px 18px #23463b45!important}
 #selected{box-shadow:0 3px 12px #23463b40!important}
+
+#mapLinePlanner{position:absolute;top:12px;right:12px;z-index:1100;width:min(330px,calc(100vw - 82px));max-height:calc(100% - 24px);overflow:auto;background:#fff9eafa;border:2px solid #d19e58;color:#204148;box-shadow:0 10px 30px #152f4480;border-radius:15px;padding:12px;display:grid;gap:7px}
+#mapLinePlanner[hidden]{display:none}
+#mapLinePlanner .plannerHead{display:flex;justify-content:space-between;align-items:center}
+#mapLinePlanner .plannerHead strong{font-size:15px}
+#mapLinePlanner .plannerHead button{min-height:32px}
+#mapLinePlanner label{color:#385257;margin:2px 0 0}
+#mapLinePlanner select,#mapLinePlanner input{width:100%;background:#fff;color:#22434c;border:1px solid #aac4bc;border-radius:8px;padding:9px}
+#mapLinePlanner ol{margin:3px 0;padding-left:27px;max-height:145px;overflow:auto;font-size:12px}
+#mapLinePlanner li{padding:3px}
+#mapLinePlanner .plannerButtons{display:flex;gap:6px}
+#mapLinePlanner .plannerButtons button{font-size:11px;flex:1}
+#plannerFeedback,#plannerInstructions{font-size:11px;line-height:1.4;margin:0}
+.stopNumber{background:#f3a538!important;color:#fff!important;border:0!important;box-shadow:none!important;font-weight:800}
+@media(max-width:700px){#mapLinePlanner{top:7px;right:7px;width:min(270px,calc(100vw - 62px));padding:9px;gap:5px}#mapLinePlanner ol{max-height:95px}}
+#plannerTrainOptions{display:grid;gap:5px;border-top:1px solid #cfba92;padding-top:8px}
+#plannerTrainOptions strong{font-size:11px}
+#plannerTrainOptions label{display:flex;gap:8px;align-items:center;font-size:11px;color:#244953}
+#plannerTrainOptions input{width:17px!important;height:17px;accent-color:#149d7a}
+#plannerTrainOptions small{color:#657c80;font-size:11px}
+
+.liveTrainIcon{background:transparent;border:0;pointer-events:auto}
+.liveTrainIcon div{width:36px;height:36px;border-radius:50%;background:#fffdf2;border:3px solid #12a486;display:grid;place-items:center;font-size:19px;box-shadow:0 0 0 3px #00d5bd4d,0 4px 12px #113b4a98}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.1 · SPIELWELT</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.2 · LIVE-VERKEHR</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
@@ -203,7 +226,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="mapLinePlanner" hidden><div class="plannerHead"><strong>🛤️ Linie auf der Karte bauen</strong><button id="plannerExit" title="Linienbau beenden">✕</button></div><label for="plannerNetwork">Gewonnenes Verkehrsnetz</label><select id="plannerNetwork"></select><label for="plannerName">Linienname</label><input type="text" id="plannerName" maxlength="40" placeholder="z. B. S 3"><div id="plannerInstructions">Tippe die Halte in der gewünschten Reihenfolge auf der Karte an.</div><div id="plannerTrainOptions"></div><ol id="plannerStops"></ol><div class="plannerButtons"><button id="plannerUndo">↶ Letzten Halt</button><button id="plannerSave" class="primary">✓ Linie speichern</button></div><p id="plannerFeedback"></p></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -238,7 +261,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){note('
 function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet))S=x;S.customStations=S.customStations||[];S.lines=Array.isArray(S.lines)?S.lines:[];S.nextLine=Number.isInteger(S.nextLine)?S.nextLine:1;for(const st of S.customStations)dyn.set(st.id,st);}catch(e){}}
 function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.');return false;}S.money-=n;S.totalSpent+=n;return true;}
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
-function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent='Standort auswählen';b.onclick=()=>{select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
+function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent=mapLineMode?'＋ Als Linienhalt hinzufügen':'Standort auswählen';b.onclick=()=>{if(mapLineMode)addMapStop(s);else select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
 function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"><span>🚉</span></div>',iconSize:[32,32],iconAnchor:[16,16]});}
 function renderMap(){
  if(!map)return;
@@ -249,7 +272,7 @@ function renderMap(){
  for(const award of S.awards){const result=routeCache[award.id];if(!result?.points?.length)continue;L.polyline(result.points,{weight:7,color:'#fff7e6',opacity:.9,interactive:false}).addTo(connections);L.polyline(result.points,{weight:4,color:'#0fba98',opacity:.94,interactive:false}).addTo(connections);}
  for(const s of [...ST,...(S.customStations||[])]){
    const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);
-   m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));m.bindTooltip(s.name,{direction:'top',offset:[0,-13]});
+   m.bindPopup(()=>stationPopup(s));m.on('click',()=>{if(mapLineMode)addMapStop(s);else select(s);});m.bindTooltip(s.name,{direction:'top',offset:[0,-13]});
  }
 }
 function scheduleRailLoad(){clearTimeout(railTimer);railTimer=setTimeout(loadRailGeometry,800);}
@@ -299,7 +322,7 @@ $('mapStatus').textContent='Lade Bahnhöfe und Haltepunkte aus OpenStreetMap …
 const ctl=new AbortController();setTimeout(()=>ctl.abort(),18000);
 fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctl.signal})
 .then(r=>{if(!r.ok)throw Error('Status '+r.status);return r.json();}).then(v=>{if(token!==loadToken)return;stopsLayer.clearLayers();let found=0;
-for(const n of v.elements||[]){const lat=n.lat||(n.center&&n.center.lat),lng=n.lon||(n.center&&n.center.lon),name=n.tags&&n.tags.name;if(!name||!Number.isFinite(lat)||!Number.isFinite(lng))continue;const id='osm-'+n.type+'-'+n.id,s={id,lat,lng,name};dyn.set(id,s);const m=L.circleMarker([lat,lng],{radius:5,color:'#33617e',weight:1,fillColor:S.owned.includes(id)?'#43d9ab':'#f6d581',fillOpacity:.9}).addTo(stopsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));found++;}
+for(const n of v.elements||[]){const lat=n.lat||(n.center&&n.center.lat),lng=n.lon||(n.center&&n.center.lon),name=n.tags&&n.tags.name;if(!name||!Number.isFinite(lat)||!Number.isFinite(lng))continue;const id='osm-'+n.type+'-'+n.id,s={id,lat,lng,name};dyn.set(id,s);const m=L.circleMarker([lat,lng],{radius:5,color:'#33617e',weight:1,fillColor:S.owned.includes(id)?'#43d9ab':'#f6d581',fillOpacity:.9}).addTo(stopsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>{if(mapLineMode)addMapStop(s);else select(s);});found++;}
 $('mapStatus').textContent=found+' reale Bahnhöfe/Haltepunkte geladen (OpenStreetMap).';})
 .catch(()=>{$('mapStatus').textContent='Stationsdienst gerade nicht erreichbar; Hauptbahnhöfe bleiben verfügbar.';});}
 function build(){if(!selected){note('Bitte zuerst einen Bahnhof auf der Karte wählen.');return;}if(S.owned.includes(selected.id))return;if(!debit(28000))return;S.owned.push(selected.id);if(selected.id.startsWith('osm-')&&!S.customStations.some(x=>x.id===selected.id))S.customStations.push({...selected});log(selected.name+' als Betriebsstelle erschlossen.');save();render();note('Neue Betriebsstelle: '+selected.name);}
@@ -346,8 +369,8 @@ function nearestTrackNodes(graph,point,limit=12){
  }
  return found.length?found.filter(node=>node.dist<=Math.min(1.8,found[0].dist+.16)):found;
 }
-function shortestRailPath(graph,from,to){
- const starts=nearestTrackNodes(graph,from),ends=nearestTrackNodes(graph,to);
+function shortestRailPath(graph,from,to,fromNode=null,toNode=null){
+ const starts=fromNode?[{id:fromNode,dist:0}]:nearestTrackNodes(graph,from),ends=toNode?[{id:toNode,dist:0}]:nearestTrackNodes(graph,to);
  if(!starts.length||!ends.length)return null;
  const endSet=new Set(ends.map(x=>x.id)),endDist=new Map(ends.map(x=>[x.id,x.dist]));
  const heap=[],cost=new Map(),prev=new Map();
@@ -446,6 +469,7 @@ function showTenderOnMap(id){
    Die Option einer OSM-Haltestelle ist eine Planungsoption, keine Behauptung
    über tatsächliche Erreichbarkeit auf genau diesem Gleis. */
 const lineStopsCache=new Map();
+let mapLineMode=null,mapLineMarkers=null;
 let lineStopsRequest=null,lineLoadSerial=0,linePreviewLayer=null;
 function lateralKm(p,a,b){
  const xscale=Math.cos((a[0]+b[0])*Math.PI/360),ax=a[1]*xscale,ay=a[0],bx=b[1]*xscale,by=b[0],px=p[1]*xscale,py=p[0];
@@ -498,6 +522,237 @@ async function stationCandidates(j,feedback){
 function lineStation(id,line){
  const snapshot=line?.stops?.find(x=>x.id===id);
  return station(id)||snapshot;
+}
+
+/* Karteneditor: nur nach Zuschlag, Stationen liegen auf dem gewonnenen
+   Korridor. Auswahl bedeutet NICHT automatisch einen befahrbaren Gleisweg. */
+function stopInsideNetwork(j,s){
+ const a=station(j.a),b=station(j.b);if(!a||!b||!s)return false;
+ if(s.id===j.a||s.id===j.b)return true;
+ const path=routeCache[j.id]?.points;
+ const test=path?.length>1?routeStopPosition([s.lat,s.lng],path):lateralKm([s.lat,s.lng],[a.lat,a.lng],[b.lat,b.lng]);
+ return test.offset<=(path?.length>1?2.4:5)&&test.position>=.01&&test.position<=.99;
+}
+function redrawMapLineMode(){
+ if(!mapLineMode||!map)return;
+ const state=mapLineMode;
+ if(!mapLineMarkers)mapLineMarkers=L.layerGroup().addTo(map);
+ mapLineMarkers.clearLayers();
+ for(const st of state.candidates||[]){
+  if(state.stops.some(s=>s.id===st.id))continue;
+  L.circleMarker([st.lat,st.lng],{radius:8,color:'#fff5df',fillColor:'#2479bf',fillOpacity:.97,weight:2})
+   .bindTooltip(st.name,{direction:'top'}).on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
+ }
+ for(const [i,st] of state.stops.entries()){
+  L.circleMarker([st.lat,st.lng],{radius:12,color:'#fff',weight:3,fillColor:'#ee9634',fillOpacity:.98})
+   .bindTooltip(String(i+1),{permanent:true,direction:'center',className:'stopNumber'}).addTo(mapLineMarkers);
+ }
+ $('plannerStops').replaceChildren(...state.stops.map(st=>textel('li',st.name)));
+ $('plannerUndo').disabled=!state.stops.length;
+ $('plannerInstructions').textContent=state.stops.length+' Halte ausgewählt. Tippe weitere Stationen an oder speichere die Linie.';
+}
+function renderPlannerTrains(){
+ if(!mapLineMode)return;
+ const box=$('plannerTrainOptions');box.replaceChildren();
+ const heading=document.createElement('strong');heading.textContent='🚆 Züge für diese Linie';box.append(heading);
+ const trains=S.fleet.filter(t=>t.line===mapLineMode.contractId);
+ if(!trains.length){box.append(textel('small','Noch kein Zug zugeteilt. Im Fuhrpark kannst du Fahrzeuge dem Verkehrsvertrag zuordnen.'));return;}
+ for(const train of trains){
+  const row=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';
+  cb.checked=mapLineMode.selectedTrains.has(train.id);
+  cb.disabled=!!train.operatingLine&&train.operatingLine!==mapLineMode.lineId;
+  cb.onchange=()=>{if(cb.checked)mapLineMode.selectedTrains.add(train.id);else mapLineMode.selectedTrains.delete(train.id);};
+  row.append(cb,textel('span','Zug '+train.id+' · '+TYPES[train.type].name));box.append(row);
+ }
+}
+function addMapStop(s){
+ if(!mapLineMode)return;
+ const j=JOBS.find(x=>x.id===mapLineMode.contractId);
+ if(!j||!stopInsideNetwork(j,s)){ $('plannerFeedback').textContent='Diese Station liegt außerhalb des gewonnenen Netzkorridors.';return;}
+ if(mapLineMode.stops.some(x=>x.id===s.id)){ $('plannerFeedback').textContent='Dieser Halt ist bereits in der Linie.';return;}
+ if(mapLineMode.stops.length>=30){$('plannerFeedback').textContent='Maximal 30 Haltestellen pro Linie.';return;}
+ mapLineMode.stops.push({id:s.id,name:s.name,lat:s.lat,lng:s.lng});
+ $('plannerFeedback').textContent='✓ '+s.name+' hinzugefügt.';
+ redrawMapLineMode();
+}
+function stopMapLineMode(){
+ mapLineMode=null;$('mapLinePlanner').hidden=true;
+ if(mapLineMarkers)mapLineMarkers.clearLayers();
+ $('showLines').classList.remove('selected');$('showLines').setAttribute('aria-expanded','false');
+}
+function startMapLineMode(contractId,lineId=null){
+ if(!map){note('Die Karte muss zuerst geladen sein.');return;}
+ const award=S.awards.find(a=>a.id===contractId);if(!award){note('Zum Linienbau musst du das Verkehrsnetz zuerst gewinnen.');return;}
+ const line=S.lines.find(l=>l.id===lineId);
+ mapLineMode={contractId,lineId,stops:(line?.stops||[]).map(s=>({...s})),candidates:[],selectedTrains:new Set(S.fleet.filter(t=>t.operatingLine===lineId).map(t=>t.id))};
+ const selector=$('plannerNetwork');selector.replaceChildren();
+ for(const a of S.awards){const j=JOBS.find(j=>j.id===a.id);if(j)selector.append(new Option(j.name,j.id));}
+ selector.value=contractId;selector.onchange=()=>startMapLineMode(selector.value);
+ $('plannerName').value=line?.name||((SERVICES[award.service]?.name||'RB')+' '+S.nextLine);
+ $('plannerFeedback').textContent='Lade geeignete Haltestellen im Verkehrsnetz …';renderPlannerTrains();
+ closePanels();$('mapLinePlanner').hidden=false;redrawMapLineMode();
+ const j=JOBS.find(x=>x.id===contractId),a=station(j.a),b=station(j.b);
+ map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[70,70],maxZoom:12});
+ if(map.getZoom()<10)map.setZoom(10);
+ // Overpass-Ergebnisse aus dem bestehenden Stationsdienst im Korridor sichtbar machen.
+ const feedback=$('plannerFeedback');
+ stationCandidates(j,feedback).then(candidates=>{
+  if(!mapLineMode||mapLineMode.contractId!==contractId)return;
+  for(const st of candidates){
+   dyn.set(st.id,st);
+  }
+  // Dynamische Stationsmarker werden im selben grünen/gelben Kartenstil angezeigt.
+  renderMap();
+  if(!mapLineMarkers)mapLineMarkers=L.layerGroup().addTo(map);
+  for(const st of candidates){
+   if(ST.some(s=>s.id===st.id))continue;
+   L.circleMarker([st.lat,st.lng],{radius:7,color:'#f8f4dc',fillColor:'#258cdb',fillOpacity:.95,weight:2})
+    .bindTooltip(st.name,{direction:'top'})
+    .on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
+  }
+  mapLineMode.candidates=candidates;redrawMapLineMode();
+ });
+}
+$('plannerExit').onclick=stopMapLineMode;
+$('plannerUndo').onclick=()=>{if(mapLineMode){mapLineMode.stops.pop();redrawMapLineMode();}};
+$('plannerSave').onclick=()=>{
+ if(!mapLineMode)return;
+ const j=JOBS.find(x=>x.id===mapLineMode.contractId);
+ if(!j||!S.awards.some(a=>a.id===j.id)){note('Kein gültiger Verkehrsvertrag.');return;}
+ const title=$('plannerName').value.trim();
+ if(!title){$('plannerFeedback').textContent='Bitte einen Liniennamen eingeben.';return;}
+ if(mapLineMode.stops.length<2){$('plannerFeedback').textContent='Bitte mindestens zwei Haltestellen antippen.';return;}
+ const existing=S.lines.find(l=>l.id===mapLineMode.lineId),id=existing?.id||'LINE'+S.nextLine++;
+ const line={id,contractId:j.id,name:title,interval:existing?.interval||60,stops:mapLineMode.stops.map(x=>({...x})),created:existing?.created||S.day};
+ invalidateLineRoute(id);
+ if(existing)S.lines=S.lines.map(l=>l.id===id?line:l);else S.lines.push(line);
+ for(const t of S.fleet){if(t.operatingLine===id&&!mapLineMode.selectedTrains.has(t.id))t.operatingLine=null;else if(t.line===j.id&&mapLineMode.selectedTrains.has(t.id)&&(!t.operatingLine||t.operatingLine===id))t.operatingLine=id;}
+ log('Linie '+title+' auf Karte erstellt · '+line.stops.length+' Halte.');save();
+ stopMapLineMode();render();showLineOnMap(line);
+ if(S.fleet.some(t=>t.operatingLine===line.id))activateLineRide(line.id);
+ else note('Linie gespeichert. Weise im Linieneditor einen Zug zu, um die Live-Fahrt zu starten.');
+};
+
+/* Zug-Liveansicht: Keine erfundenen Luftlinien. Für jedes Haltepaar
+   werden zusammenhängende OSM-Bahn-Knoten geprüft. */
+const LIVE_ROUTE_KEY='railway_empire_live_line_routes_v1';
+let liveRouteCache={};try{liveRouteCache=JSON.parse(localStorage.getItem(LIVE_ROUTE_KEY)||'{}')||{};}catch(e){}
+let liveTrips=new Map(),liveClock=0,liveAnimation=0,liveLoading=new Set(),liveAbortController=null;
+function lineSignature(line){return line.stops.map(s=>s.id+':'+s.lat.toFixed(5)+','+s.lng.toFixed(5)).join('|');}
+function invalidateLineRoute(id){
+ delete liveRouteCache[id];try{localStorage.setItem(LIVE_ROUTE_KEY,JSON.stringify(liveRouteCache));}catch(e){}
+ const trip=liveTrips.get(id);if(trip){if(map&&trip.layer)map.removeLayer(trip.layer);liveTrips.delete(id);}
+}
+function distanceArray(points){
+ const cumulative=[0];for(let i=1;i<points.length;i++)cumulative.push(cumulative[i-1]+degKm(points[i-1],points[i]));
+ return cumulative;
+}
+function onRailAtDistance(points,cumulative,km){
+ let lo=1,hi=cumulative.length-1;while(lo<hi){let m=(lo+hi)>>1;if(cumulative[m]<km)lo=m+1;else hi=m;}
+ const i=lo,a=points[i-1],b=points[i],den=cumulative[i]-cumulative[i-1],f=den>0?Math.max(0,Math.min(1,(km-cumulative[i-1])/den)):0;
+ return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
+}
+function paintLiveTrains(now){
+ liveAnimation=requestAnimationFrame(paintLiveTrains);
+ for(const [id,ride] of liveTrips){
+  const trains=S.fleet.filter(t=>t.operatingLine===id&&t.line===ride.contractId);
+  if(!trains.length){if(ride.layer)map.removeLayer(ride.layer);liveTrips.delete(id);continue;}
+  const seen=new Set(trains.map(t=>t.id));
+  for(const [tid,m] of ride.markers)if(!seen.has(tid)){ride.layer.removeLayer(m);ride.markers.delete(tid);}
+  const total=ride.distance[ride.distance.length-1],duration=Math.max(35000,Math.min(240000,total*2100)); // beschleunigte Spielzeit
+  for(const [index,t]of trains.entries()){
+   let m=ride.markers.get(t.id);
+   if(!m){
+    const icon=L.divIcon({className:'liveTrainIcon',html:'<div>🚆</div>',iconSize:[36,36],iconAnchor:[18,18]});
+    m=L.marker(ride.points[0],{icon,zIndexOffset:900});ride.layer.addLayer(m);
+    m.bindTooltip('Zug '+t.id+' · '+ride.name+' · simulierte Fahrt auf OSM-Gleisen');
+    ride.markers.set(t.id,m);
+   }
+   const tms=((now-ride.started+(index*duration/Math.max(1,trains.length)))%(duration*2)+duration*2)%(duration*2);
+   const fraction=tms<=duration?tms/duration:2-tms/duration;
+   m.setLatLng(onRailAtDistance(ride.points,ride.distance,total*fraction));
+  }
+ }
+}
+function liveRouteFromExisting(line){
+ const contract=routeCache[line.contractId];
+ if(!contract?.points?.length||!line.stops?.length)return null;
+ const positions=line.stops.map(s=>routeStopPosition([s.lat,s.lng],contract.points));
+ if(positions.some(x=>!x||x.offset>0.8))return null;
+ const increasing=positions.every((p,i)=>!i||p.position>positions[i-1].position);
+ const decreasing=positions.every((p,i)=>!i||p.position<positions[i-1].position);
+ if(!increasing&&!decreasing)return null;
+ const path=increasing?contract.points:contract.points.slice().reverse();
+ // Nur das Segment zwischen Start und Ziel des Spielerplans zeigen.
+ const ab=line.stops[0],zb=line.stops.at(-1);
+ const ia=path.reduce((best,p,i)=>degKm(p,[ab.lat,ab.lng])<degKm(path[best],[ab.lat,ab.lng])?i:best,0);
+ const ib=path.reduce((best,p,i)=>degKm(p,[zb.lat,zb.lng])<degKm(path[best],[zb.lat,zb.lng])?i:best,0);
+ if(ib<=ia||ib-ia<2)return null;
+ return {points:path.slice(ia,ib+1)};
+}
+async function calculateLiveLine(line){
+ const reused=liveRouteCache[line.id];
+ if(reused?.signature===lineSignature(line)&&reused.points?.length>1)return reused;
+ const existing=liveRouteFromExisting(line);
+ if(existing)return {...existing,signature:lineSignature(line)};
+ const points=line.stops;
+ const south=Math.min(...points.map(p=>p.lat))-.045,north=Math.max(...points.map(p=>p.lat))+.045,
+ west=Math.min(...points.map(p=>p.lng))-.045,east=Math.max(...points.map(p=>p.lng))+.045;
+ if((north-south)*(east-west)>.68)throw Error('Netz für eine Live-Abfrage zu groß. Diese Region folgt in einem späteren Ausbau.');
+ if(liveAbortController)liveAbortController.abort();
+ const controller=new AbortController();liveAbortController=controller;
+ const timer=setTimeout(()=>controller.abort(),45000);
+ try{
+  const bbox=[south,west,north,east].map(x=>x.toFixed(5)).join(',');
+  const query='[out:json][timeout:37];way["railway"="rail"]('+bbox+');out geom;';
+  const resp=await fetch('https://overpass.kumi.systems/api/interpreter',{
+    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'data='+encodeURIComponent(query),signal:controller.signal});
+  if(!resp.ok)throw Error('Gleisdaten HTTP '+resp.status);
+  const data=await resp.json(),graph=graphFromWays(data.elements);
+  if(!graph.ways)throw Error('Keine Gleisdaten gefunden.');
+  const snaps=points.map(p=>nearestTrackNodes(graph,[p.lat,p.lng])[0]);
+  for(let i=0;i<snaps.length;i++)if(!snaps[i]||snaps[i].dist>.8)throw Error('Haltestelle '+points[i].name+' liegt nicht nachweisbar an der berechneten Bahnstrecke.');
+  let full=[];
+  for(let i=1;i<points.length;i++){
+   const a=points[i-1],b=points[i],segment=shortestRailPath(graph,[a.lat,a.lng],[b.lat,b.lng],snaps[i-1].id,snaps[i].id);
+   if(!segment||!segment.points?.length)throw Error('Kein durchgehendes Gleis zwischen '+a.name+' und '+b.name+' nachgewiesen.');
+   if(full.length){
+    if(degKm(full.at(-1),segment.points[0])>.06)throw Error('Gleisverbindung bei '+a.name+' nicht eindeutig. Keine falsche Fahrstrecke zeichnen.');
+    full.push(...segment.points.slice(1));
+   }else full=segment.points.slice();
+  }
+  if(full.length<2)throw Error('Zu wenige Gleispunkte gefunden.');
+  return{points:full,signature:lineSignature(line)};
+ }finally{clearTimeout(timer);if(liveAbortController===controller)liveAbortController=null;}
+}
+async function activateLineRide(id){
+ const line=S.lines.find(x=>x.id===id);
+ if(!line||!S.awards.some(a=>a.id===line.contractId)){note('Die Linie benötigt einen gewonnenen Verkehrsvertrag.');return;}
+ const trains=S.fleet.filter(t=>t.operatingLine===line.id&&t.line===line.contractId);
+ if(!trains.length){note('Weise der Linie erst im Linieneditor oder Karten-Baumodus einen Zug zu.');return;}
+ if(liveTrips.has(id)){const ride=liveTrips.get(id);map.fitBounds(L.latLngBounds(ride.points),{padding:[55,55]});note('Live-Züge für '+line.name+' bereits unterwegs.');return;}
+ if(liveLoading.has(id))return;
+ liveLoading.add(id);note('Berechne zusammenhängende OSM-Gleise für '+line.name+' …');
+ try{
+  const result=await calculateLiveLine(line);
+  if(!S.lines.some(x=>x.id===id&&lineSignature(x)===result.signature))return;
+  liveRouteCache[id]=result;try{localStorage.setItem(LIVE_ROUTE_KEY,JSON.stringify(liveRouteCache));}catch(e){}
+  const layer=L.layerGroup().addTo(map),route=L.polyline(result.points,{color:'#0ea7c1',weight:5,opacity:.91}).addTo(layer);
+  route.bindPopup('Live-Linie '+line.name+' · Route aus zusammenhängenden OSM-Gleisen');
+  const ride={name:line.name,contractId:line.contractId,points:result.points,distance:distanceArray(result.points),started:performance.now(),layer,markers:new Map()};
+  liveTrips.set(id,ride);if(!liveAnimation)liveAnimation=requestAnimationFrame(paintLiveTrains);
+  map.fitBounds(route.getBounds(),{padding:[50,50]});
+  note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren jetzt live auf der berechneten Gleisroute.');
+ }catch(err){note('Keine Live-Zugfahrt: '+err.message);$('railDetail').textContent=err.message;}
+ finally{liveLoading.delete(id);}
+}
+function restoreLiveTrips(){
+ if(!map)return;
+ for(const line of S.lines){
+  if(!S.fleet.some(t=>t.operatingLine===line.id))continue;
+  if(liveRouteCache[line.id]?.signature===lineSignature(line))activateLineRide(line.id);
+ }
 }
 function editLine(contractId,lineId=null){
  const j=JOBS.find(x=>x.id===contractId),award=S.awards.find(a=>a.id===contractId),old=S.lines.find(l=>l.id===lineId);
@@ -568,7 +823,7 @@ function editLine(contractId,lineId=null){
   const between=choices.filter(x=>selectedStops.has(x.id)&&x.id!==start.id&&x.id!==end.id&&x.position>lo&&x.position<hi).sort((a,b)=>start.position<end.position?a.position-b.position:b.position-a.position);
   const stops=[start,...between,end];
   if(stops.length>30){note('Maximal 28 Zwischenhalte pro Linie.');return false;}
-  const record={id:old?.id||'LINE'+S.nextLine++,contractId:j.id,name:title,interval:Number(frequency.value),stops,created:old?.created||S.day};
+  const record={id:old?.id||'LINE'+S.nextLine++,contractId:j.id,name:title,interval:Number(frequency.value),stops,created:old?.created||S.day};invalidateLineRoute(record.id);
   if(old)S.lines=S.lines.map(x=>x.id===old.id?record:x);else S.lines.push(record);
   for(const t of S.fleet)if(t.operatingLine===record.id&&!selectedTrainIds.has(t.id))t.operatingLine=null;
   for(const t of availableVehicles)if(selectedTrainIds.has(t.id)&&(!t.operatingLine||t.operatingLine===record.id))t.operatingLine=record.id;
@@ -601,16 +856,16 @@ function renderLines(){
   const j=JOBS.find(x=>x.id===a.id);if(!j)continue;
   const section=document.createElement('div');section.className='tender';
   section.appendChild(textel('strong',j.name));section.appendChild(textel('div',(SERVICES[a.service]?.name||'Regionalbahn')+' · '+station(j.a).name+' – '+station(j.b).name));
-  const add=textel('button','＋ Neue Linie planen');add.onclick=()=>editLine(a.id);section.appendChild(add);
+  const add=textel('button','📍 Linie per Karte erstellen');add.onclick=()=>startMapLineMode(a.id);section.appendChild(add);const detailed=textel('button','⚙️ Erweiterter Linieneditor');detailed.onclick=()=>editLine(a.id);section.appendChild(detailed);
   const lines=S.lines.filter(x=>x.contractId===j.id);
   for(const l of lines){
    const item=document.createElement('div');item.className='lineItem';
    const trainCount=S.fleet.filter(t=>t.operatingLine===l.id).length;
    item.append(textel('strong',l.name),textel('div',l.stops.length+' Halte · '+l.interval+'-Min.-Takt · '+trainCount+' Züge vorgemerkt'));
    const actions=document.createElement('div');actions.className='lineActions';
-   const edit=textel('button','✏️ Halte');edit.onclick=()=>editLine(a.id,l.id);
+   const edit=textel('button','📍 Auf Karte ändern');edit.onclick=()=>startMapLineMode(a.id,l.id);
    const view=textel('button','🗺️ Karte');view.onclick=()=>showLineOnMap(l);
-   actions.append(edit,view);item.append(actions);section.append(item);
+   const ride=textel('button','🚆 Fahrt');ride.onclick=()=>activateLineRide(l.id);actions.append(edit,view,ride);item.append(actions);section.append(item);
   }
   host.append(section);
  }
@@ -758,7 +1013,7 @@ function initMap(){
  map.on('moveend',()=>{loadStops(false);if(railVisible)scheduleRailLoad();});
  renderMap();
 }
-$('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
+$('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){for(const ride of liveTrips.values())if(map&&ride.layer)map.removeLayer(ride.layer);liveTrips.clear();stopMapLineMode();S=fresh();selected=null;save();render();}};
 $('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');$('acceptDialog').textContent='Angebot abgeben';action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
@@ -775,7 +1030,7 @@ const TUTORIAL_STEPS=[
  {title:'So bewirbst du dich auf ein Verkehrsnetz',text:'Tippe auf 🏆 Aufträge. Hier stehen die Ausschreibungen. Beginne mit „Mitteldeutsches S-Bahn-Netz“ zwischen Leipzig und Halle. Tippe auf „Angebot erstellen“, solange die Frist noch läuft.',tip:'Jedes Los hat eine Bewerbungsfrist und eine Mindestanzahl an Fahrten. Bei einem gewonnenen Los entsteht dein Verkehrsvertrag – keine frei gezeichnete Strecke.',action:'🏆 Ausschreibungen öffnen',open:'tenders'},
  {title:'So funktioniert ein Angebot',text:'Im Bewerbungsfenster legst du fest: ① Betriebsart (S-Bahn, RB oder RE), ② Preis pro Betriebstag, ③ Fahrten pro Tag, ④ Fahrzeugtyp und ⑤ Anzahl der Züge. Das Mitteldeutsche Netz schreibt S-Bahn vor.',tip:'Preis zu hoch? Schlechtere Zuschlagschance. Zu wenige Plätze? Angebot nicht zulässig. Fehlende Fahrzeuge kosten Geld, wenn du gewinnst. Die Bewerbung kostet 1.200 €.',action:'📝 Beispielangebot öffnen',open:'offer'},
  {title:'Was passiert nach der Bewerbung?',text:'Mit „Angebot abgeben“ reichst du dein Gebot ein. Anschließend tippe oben auf „▶ Nächster Tag“. Die Vergabe entscheidet anhand von Angebotspreis, Ruf, Fahrten und Fahrzeugkapazität, ob du das Los bekommst.',tip:'Der Zuschlag ist nicht garantiert. Bei einer Ablehnung kannst du dich auf andere noch offene Lose bewerben.',action:'📋 Bewerbungen prüfen',open:'tenders'},
- {title:'Deine eigenen Linien und Zwischenhalte',text:'Nach einem gewonnenen Los erscheint unter 🗺️ Linien dein Netz. Erstelle dort mehrere eigene Linien, wähle echte Start- und Endbahnhöfe, Zwischenhalte sowie einen Takt. Über 🚆 prüfst du die zugeordneten Fahrzeuge.',tip:'Der Linieneditor speichert zunächst einen Halte- und Taktplan. Die exakte Befahrbarkeit jedes Zwischenhalts und individuelle Fahrplanumläufe sind noch nicht simuliert.',action:'🗺️ Linieneditor öffnen',open:'lines'},
+ {title:'Deine eigenen Linien direkt auf der Karte',text:'Nach einem gewonnenen Los öffne 🗺️ Linien und wähle „Linie per Karte erstellen“. Tippe Startbahnhof, Zwischenhalte und Ziel direkt auf der Karte an. Im Kartenmenü legst du den Liniennamen fest und wählst vorhandene Vertragszüge aus.',tip:'Bei verifizierter Gleisverbindung fahren diese Züge danach animiert auf der Karte. Wenn OSM keinen durchgehenden Weg liefert, bleibt die Linie als Plan erhalten und du siehst eine Fehlermeldung.',action:'🗺️ Linieneditor öffnen',open:'lines'},
  {title:'Geld verdienen und richtig wirtschaften',text:'Jeder abgeschlossene Betriebstag bringt Einnahmen aus deinen gewonnenen Verträgen – aber auch Fahrzeug-, Strecken- und Stationskosten. Reicht die eingesetzte Kapazität nicht, drohen Vertragsstrafen und Rufverlust.',tip:'Achte auf ausreichend Geld für Fahrzeuge, die Mindestfahrten, verfügbare Sitzplätze und deinen Unternehmensruf. Unter 💰 siehst du die Ergebnisse.',action:'💰 Finanzen öffnen',open:'finance'},
  {title:'Was schon geht – und was noch kommt',text:'Du kannst reale Bahnhöfe entdecken, Verkehrslose gewinnen, Fahrzeuge kaufen, Betriebsarten wählen und den täglichen Betrieb abrechnen. Die Testfahrt Leipzig–Halle zeigt bei erfolgreicher Datenabfrage einen Zug entlang verbundener Gleisgeometrie.',tip:'Noch nicht vorhanden: ein vollständiger individueller Fahrplan, überprüfte Gleisfahrten für jede geplante Linie und ein deutschlandweiter Zugbetrieb. Eigene Haltepläne kannst du bereits anlegen. Das Spiel wird schrittweise erweitert.',action:'✅ Tutorial abschließen',open:'finish'}
 ];
@@ -842,5 +1097,5 @@ $('toggleRail').onclick=()=>{$('showRail').click();$('toggleRail').classList.tog
 $('showInfo').onclick=()=>{const button=$('showInfo'),isOpen=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!isOpen));$('mapTop').style.display=isOpen?'none':'block';button.classList.toggle('selected',!isOpen);};
 $('panelScrim').onclick=closePanels;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();if($('dialog').classList.contains('show'))$('closeDialog').click();}});
-load();initMap();render();
+load();initMap();render();restoreLiveTrips();
 </script></body></html>
