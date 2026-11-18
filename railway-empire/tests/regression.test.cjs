@@ -144,3 +144,21 @@ test('Winning first Leipzig–Halle S-Bahn tender assigns and procures the promi
  assert.equal(lose.awards.length,0);
  assert.equal(lose.fleet.length,2);
 });
+
+test('Damaged save data cannot replace a healthy new game state',()=>{
+ const source=segment('function load(){','function debit(');
+ const restore=new Function('saved',
+  "let S={v:2,money:500000,day:1,owned:[],bids:[],awards:[],fleet:[],log:[],customStations:[],lines:[],nextLine:1};"+
+  "const KEY='save';const dyn=new Map();const localStorage={getItem:()=>JSON.stringify(saved)};"+
+  'function note(){};'+source+'load();return {S,dyn};');
+ const invalid=restore({v:2,money:'broken',day:2,owned:[],bids:[],awards:[],fleet:[],log:[]});
+ assert.equal(invalid.S.money,500000);
+ assert.equal(invalid.S.day,1);
+ const recovered=restore({v:2,money:200000,day:3,owned:[],bids:[],awards:[],fleet:[],log:[],
+  customStations:{not:'an array'},lines:'invalid',nextLine:-5});
+ assert.equal(recovered.S.money,200000);
+ assert.deepEqual(recovered.S.customStations,[]);
+ assert.deepEqual(recovered.S.lines,[]);
+ assert.equal(recovered.S.nextLine,1);
+ assert.equal(recovered.dyn.size,0);
+});
