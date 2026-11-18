@@ -219,6 +219,10 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 #trainClock button{width:36px;min-height:32px;height:32px;padding:0;border:0;background:transparent;box-shadow:none;font-size:17px}
 #trainClock select{width:55px;min-height:30px;height:30px;padding:2px 4px;border:0;background:#1a4754;color:#f5fafa;font-size:12px;border-radius:6px}
 @media(max-width:700px){#trainClock button{width:28px;font-size:15px}#trainClock select{width:43px;font-size:10px}#trainClock{gap:0;padding:2px}}
+
+#liveOperationStatus{position:absolute;z-index:660;bottom:12px;right:68px;background:#fffcf1f2;color:#155448;border:1px solid #7dd0b2;box-shadow:0 4px 14px #0e423e44;border-radius:12px;padding:9px 12px;font-size:11px;max-width:min(405px,calc(100vw - 152px));pointer-events:none;line-height:1.4}
+#liveOperationStatus.warning{color:#8c431d;border-color:#efb06a;background:#fff0d9f8}
+@media(max-width:700px){#liveOperationStatus{right:8px;bottom:6px;max-width:min(265px,calc(100vw - 65px));font-size:10px;padding:7px 9px}}
 </style></head>
 <body><div id="app">
 <header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.4 · SPIELTEST</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><div id="trainClock" title="Steuerung der Live-Zuganimation"><button id="pauseTrains" aria-label="Live-Züge pausieren" title="Zuganimation pausieren">⏸</button><select id="trainSpeed" aria-label="Geschwindigkeit der Zuganimation" title="Animationsgeschwindigkeit"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
@@ -231,7 +235,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 <div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div id="mapLinePlanner" hidden><div class="plannerHead"><strong>🛤️ Linie auf der Karte bauen</strong><button id="plannerExit" title="Linienbau beenden">✕</button></div><label for="plannerNetwork">Gewonnenes Verkehrsnetz</label><select id="plannerNetwork"></select><label for="plannerName">Linienname</label><input type="text" id="plannerName" maxlength="40" placeholder="z. B. S 3"><div id="plannerInstructions">Tippe die Halte in der gewünschten Reihenfolge auf der Karte an.</div><div id="plannerTrainOptions"></div><ol id="plannerStops"></ol><div class="plannerButtons"><button id="plannerUndo">↶ Letzten Halt</button><button id="plannerSave" class="primary">✓ Linie speichern</button></div><p id="plannerFeedback"></p></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
+<div id="mapShell"><div id="map"></div><div id="liveOperationStatus" role="status" aria-live="polite">🚉 Noch keine Live-Züge – Netz gewinnen, Linie planen und Züge zuweisen.</div><div id="mapLinePlanner" hidden><div class="plannerHead"><strong>🛤️ Linie auf der Karte bauen</strong><button id="plannerExit" title="Linienbau beenden">✕</button></div><label for="plannerNetwork">Gewonnenes Verkehrsnetz</label><select id="plannerNetwork"></select><label for="plannerName">Linienname</label><input type="text" id="plannerName" maxlength="40" placeholder="z. B. S 3"><div id="plannerInstructions">Tippe die Halte in der gewünschten Reihenfolge auf der Karte an.</div><div id="plannerTrainOptions"></div><ol id="plannerStops"></ol><div class="plannerButtons"><button id="plannerUndo">↶ Letzten Halt</button><button id="plannerSave" class="primary">✓ Linie speichern</button></div><p id="plannerFeedback"></p></div><div id="gettingStarted" role="region" aria-label="Interaktives Spieltutorial"><button id="closeStart" aria-label="Tutorial schließen" title="Schließen">×</button><span class="startOverline">🎓 DEINE EISENBAHN-AKADEMIE</span><strong id="startTitle">Willkommen bei Railway Empire</strong><div id="startProgress" aria-live="polite"></div><div id="tutorialBar"><span id="tutorialBarFill"></span></div><p id="startText"></p><div id="tutorialTip"></div><div id="tutorialActions"><button id="startBack" type="button">← Zurück</button><button id="startAction" class="primary" type="button">Weiter →</button></div><button id="startSkip" type="button">Tutorial überspringen</button></div><nav id="gameDock" aria-label="Spielmenü"><button id="showBuild" class="dockIcon" aria-label="Bauen und Strecken" title="Bauen und Strecken" aria-expanded="false" aria-controls="left">🏗️</button><button id="showContracts" class="dockIcon" aria-label="Verkehrsaufträge" title="Verkehrsaufträge" aria-expanded="false" aria-controls="right">🏆</button><button id="showLines" class="dockIcon" aria-label="Eigene Linien planen" title="Linieneditor" aria-expanded="false" aria-controls="right">🗺️</button><button id="showFleet" class="dockIcon" aria-label="Fahrzeuge und Fuhrpark" title="Fahrzeuge und Fuhrpark" aria-expanded="false" aria-controls="right">🚆</button><button id="showFinance" class="dockIcon" aria-label="Unternehmen und Finanzen" title="Unternehmen und Finanzen" aria-expanded="false" aria-controls="right">💰</button><span class="dockSep"></span><button id="showWorld" class="dockIcon" aria-label="Deutschlandkarte" title="Deutschlandkarte">🌍</button><button id="showHome" class="dockIcon" aria-label="Mein Streckennetz" title="Mein Streckennetz">📍</button><button id="toggleRail" class="dockIcon" aria-label="Technische Gleisdetails ein- und ausblenden" title="Technische Gleisdetails" aria-pressed="false">🛤️</button><button id="showInfo" class="dockIcon" aria-label="Karteninformationen" title="Karteninformationen" aria-expanded="false">ℹ️</button><button id="showHelp" class="dockIcon" aria-label="Spielanleitung öffnen" title="Spielanleitung öffnen">❔</button></nav><div id="panelScrim" aria-hidden="true"></div>
 <div class="floating" id="mapTop"><b>🗺️ Eisenbahnwelt</b><div id="railDetail">Reale Gleise auf der Karte entdecken.</div></div>
 <div class="floating" id="selected" aria-live="polite">📍 Bahnhof wählen</div>
 <div class="floating" id="mapBottom"><div id="notice" role="status" aria-live="polite"></div></div></div>
@@ -771,6 +775,7 @@ $('plannerSave').onclick=()=>{
 const LIVE_ROUTE_KEY='railway_empire_live_line_routes_v1';
 let liveRouteCache={};try{liveRouteCache=JSON.parse(localStorage.getItem(LIVE_ROUTE_KEY)||'{}')||{};}catch(e){}
 let liveTrips=new Map(),liveClock=0,liveAnimation=0,liveLoading=new Set(),liveAbortController=null,liveLastFrame=0,livePaused=false,liveSpeed=1;
+function operationStatus(text,warning=false){const el=$('liveOperationStatus');if(!el)return;el.textContent=text;el.classList.toggle('warning',warning);}
 function lineSignature(line){return line.stops.map(s=>s.id+':'+s.lat.toFixed(5)+','+s.lng.toFixed(5)).join('|');}
 function invalidateLineRoute(id){
  delete liveRouteCache[id];try{localStorage.setItem(LIVE_ROUTE_KEY,JSON.stringify(liveRouteCache));}catch(e){}
@@ -833,7 +838,7 @@ function paintLiveTrains(now){
  liveAnimation=requestAnimationFrame(paintLiveTrains);
  for(const [id,ride] of liveTrips){
   const trains=S.fleet.filter(t=>t.operatingLine===id&&t.line===ride.contractId);
-  if(!trains.length){if(ride.layer)map.removeLayer(ride.layer);liveTrips.delete(id);continue;}
+  if(!trains.length){if(ride.layer)map.removeLayer(ride.layer);liveTrips.delete(id);operationStatus('🚉 '+ride.name+': kein zugeordneter Zug mehr.',true);continue;}
   const seen=new Set(trains.map(t=>t.id));
   for(const [tid,m] of ride.markers)if(!seen.has(tid)){ride.layer.removeLayer(m);ride.markers.delete(tid);}
   const plan=ride.plan,duration=plan.cycleMs;
@@ -907,10 +912,10 @@ async function activateLineRide(id,focus=true){
  const line=S.lines.find(x=>x.id===id);
  if(!line||!S.awards.some(a=>a.id===line.contractId)){note('Die Linie benötigt einen gewonnenen Verkehrsvertrag.');return;}
  const trains=S.fleet.filter(t=>t.operatingLine===line.id&&t.line===line.contractId);
- if(!trains.length){note('Weise der Linie erst im Linieneditor oder Karten-Baumodus einen Zug zu.');return;}
+ if(!trains.length){operationStatus('🚉 '+line.name+': Bitte einen Zug zuweisen.',true);note('Weise der Linie erst im Linieneditor oder Karten-Baumodus einen Zug zu.');return;}
  if(liveTrips.has(id)){const ride=liveTrips.get(id);map.fitBounds(L.latLngBounds(ride.points),{padding:[55,55]});note('Live-Züge für '+line.name+' bereits unterwegs.');return;}
  if(liveLoading.has(id))return;
- liveLoading.add(id);note('Berechne zusammenhängende OSM-Gleise für '+line.name+' …');
+ liveLoading.add(id);operationStatus('⏳ Prüfe den Gleisweg für '+line.name+' …');note('Berechne zusammenhängende OSM-Gleise für '+line.name+' …');
  try{
   const result=await calculateLiveLine(line);
   if(!S.lines.some(x=>x.id===id&&lineSignature(x)===result.signature))return;
@@ -922,8 +927,9 @@ async function activateLineRide(id,focus=true){
   const ride={name:line.name,contractId:line.contractId,points:result.points,distance:plan.distances,plan,started:liveClock,layer,markers:new Map()};
   liveTrips.set(id,ride);if(!liveAnimation)liveAnimation=requestAnimationFrame(paintLiveTrains);
   if(focus)map.fitBounds(route.getBounds(),{padding:[50,50]});
+  operationStatus('🚆 '+line.name+': '+trains.length+' Zug/Züge unterwegs · '+line.stops.length+' Halte');
   note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren – inklusive Aufenthalten an '+line.stops.length+' Halten und Wende am Linienende.');
- }catch(err){note('Keine Live-Zugfahrt: '+err.message);$('railDetail').textContent=err.message;}
+ }catch(err){operationStatus('⚠ '+line.name+': Fahrweg nicht bestätigt – '+err.message,true);note('Keine Live-Zugfahrt: '+err.message);$('railDetail').textContent=err.message;}
  finally{liveLoading.delete(id);}
 }
 function restoreLiveTrips(){
@@ -1040,7 +1046,7 @@ function renderLines(){
   for(const l of lines){
    const item=document.createElement('div');item.className='lineItem';
    const trainCount=S.fleet.filter(t=>t.operatingLine===l.id).length;
-   item.append(textel('strong',l.name),textel('div',l.stops.length+' Halte · '+l.interval+'-Min.-Takt · '+trainCount+' Züge vorgemerkt'));
+   item.append(textel('strong',l.name),textel('div',l.stops.length+' Halte · '+l.interval+'-Min.-Takt · '+trainCount+' Züge vorgemerkt · '+(liveTrips.has(l.id)?'🟢 Live':'⚪ Inaktiv')));
    const actions=document.createElement('div');actions.className='lineActions';
    const edit=textel('button','📍 Auf Karte ändern');edit.onclick=()=>startMapLineMode(a.id,l.id);
    const view=textel('button','🗺️ Karte');view.onclick=()=>showLineOnMap(l);
