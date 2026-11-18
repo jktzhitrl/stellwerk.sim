@@ -514,8 +514,23 @@ function editLine(contractId,lineId=null){
   const c=await stationCandidates(j,status);if(!$('dialog').classList.contains('show')||action!==submit)return;
   const byId=new Map([...choices,...c].map(x=>[x.id,x]));choices=[...byId.values()].sort((a,b)=>a.position-b.position);drawChoices();
  };root.appendChild(addRefresh);
+ const trainHeading=document.createElement('label');trainHeading.textContent='Züge für diese Linie reservieren';root.append(trainHeading);
+ const trainChoices=document.createElement('div');trainChoices.className='lineStopChoices';root.append(trainChoices);
+ const availableVehicles=S.fleet.filter(t=>t.line===j.id);
+ const selectedTrainIds=new Set(availableVehicles.filter(t=>t.operatingLine===lineId).map(t=>t.id));
+ if(!availableVehicles.length)trainChoices.append(textel('p','Keine Fahrzeuge auf diesem Vertrag. Weise zuerst im Fuhrpark Züge zu.'));
+ for(const t of availableVehicles){
+  const row=document.createElement('label');row.className='lineStopChoice';
+  const input=document.createElement('input');input.type='checkbox';
+  input.checked=selectedTrainIds.has(t.id);
+  input.disabled=!!t.operatingLine&&t.operatingLine!==lineId;
+  input.onchange=()=>{if(input.checked)selectedTrainIds.add(t.id);else selectedTrainIds.delete(t.id);};
+  const other=S.lines.find(l=>l.id===t.operatingLine);
+  row.append(input,textel('span','Zug '+t.id+' · '+TYPES[t.type].name),textel('small',other&&other.id!==lineId?'Belegt: '+other.name:'verfügbar'));
+  trainChoices.append(row);
+ }
  const disclaimer=document.createElement('div');disclaimer.className='muted';disclaimer.style.marginTop='10px';
- disclaimer.textContent='Hinweis: Linien sind zunächst Halte- und Taktpläne. Die betriebliche Befahrbarkeit zwischen jedem Zwischenhalt, Umläufe und die reale Fahrplanberechnung sind noch nicht verifiziert.';root.append(disclaimer);
+ disclaimer.textContent='Hinweis: Linien und Fahrzeugreservierungen sind zunächst Halte- und Taktpläne. Die betriebliche Befahrbarkeit zwischen jedem Zwischenhalt, Umläufe und die reale Fahrplanberechnung sind noch nicht verifiziert.';root.append(disclaimer);
  const submit=()=>{
   const title=nameEl.value.trim();
   if(!title){note('Bitte einen Liniennamen eingeben.');return false;}
@@ -529,6 +544,8 @@ function editLine(contractId,lineId=null){
   if(stops.length>30){note('Maximal 28 Zwischenhalte pro Linie.');return false;}
   const record={id:old?.id||'LINE'+S.nextLine++,contractId:j.id,name:title,interval:Number(frequency.value),stops,created:old?.created||S.day};
   if(old)S.lines=S.lines.map(x=>x.id===old.id?record:x);else S.lines.push(record);
+  for(const t of S.fleet)if(t.operatingLine===record.id&&!selectedTrainIds.has(t.id))t.operatingLine=null;
+  for(const t of availableVehicles)if(selectedTrainIds.has(t.id)&&(!t.operatingLine||t.operatingLine===record.id))t.operatingLine=record.id;
   log('Linie '+title+' geplant: '+stops.length+' Halte im Netz '+j.name+'.');save();render();
   showLineOnMap(record);note('Linie '+title+' gespeichert – Halteplan angelegt.');
   return true;
@@ -562,7 +579,8 @@ function renderLines(){
   const lines=S.lines.filter(x=>x.contractId===j.id);
   for(const l of lines){
    const item=document.createElement('div');item.className='lineItem';
-   item.append(textel('strong',l.name),textel('div',l.stops.length+' Halte · '+l.interval+'-Min.-Takt · Entwurf'));
+   const trainCount=S.fleet.filter(t=>t.operatingLine===l.id).length;
+   item.append(textel('strong',l.name),textel('div',l.stops.length+' Halte · '+l.interval+'-Min.-Takt · '+trainCount+' Züge vorgemerkt'));
    const actions=document.createElement('div');actions.className='lineActions';
    const edit=textel('button','✏️ Halte');edit.onclick=()=>editLine(a.id,l.id);
    const view=textel('button','🗺️ Karte');view.onclick=()=>showLineOnMap(l);
@@ -648,7 +666,7 @@ $('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x
 const view=textel('button','🗺️ Streckenverlauf ansehen');view.onclick=()=>showTenderOnMap(j.id);c.appendChild(view);
 $('tenders').appendChild(c);}
 $('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c=document.createElement('div');c.className='tender';c.append(textel('strong',t.name),textel('div',t.seats+' Plätze · '+euro(t.upkeep)+'/Tag Unterhalt'));const b=textel('button','Kaufen · '+euro(t.price));b.onclick=()=>{if(!debit(t.price))return;S.fleet.push({id:S.nextTrain++,type,line:null});log(t.name+' gekauft.');save();render();};c.appendChild(b);$('shop').appendChild(c);}
-$('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);if(!a.type||a.type===t.type)sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{const target=sel.value;const contract=S.awards.find(a=>a.id===target);if(target&&contract&&contract.type&&contract.type!==t.type){note('Falscher Fahrzeugtyp für diesen Verkehrsvertrag.');render();return;}t.line=target||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
+$('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));if(t.operatingLine){const lin=S.lines.find(l=>l.id===t.operatingLine);if(lin)c.appendChild(textel('div','🗺️ Linienplan: '+lin.name));}const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);if(!a.type||a.type===t.type)sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{const target=sel.value;const contract=S.awards.find(a=>a.id===target);if(target&&contract&&contract.type&&contract.type!==t.type){note('Falscher Fahrzeugtyp für diesen Verkehrsvertrag.');render();return;}if(t.line!==target)t.operatingLine=null;t.line=target||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
 $('finances').innerHTML=[['Bisherige Einnahmen',euro(S.totalEarned)],['Bisherige Ausgaben',euro(S.totalSpent)],['Beförderte Fahrgäste',S.totalRiders.toLocaleString('de-DE')],['Offene Bewerbungen',S.bids.length]].map(([a,b])=>'<div class="row"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
 $('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();if(selected)select(selected);}
 function initMap(){
