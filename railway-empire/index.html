@@ -477,22 +477,30 @@ function editLine(contractId,lineId=null){
  const j=JOBS.find(x=>x.id===contractId),award=S.awards.find(a=>a.id===contractId),old=S.lines.find(l=>l.id===lineId);
  if(!j||!award){note('Erst einen Zuschlag für dieses Verkehrsnetz gewinnen.');return;}
  const root=document.createElement('div'),help=document.createElement('p');help.className='muted';
- help.textContent='Du planst eine eigene Linie im gewonnenen Netz „'+j.name+'“. Die Start- und Endbahnhöfe sind zunächst durch den Vertrag vorgegeben. Zwischenhalte kannst du individuell hinzufügen oder weglassen.';
+ help.textContent='Dein Verkehrsvertrag „'+j.name+'“ ist dein Spielgebiet. Wähle eigene Start- und Zielstationen innerhalb des Streckenkorridors und bestimme die Zwischenhalte.';
  root.append(help);
  const label=(name,element)=>{const l=document.createElement('label');l.textContent=name;root.append(l,element);};
  const nameEl=document.createElement('input');nameEl.type='text';nameEl.maxLength=40;nameEl.value=old?.name||((SERVICES[award.service]?.name||'RB')+' '+(S.nextLine));nameEl.placeholder='Zum Beispiel S 3';label('Linienname',nameEl);
  const frequency=document.createElement('select');
  for(const [value,text] of [[30,'30-Minuten-Takt'],[60,'60-Minuten-Takt'],[120,'120-Minuten-Takt']])frequency.appendChild(new Option(text,value));
  frequency.value=String(old?.interval||60);label('Geplanter Takt (vorerst Planungsangabe)',frequency);
- const overview=document.createElement('div');overview.className='muted';overview.textContent='Start: '+station(j.a).name+' · Ziel: '+station(j.b).name;root.appendChild(overview);
+ const startSelect=document.createElement('select'),endSelect=document.createElement('select');label('Linienstart',startSelect);label('Linienziel',endSelect);
+ const overview=document.createElement('div');overview.className='muted';overview.textContent='Die verfügbaren Stationen stammen aus OpenStreetMap. Weitere Halte werden beim Laden ergänzt.';root.appendChild(overview);
  const status=document.createElement('p');status.className='muted';root.appendChild(status);
  const stopList=document.createElement('div');stopList.className='lineStopChoices';root.appendChild(stopList);
  const selectedStops=new Set((old?.stops||[]).filter(x=>x.id!==j.a&&x.id!==j.b).map(x=>x.id));
  let choices=[];
+ const fillEndpoints=()=>{
+  const existingStart=startSelect.value||old?.stops?.[0]?.id||j.a,existingEnd=endSelect.value||old?.stops?.at(-1)?.id||j.b;
+  const opts=[{...station(j.a),position:0},...choices,{...station(j.b),position:1}];
+  for(const [field,sel]of [['start',startSelect],['end',endSelect]]){sel.replaceChildren();for(const st of opts)sel.appendChild(new Option(st.name,st.id));sel.value=field==='start'?existingStart:existingEnd;if(!sel.value)sel.value=field==='start'?j.a:j.b;}
+ };
  const drawChoices=()=>{
+  fillEndpoints();
   stopList.replaceChildren();
   if(!choices.length){stopList.appendChild(textel('p','Keine Zwischenhalte geladen. Eine Direktlinie ist möglich.'));return;}
   for(const st of choices){
+   if(st.id===startSelect.value||st.id===endSelect.value)continue;
    const row=document.createElement('label');row.className='lineStopChoice';
    const box=document.createElement('input');box.type='checkbox';box.checked=selectedStops.has(st.id);box.onchange=()=>{if(box.checked)selectedStops.add(st.id);else selectedStops.delete(st.id);};
    const name=textel('span',st.name);const offset=textel('small','Nähe zum '+(routeCache[j.id]?'Gleisverlauf':'Streckenkorridor')+': '+st.offset.toFixed(1)+' km');
@@ -501,7 +509,7 @@ function editLine(contractId,lineId=null){
  };
  // Station snapshots from a saved line remain selectable when Overpass is offline.
  choices=(old?.stops||[]).filter(x=>x.id!==j.a&&x.id!==j.b).map((x,i)=>({...x,position:x.position??(i+1)/(old.stops.length-1),offset:x.offset||0}));
- drawChoices();
+ drawChoices();startSelect.onchange=drawChoices;endSelect.onchange=drawChoices;
  const addRefresh=document.createElement('button');addRefresh.textContent='🚉 Zwischenhalte aus OSM laden';addRefresh.onclick=async()=>{
   const c=await stationCandidates(j,status);if(!$('dialog').classList.contains('show')||action!==submit)return;
   const byId=new Map([...choices,...c].map(x=>[x.id,x]));choices=[...byId.values()].sort((a,b)=>a.position-b.position);drawChoices();
@@ -511,7 +519,13 @@ function editLine(contractId,lineId=null){
  const submit=()=>{
   const title=nameEl.value.trim();
   if(!title){note('Bitte einen Liniennamen eingeben.');return false;}
-  const stops=[{...station(j.a),position:0},...choices.filter(x=>selectedStops.has(x.id)).sort((a,b)=>a.position-b.position),{...station(j.b),position:1}];
+  const endpointOptions=[{...station(j.a),position:0},...choices,{...station(j.b),position:1}];
+  const start=endpointOptions.find(x=>x.id===startSelect.value),end=endpointOptions.find(x=>x.id===endSelect.value);
+  if(!start||!end||start.id===end.id){note('Bitte zwei verschiedene Stationen als Start und Ziel wählen.');return false;}
+  if(Math.abs(start.position-end.position)<.025){note('Start und Ziel liegen zu nah beieinander.');return false;}
+  const lo=Math.min(start.position,end.position),hi=Math.max(start.position,end.position);
+  const between=choices.filter(x=>selectedStops.has(x.id)&&x.id!==start.id&&x.id!==end.id&&x.position>lo&&x.position<hi).sort((a,b)=>start.position<end.position?a.position-b.position:b.position-a.position);
+  const stops=[start,...between,end];
   if(stops.length>30){note('Maximal 28 Zwischenhalte pro Linie.');return false;}
   const record={id:old?.id||'LINE'+S.nextLine++,contractId:j.id,name:title,interval:Number(frequency.value),stops,created:old?.created||S.day};
   if(old)S.lines=S.lines.map(x=>x.id===old.id?record:x);else S.lines.push(record);
@@ -665,9 +679,9 @@ const TUTORIAL_STEPS=[
  {title:'So bewirbst du dich auf ein Verkehrsnetz',text:'Tippe auf 🏆 Aufträge. Hier stehen die Ausschreibungen. Beginne mit „Mitteldeutsches S-Bahn-Netz“ zwischen Leipzig und Halle. Tippe auf „Angebot erstellen“, solange die Frist noch läuft.',tip:'Jedes Los hat eine Bewerbungsfrist und eine Mindestanzahl an Fahrten. Bei einem gewonnenen Los entsteht dein Verkehrsvertrag – keine frei gezeichnete Strecke.',action:'🏆 Ausschreibungen öffnen',open:'tenders'},
  {title:'So funktioniert ein Angebot',text:'Im Bewerbungsfenster legst du fest: ① Betriebsart (S-Bahn, RB oder RE), ② Preis pro Betriebstag, ③ Fahrten pro Tag, ④ Fahrzeugtyp und ⑤ Anzahl der Züge. Das Mitteldeutsche Netz schreibt S-Bahn vor.',tip:'Preis zu hoch? Schlechtere Zuschlagschance. Zu wenige Plätze? Angebot nicht zulässig. Fehlende Fahrzeuge kosten Geld, wenn du gewinnst. Die Bewerbung kostet 1.200 €.',action:'📝 Beispielangebot öffnen',open:'offer'},
  {title:'Was passiert nach der Bewerbung?',text:'Mit „Angebot abgeben“ reichst du dein Gebot ein. Anschließend tippe oben auf „▶ Nächster Tag“. Die Vergabe entscheidet anhand von Angebotspreis, Ruf, Fahrten und Fahrzeugkapazität, ob du das Los bekommst.',tip:'Der Zuschlag ist nicht garantiert. Bei einer Ablehnung kannst du dich auf andere noch offene Lose bewerben.',action:'📋 Bewerbungen prüfen',open:'tenders'},
- {title:'Deine Linien und Fahrzeuge',text:'Gewinnst du ein Los, ist die Linie als Verkehrsvertrag in deinem Unternehmen angelegt. Passende Züge werden automatisch zugeteilt und fehlende Fahrzeuge bei ausreichendem Geld gekauft. Über 🚆 kannst du deine Fahrzeugzuordnung kontrollieren.',tip:'Für S-Bahn-Verträge sind S-Bahn-Triebwagen vorgesehen. Die Auswahl einzelner realer Zwischenhalte und ein eigener Fahrplaneditor sind derzeit noch nicht fertig.',action:'🚆 Fuhrpark öffnen',open:'fleet'},
+ {title:'Deine eigenen Linien und Zwischenhalte',text:'Nach einem gewonnenen Los erscheint unter 🗺️ Linien dein Netz. Erstelle dort mehrere eigene Linien, wähle echte Start- und Endbahnhöfe, Zwischenhalte sowie einen Takt. Über 🚆 prüfst du die zugeordneten Fahrzeuge.',tip:'Der Linieneditor speichert zunächst einen Halte- und Taktplan. Die exakte Befahrbarkeit jedes Zwischenhalts und individuelle Fahrplanumläufe sind noch nicht simuliert.',action:'🗺️ Linieneditor öffnen',open:'lines'},
  {title:'Geld verdienen und richtig wirtschaften',text:'Jeder abgeschlossene Betriebstag bringt Einnahmen aus deinen gewonnenen Verträgen – aber auch Fahrzeug-, Strecken- und Stationskosten. Reicht die eingesetzte Kapazität nicht, drohen Vertragsstrafen und Rufverlust.',tip:'Achte auf ausreichend Geld für Fahrzeuge, die Mindestfahrten, verfügbare Sitzplätze und deinen Unternehmensruf. Unter 💰 siehst du die Ergebnisse.',action:'💰 Finanzen öffnen',open:'finance'},
- {title:'Was schon geht – und was noch kommt',text:'Du kannst reale Bahnhöfe entdecken, Verkehrslose gewinnen, Fahrzeuge kaufen, Betriebsarten wählen und den täglichen Betrieb abrechnen. Die Testfahrt Leipzig–Halle zeigt bei erfolgreicher Datenabfrage einen Zug entlang verbundener Gleisgeometrie.',tip:'Noch nicht vorhanden: komplett frei gezeichnete, befahrbare Linien, auswählbare Zwischenhalte, echter individueller Fahrplan und vollständiger deutschlandweiter Zugbetrieb. Das Spiel wird schrittweise erweitert.',action:'✅ Tutorial abschließen',open:'finish'}
+ {title:'Was schon geht – und was noch kommt',text:'Du kannst reale Bahnhöfe entdecken, Verkehrslose gewinnen, Fahrzeuge kaufen, Betriebsarten wählen und den täglichen Betrieb abrechnen. Die Testfahrt Leipzig–Halle zeigt bei erfolgreicher Datenabfrage einen Zug entlang verbundener Gleisgeometrie.',tip:'Noch nicht vorhanden: ein vollständiger individueller Fahrplan, überprüfte Gleisfahrten für jede geplante Linie und ein deutschlandweiter Zugbetrieb. Eigene Haltepläne kannst du bereits anlegen. Das Spiel wird schrittweise erweitert.',action:'✅ Tutorial abschließen',open:'finish'}
 ];
 function updateTutorial(){
  const box=$('gettingStarted');if(!box)return;
@@ -694,6 +708,7 @@ $('startAction').onclick=()=>{
  if(mode==='finish'){dismissTutorial();return;}
  if(mode==='build')openPanel('left',null,'showBuild');
  if(mode==='tenders')openPanel('right','tenders','showContracts');
+ if(mode==='lines')openPanel('right','lines','showLines');
  if(mode==='fleet')openPanel('right','fleet','showFleet');
  if(mode==='finance')openPanel('right','finance','showFinance');
  if(mode==='offer'){
