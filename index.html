@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-18.1">
+<meta name="app-version" content="2026-11-18.2">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1345,17 +1345,26 @@ function setCancel(on) { S.cancelMode = on; $('#btnCancel').classList.toggle('on
 
 // ---------- Fahrplan ----------
 function genNext() {
-  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean * 1.17;
+  const mean = DENSITY[S.density] * DAYPARTS[dayPart(S.genT)].mean * ({ruhig:5,normal:3.7,dicht:2.6}[S.density] || 3.7);
   let t = S.genT + mean * (0.55 + Math.random() * 0.9);
   const dir = Math.random() < 0.5 ? 1 : -1;
   if (t - S.lastDir[dir] < 150) t = S.lastDir[dir] + 150;
   t = Math.round(t / 60) * 60;
-  S.genT = Math.max(S.genT, t); S.lastDir[dir] = t;
+  S.genT = Math.max(S.genT, t);
+  // Ein freier Slot muss zur bestehenden Betriebslage passen.
+  // Taktzüge werden NICHT durch Zufallszüge aus ihren Einfahrten verdrängt.
+  // Der Abstand gilt je Fahrtrichtung und ein kleinerer Abstand auch
+  // gegenüber Gegenverkehr wegen gemeinsamer Weichenstraßen.
+  const busySlot = S.schedule.some(tr => !tr.done && !tr.fromSiding && !tr.fromRunaround &&
+    !tr.shunter && !tr.gbfStart && Math.abs(tr.plan.spawn - t) <
+      (tr.dir === dir ? (S.density === 'dicht' ? 390 : 540) : (S.density === 'dicht' ? 120 : 210)));
+  if (busySlot) return;
+  S.lastDir[dir] = t;
   CFG.gen(t, dir);
   const receiver = S.schedule.filter(x => x.stops && !x.turn && !x.runaround && !x.fromSiding && !x.fromRunaround && !x.overtake && !x.overtakes && !x.connectionIn && x.plan.spawn >= S.t + 9 * 60 && (x.type === 'RE' || x.type === 'RB')).slice(-1)[0];
-  if (receiver && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.38) {
+  if (receiver && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.20) {
     const feederSpawn = receiver.plan.dep - 3 * 60 - 300;
-    if (feederSpawn >= S.t + 90) {
+    if (feederSpawn >= S.t + 90 && !S.schedule.some(tr => tr.dir === -receiver.dir && Math.abs(tr.plan.spawn - feederSpawn) < 480)) {
       const feeder = addTrain('RB', -receiver.dir, feederSpawn);
       feeder.inboundDelay = Math.random() < 0.65 ? (2 + Math.floor(Math.random() * 5)) * 60 : 0;
       feeder.connectionOut = receiver.id;
@@ -1607,7 +1616,7 @@ function addTrain(type, dir, spawn) {
   const arr = T.stops ? spawn + 300 : null;
   // Vorlaufverspaetungen entstehen ausserhalb des Stellwerks und verschieben
   // nur die tatsaechliche Ankunft, niemals den veroeffentlichten Fahrplan.
-  const inboundDelay = type === 'RG' ? 0 : Math.random() < 0.28 ? (1 + Math.floor(Math.random() * 5)) * 60 : 0;
+  const inboundDelay = type === 'RG' ? 0 : Math.random() < 0.17 ? (1 + Math.floor(Math.random() * 4)) * 60 : 0;
   const dep = T.stops ? Math.ceil((arr + T.dwell) / 60) * 60 : Math.ceil((spawn + (type === 'ICE' ? 210 : 300)) / 60) * 60;
   S.schedule.push({
     id: ++S.uid, type, num: `${T.name || type} ${num}`, dir, from, to, len: T.len, vmax: T.vmax, dwell: T.dwell, stops: T.stops, color: T.color,
@@ -2474,7 +2483,7 @@ function renderPanel() {
   const vis = S.schedule.filter(tr => !tr.done || (S.t - (tr.actDep || 0)) < 20 * 60);
   const active = vis.filter(t => !t.done), done = vis.filter(t => t.done).slice(-5);
   const rows = [...active.slice(0, 24), ...done];
-  let h = '<caption style="text-align:left;padding:5px 7px;color:#9fc9de">Linien im Stundentakt: RE und RB · zusätzliche Züge und Rangieraufträge nach Betriebslage</caption><colgroup><col style="width:20%"><col style="width:26%"><col style="width:19%"><col style="width:6%"><col style="width:29%"></colgroup>'
+  let h = '<caption style="text-align:left;padding:5px 7px;color:#9fc9de">Stundenfahrplan: RE und RB im Takt · Zusatzzüge nur bei freier Kapazität</caption><colgroup><col style="width:20%"><col style="width:26%"><col style="width:19%"><col style="width:6%"><col style="width:29%"></colgroup>'
         + '<thead><tr><th>Zug</th><th>Fahrt</th><th>An / Ab</th><th>Gl</th><th>Status</th></tr></thead><tbody>';
   for (const tr of rows) {
     const st = trainStatus(tr);
@@ -2650,8 +2659,8 @@ function startGame() {
   START_T = (SHIFTS[P.shift] || SHIFTS.frueh).t;
   S = newState();
   addTrain('RE', 1, START_T + 60);
-  addTrain('RB', -1, START_T + 180);
-  S.genT = START_T + 180; S.lastDir = { '1': START_T + 60, '-1': START_T + 180 };
+  // Ein ruhiger Einstieg: der zweite Zug kommt über den Taktfahrplan.
+  S.genT = START_T + 60; S.lastDir = { '1': START_T + 60, '-1': -1e9 };
   ensureSchedule();
   importNetwork();
   log(`Dienstbeginn im ${ST.stw}. Gute Schicht!`, 'good');
