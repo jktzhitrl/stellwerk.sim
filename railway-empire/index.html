@@ -269,6 +269,44 @@ function dot(owned){return L.divIcon({className:'',html:'<div class="station-ico
 const OWN_NETWORK_STOPS_KEY='railway_empire_owned_network_stops_v1';
 let wonNetworkStops={};try{wonNetworkStops=JSON.parse(localStorage.getItem(OWN_NETWORK_STOPS_KEY)||'{}')||{};}catch(e){}
 const activeNetworkQueries=new Set();
+const networkTrackRequests=new Set(),networkTrackAttempts=new Set();
+let networkTrackTimer=null;
+function scheduleOwnedNetworkTracks(){
+ if(!map||!S.awards.length)return;
+ clearTimeout(networkTrackTimer);
+ networkTrackTimer=setTimeout(fetchOwnedNetworkTrack,1300);
+}
+async function fetchOwnedNetworkTrack(){
+ const award=S.awards.find(a=>!routeCache[a.id]&&!networkTrackRequests.has(a.id)&&!networkTrackAttempts.has(a.id));
+ if(!award)return;
+ const j=JOBS.find(j=>j.id===award.id);if(!j)return;
+ const a=station(j.a),b=station(j.b),bbox={
+  s:Math.min(a.lat,b.lat)-.04,n:Math.max(a.lat,b.lat)+.04,
+  w:Math.min(a.lng,b.lng)-.04,e:Math.max(a.lng,b.lng)+.04
+ };
+ // Große Netze nicht durch eine unvollständige Box als durchgehend ausgeben.
+ if((bbox.n-bbox.s)*(bbox.e-bbox.w)>.32){networkTrackAttempts.add(j.id);return;}
+ networkTrackRequests.add(j.id);networkTrackAttempts.add(j.id);
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),32000);
+ try{
+  const box=[bbox.s,bbox.w,bbox.n,bbox.e].map(x=>x.toFixed(5)).join(',');
+  const query='[out:json][timeout:27];way["railway"="rail"]('+box+');out geom;';
+  const result=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  if(!result.ok)throw Error('Gleisdaten HTTP '+result.status);
+  const elements=(await result.json()).elements||[];
+  const graph=graphFromWays(elements),route=shortestRailPath(graph,[a.lat,a.lng],[b.lat,b.lng]);
+  if(!route?.points?.length)throw Error('Keine zusammenhängende Gleisverbindung nachgewiesen');
+  routeCache[j.id]={points:route.points,km:route.km};
+  try{localStorage.setItem(ROUTE_CACHE_KEY,JSON.stringify(routeCache));}catch(e){}
+  if(S.awards.some(x=>x.id===j.id)){renderMap();$('railStatus').textContent='✓ '+j.name+': echter Gleisverlauf und Netzbahnhöfe auf der Karte sichtbar.';}
+ }catch(e){
+  $('railStatus').textContent=j.name+': Gleisverlauf noch nicht verfügbar. Haltepunkte bleiben sichtbar.';
+ }finally{
+  clearTimeout(timeout);networkTrackRequests.delete(j.id);
+  if(S.awards.some(x=>!routeCache[x.id]&&!networkTrackRequests.has(x.id)&&!networkTrackAttempts.has(x.id)))scheduleOwnedNetworkTracks();
+ }
+}
+
 let ownedStopsRefreshTimer=null;
 function wonNetworkStationIds(){
  const ids=new Set(S.owned);
@@ -300,6 +338,7 @@ function scheduleWonNetworkStationLoad(){
  if(!map||!S.awards.length)return;
  clearTimeout(ownedStopsRefreshTimer);
  ownedStopsRefreshTimer=setTimeout(loadWonNetworkStations,650);
+ scheduleOwnedNetworkTracks();
 }
 async function loadWonNetworkStations(){
  const missing=S.awards.map(a=>a.id).filter(id=>!wonNetworkStops[id]&&!activeNetworkQueries.has(id));
