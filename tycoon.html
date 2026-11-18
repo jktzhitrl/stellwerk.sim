@@ -1,0 +1,69 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#182630"><title>Stellwerk Tycoon · Prototyp</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#e2edf3;background:#111b22;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh}
+header{padding:15px max(14px,calc((100vw - 1050px)/2));background:#223440;border-bottom:1px solid #4b6576;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 12px}h3{font-size:14px;color:#a9d3ec;margin:6px 0}
+a{color:#8fceef}main{max-width:1080px;margin:auto;padding:16px;display:grid;grid-template-columns:repeat(12,1fr);gap:13px}
+.card{grid-column:span 12;background:#1e303b;border:1px solid #47606f;border-radius:12px;padding:16px}.half{grid-column:span 6}.third{grid-column:span 4}
+@media(max-width:700px){.half,.third{grid-column:span 12}main{padding:10px;gap:9px}.card{padding:12px}}
+button{padding:10px 13px;min-height:44px;border-radius:8px;border:1px solid #7a9caf;background:#35586d;color:white;font:inherit;cursor:pointer}button:hover{background:#41728f}button:disabled{opacity:.38;cursor:not-allowed}
+button.primary{background:#096b80;border-color:#63d0df;font-weight:700}button.danger{background:#593b3b}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.metric{background:#11232d;border:1px solid #395a6c;padding:12px;border-radius:9px}.metric strong{display:block;font-size:23px}.muted{color:#b0c6d2;font-size:13px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+#map{width:100%;max-height:270px;border-radius:10px;background:#14232b}.notice{color:#f5d390;font-size:13px}
+.item{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #3b5260;padding:10px 0}.item small{display:block;color:#a8c2d0}#log{max-height:195px;overflow:auto;margin:0;padding-left:19px;font-size:13px;line-height:1.8}
+</style></head><body>
+<header><div><h1>🏗️ Stellwerk Tycoon</h1><div class="muted">Spielbarer Wirtschafts-Prototyp · getrennt vom Stellwerksbetrieb</div></div><a href="./index.html">← Zur Spielauswahl</a><a href="./editor.html">🛠️ Baumodus</a></header>
+<main>
+<section class="card"><h2>Deine Eisenbahnverwaltung</h2><div id="stats" class="metrics"></div><div class="buttons"><button class="primary" id="day">▶ Betriebstag durchführen</button><button id="save">Spielstand speichern</button><button id="reset" class="danger">Neustart</button></div><div id="notice" class="notice" role="status" aria-live="polite"></div></section>
+<section class="card half"><h2>Strecken und Bahnhöfe</h2><svg id="map" viewBox="0 0 510 240" aria-label="Schematisches Streckennetz">
+<path d="M90 118 H255 H421" fill="none" stroke="#415665" stroke-width="13" stroke-linecap="round"/><path id="linkA" d="M90 118 H255" stroke="#5fc19a" stroke-width="6"/><path id="linkB" d="M255 118 H421" stroke="#415665" stroke-width="6"/>
+<g fill="#243e50" stroke="#83b2ca" stroke-width="3"><rect x="26" y="76" width="130" height="84" rx="12"/><rect x="195" y="76" width="120" height="84" rx="12"/><rect x="357" y="76" width="128" height="84" rx="12"/></g>
+<g font-size="15" fill="#e4f0f7" text-anchor="middle"><text x="91" y="110">Neustadt</text><text x="255" y="110">Teutschenthal</text><text x="421" y="110">Burgstadt</text></g>
+<g font-size="11" text-anchor="middle" fill="#a9c5d6"><text x="91" y="133" id="nA">1 Bahnhof</text><text x="255" y="133" id="nB">1 Bahnhof</text><text x="421" y="133" id="nC">geplant</text></g>
+<text x="172" y="60" text-anchor="middle" fill="#aac9da" font-size="12">Strecke 1</text><text x="335" y="60" text-anchor="middle" fill="#aac9da" font-size="12">Strecke 2</text>
+</svg><div id="infrastructure"></div></section>
+<section class="card half"><h2>Fahrplan und Zugbetrieb</h2><div class="muted">Du kaufst Zugverbände und bestellst tägliche Fahrten. Mehr Züge benötigen genügend Streckenkapazität.</div><div class="buttons"><button id="buyTrain">+ Zugverband · 38.000 €</button><button id="addService">+ tägliche Fahrt · 2.500 €</button><button id="removeService">− Fahrt streichen</button></div><div id="services"></div></section>
+<section class="card third"><h2>Investitionen</h2><div id="investments"></div></section>
+<section class="card third"><h2>Spielziele</h2><div id="goals"></div></section>
+<section class="card third"><h2>Betriebsbericht</h2><ol id="log"></ol></section>
+<section class="card"><div class="muted"><strong>Prototyp-Grenzen:</strong> Geld, Tagesabrechnung, Streckenausbau und Zugflotte sind hier unabhängig vom bestehenden Stellwerksimulator. Es gibt noch keine automatische Übergabe der Tycoon-Züge an die ESTW-Gleisbilder und keine spielbare Gleisverlegung auf der Karte. Der Bahnhofseditor bleibt als eigener Baumodus erhalten.</div></section>
+</main>
+<script>
+'use strict';
+const KEY='stw_tycoon_v1',$=id=>document.getElementById(id);
+const initial=()=>({v:1,day:1,money:170000,reputation:70,stations:2,links:1,trains:2,services:4,signals:0,log:['Betrieb gegründet: Neustadt–Teutschenthal.']});
+let S=initial();
+function money(v){return Math.round(v).toLocaleString('de-DE')+' €';}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));notice('Spielstand gespeichert.');}catch(e){notice('Speichern nicht möglich: '+e.message);}}
+function notice(m){$('notice').textContent=m;}
+function addLog(m){S.log.unshift('Tag '+S.day+': '+m);S.log=S.log.slice(0,30);}
+function can(cost){if(S.money<cost){notice('Nicht genug Budget: '+money(cost)+' erforderlich.');return false;}return true;}
+function spend(cost){if(!can(cost))return false;S.money-=cost;return true;}
+function capacity(){return Math.max(2, Math.min(S.trains*3,S.links*8+(S.signals*2)));}
+function performDay(){const cap=capacity(),served=Math.min(S.services,cap),missing=S.services-served;
+const revenue=served*4400,operating=S.trains*1000+S.stations*750+S.links*850+S.signals*180+served*1150;
+const profit=revenue-operating;S.money+=profit;S.reputation=Math.max(0,Math.min(100,S.reputation+(missing?-missing*4:1)));S.day++;
+addLog(served+' Fahrten · Erlöse '+money(revenue)+' · Kosten '+money(operating)+' · Ergebnis '+money(profit)+(missing?' · '+missing+' Fahrten ausgefallen':''));
+notice('Betriebstag abgeschlossen. '+served+' von '+S.services+' Fahrten durchgeführt.');save();render();}
+function buildLine(){if(S.links>=2){notice('Beide Strecken sind bereits gebaut.');return;}if(!spend(80000))return;S.links=2;addLog('Strecke Teutschenthal–Burgstadt gebaut.');save();render();}
+function openStation(){if(S.stations>=3){notice('Alle drei Bahnhöfe aktiv.');return;}if(S.links<2){notice('Baue zuerst die Strecke nach Burgstadt.');return;}if(!spend(45000))return;S.stations=3;addLog('Burgstadt für den Tycoon-Betrieb eröffnet.');save();render();}
+function upgradeSignals(){if(S.signals>=3){notice('Signalausbau vollständig.');return;}if(!spend(18000))return;S.signals++;addLog('Blocksignale ausgebaut: zusätzliche Streckenkapazität.');save();render();}
+function buyTrain(){if(!spend(38000))return;S.trains++;addLog('Neuer Zugverband in Dienst gestellt.');save();render();}
+function addService(){if(!spend(2500))return;S.services++;addLog('Zusätzliche tägliche Zugfahrt bestellt.');save();render();}
+function removeService(){if(S.services<=1){notice('Mindestens eine tägliche Fahrt bleibt bestehen.');return;}S.services--;addLog('Eine tägliche Zugfahrt gestrichen.');save();render();}
+function render(){
+$('stats').innerHTML=[['Kontostand',money(S.money)],['Betriebstag',S.day],['Ansehen',S.reputation+' / 100'],['Züge',S.trains],['Fahrten / Tag',S.services],['Kapazität / Tag',capacity()]].map(([k,v])=>'<div class="metric"><span class="muted">'+k+'</span><strong>'+v+'</strong></div>').join('');
+$('linkB').setAttribute('stroke',S.links>1?'#5fc19a':'#415665');$('nC').textContent=S.stations>=3?'betriebsbereit':'geplant';
+$('infrastructure').innerHTML='<div class="item"><div><strong>Neustadt–Teutschenthal</strong><small>Im Betrieb</small></div><span>✓</span></div><div class="item"><div><strong>Teutschenthal–Burgstadt</strong><small>'+(S.links>1?'gebaut':'noch nicht gebaut')+'</small></div><button id="buildLine" '+(S.links>1?'disabled':'')+'>80.000 €</button></div>';
+$('buildLine').onclick=buildLine;
+$('services').innerHTML='<div class="item"><div><strong>'+S.services+' bestellte Fahrten</strong><small>Davon maximal '+capacity()+' pro Betriebstag möglich</small></div></div><div class="item"><div><strong>'+S.trains+' Zugverbände</strong><small>Jeder Verband erlaubt bis zu drei Fahrten pro Tag</small></div></div>'+(S.services>capacity()?'<p class="notice">⚠ Dein Fahrplan überlastet die Infrastruktur. Baue Kapazität aus oder streiche Fahrten.</p>':'<p class="muted">✓ Aktueller Fahrplan ist kapazitiv möglich.</p>');
+$('investments').innerHTML='<div class="item"><div><strong>Blocksignale</strong><small>+2 Kapazität pro Ausbau · '+S.signals+'/3</small></div><button id="signals" '+(S.signals>=3?'disabled':'')+'>18.000 €</button></div><div class="item"><div><strong>Burgstadt eröffnen</strong><small>Benötigt zweite Strecke</small></div><button id="station" '+(S.stations>=3||S.links<2?'disabled':'')+'>45.000 €</button></div>';
+$('signals').onclick=upgradeSignals;$('station').onclick=openStation;
+$('goals').innerHTML=[['Dritte Betriebsstelle eröffnen',S.stations>=3],['Zwei Strecken betreiben',S.links>=2],['10 Fahrten pro Tag anbieten',S.services>=10],['Ansehen auf 85 erhöhen',S.reputation>=85]].map(([v,ok])=>'<div class="item">'+(ok?'✅':'○')+' '+v+'</div>').join('');
+$('log').replaceChildren(...S.log.slice(0,12).map(x=>{const li=document.createElement('li');li.textContent=x;return li;}));
+}
+$('day').onclick=performDay;$('buyTrain').onclick=buyTrain;$('addService').onclick=addService;$('removeService').onclick=removeService;$('save').onclick=save;
+$('reset').onclick=()=>{if(confirm('Tycoon-Spielstand wirklich neu beginnen?')){S=initial();save();render();}};
+try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1&&Number.isFinite(v.money)&&Number.isFinite(v.day)&&Array.isArray(v.log))S=v;}catch(e){}
+render();
+</script></body></html>
