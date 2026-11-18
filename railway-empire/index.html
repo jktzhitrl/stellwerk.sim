@@ -216,7 +216,7 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 .liveTrainIcon div{width:36px;height:36px;border-radius:50%;background:#fffdf2;border:3px solid #12a486;display:grid;place-items:center;font-size:19px;box-shadow:0 0 0 3px #00d5bd4d,0 4px 12px #113b4a98}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.3 · MEINE NETZE</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.4 · SPIELTEST</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
@@ -603,6 +603,7 @@ function routeStopPosition(p,points){
 async function stationCandidates(j,feedback){
  const a=station(j.a),b=station(j.b);if(!a||!b)return[];
  const existing=lineStopsCache.get(j.id);if(existing)return existing;
+ const saved=wonNetworkStops[j.id];if(Array.isArray(saved)&&saved.length){lineStopsCache.set(j.id,saved);return saved;}
  const guide=routeCache[j.id]?.points,endpointA=[a.lat,a.lng],endpointB=[b.lat,b.lng];
  const south=Math.min(a.lat,b.lat)-.075,north=Math.max(a.lat,b.lat)+.075,west=Math.min(a.lng,b.lng)-.075,east=Math.max(a.lng,b.lng)+.075;
  if((north-south)*(east-west)>.55){feedback.textContent='Zu großer Kartenausschnitt: nur die beiden festen Endbahnhöfe verfügbar.';return[];}
@@ -666,7 +667,7 @@ function redrawMapLineMode(){
  }
  $('plannerStops').replaceChildren(...state.stops.map(st=>textel('li',st.name)));
  $('plannerUndo').disabled=!state.stops.length;
- $('plannerInstructions').textContent=state.stops.length+' Halte ausgewählt. Tippe weitere Stationen an oder speichere die Linie.';
+ $('plannerInstructions').textContent=state.stops.length+' Halte ausgewählt · Blau = auswählbar, Orange = deine Linie. Tippe weitere Stationen an.';
 }
 function renderPlannerTrains(){
  if(!mapLineMode)return;
@@ -701,7 +702,7 @@ function startMapLineMode(contractId,lineId=null){
  if(!map){note('Die Karte muss zuerst geladen sein.');return;}
  const award=S.awards.find(a=>a.id===contractId);if(!award){note('Zum Linienbau musst du das Verkehrsnetz zuerst gewinnen.');return;}
  const line=S.lines.find(l=>l.id===lineId);
- mapLineMode={contractId,lineId,stops:(line?.stops||[]).map(s=>({...s})),candidates:[],selectedTrains:new Set(S.fleet.filter(t=>t.operatingLine===lineId).map(t=>t.id))};
+ mapLineMode={contractId,lineId,stops:(line?.stops||[]).map(s=>({...s})),candidates:[...(wonNetworkStops[contractId]||[])],selectedTrains:new Set(S.fleet.filter(t=>t.operatingLine===lineId).map(t=>t.id))};
  const selector=$('plannerNetwork');selector.replaceChildren();
  for(const a of S.awards){const j=JOBS.find(j=>j.id===a.id);if(j)selector.append(new Option(j.name,j.id));}
  selector.value=contractId;selector.onchange=()=>startMapLineMode(selector.value);
@@ -709,8 +710,7 @@ function startMapLineMode(contractId,lineId=null){
  $('plannerFeedback').textContent='Lade geeignete Haltestellen im Verkehrsnetz …';renderPlannerTrains();
  closePanels();$('mapLinePlanner').hidden=false;redrawMapLineMode();
  const j=JOBS.find(x=>x.id===contractId),a=station(j.a),b=station(j.b);
- map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[70,70],maxZoom:12});
- if(map.getZoom()<10)map.setZoom(10);
+ map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[75,75],maxZoom:11});
  // Overpass-Ergebnisse aus dem bestehenden Stationsdienst im Korridor sichtbar machen.
  const feedback=$('plannerFeedback');
  stationCandidates(j,feedback).then(candidates=>{
@@ -721,13 +721,8 @@ function startMapLineMode(contractId,lineId=null){
   // Dynamische Stationsmarker werden im selben grünen/gelben Kartenstil angezeigt.
   renderMap();
   if(!mapLineMarkers)mapLineMarkers=L.layerGroup().addTo(map);
-  for(const st of candidates){
-   if(ST.some(s=>s.id===st.id))continue;
-   L.circleMarker([st.lat,st.lng],{radius:7,color:'#f8f4dc',fillColor:'#258cdb',fillOpacity:.95,weight:2})
-    .bindTooltip(st.name,{direction:'top'})
-    .on('click',()=>addMapStop(st)).addTo(mapLineMarkers);
-  }
-  mapLineMode.candidates=candidates;redrawMapLineMode();
+  const known=new Map([...(mapLineMode.candidates||[]),...candidates].map(st=>[st.id,st]));
+  mapLineMode.candidates=[...known.values()];redrawMapLineMode();
  });
 }
 $('plannerExit').onclick=stopMapLineMode;
@@ -739,6 +734,7 @@ $('plannerSave').onclick=()=>{
  const title=$('plannerName').value.trim();
  if(!title){$('plannerFeedback').textContent='Bitte einen Liniennamen eingeben.';return;}
  if(mapLineMode.stops.length<2){$('plannerFeedback').textContent='Bitte mindestens zwei Haltestellen antippen.';return;}
+ if(new Set(mapLineMode.stops.map(x=>x.id)).size!==mapLineMode.stops.length){$('plannerFeedback').textContent='Ein Halt darf nur einmal je Richtung vorkommen.';return;}
  const existing=S.lines.find(l=>l.id===mapLineMode.lineId),id=existing?.id||'LINE'+S.nextLine++;
  const line={id,contractId:j.id,name:title,interval:existing?.interval||60,stops:mapLineMode.stops.map(x=>({...x})),created:existing?.created||S.day};
  invalidateLineRoute(id);
