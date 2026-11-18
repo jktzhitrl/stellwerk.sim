@@ -214,9 +214,14 @@ header #next{min-height:36px;padding:6px 12px;font-size:12px}
 
 .liveTrainIcon{background:transparent;border:0;pointer-events:auto}
 .liveTrainIcon div{width:36px;height:36px;border-radius:50%;background:#fffdf2;border:3px solid #12a486;display:grid;place-items:center;font-size:19px;box-shadow:0 0 0 3px #00d5bd4d,0 4px 12px #113b4a98}
+
+#trainClock{display:flex;align-items:center;gap:3px;background:#082735;border:1px solid #567c83;border-radius:11px;padding:3px}
+#trainClock button{width:36px;min-height:32px;height:32px;padding:0;border:0;background:transparent;box-shadow:none;font-size:17px}
+#trainClock select{width:55px;min-height:30px;height:30px;padding:2px 4px;border:0;background:#1a4754;color:#f5fafa;font-size:12px;border-radius:6px}
+@media(max-width:700px){#trainClock button{width:28px;font-size:15px}#trainClock select{width:43px;font-size:10px}#trainClock{gap:0;padding:2px}}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.4 · SPIELTEST</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v1.4 · SPIELTEST</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><div id="trainClock" title="Steuerung der Live-Zuganimation"><button id="pauseTrains" aria-label="Live-Züge pausieren" title="Zuganimation pausieren">⏸</button><select id="trainSpeed" aria-label="Geschwindigkeit der Zuganimation" title="Animationsgeschwindigkeit"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></div><button class="primary" id="next" title="Nächsten Betriebstag simulieren">▶ <span class="nextLabel">Nächster Tag</span></button></header>
 <aside id="left">
 <div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
 <div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" aria-pressed="false">🛤️ Gleisdetails</button><button id="loadStops">🚉 Stationen</button></div>
@@ -750,7 +755,7 @@ $('plannerSave').onclick=()=>{
    werden zusammenhängende OSM-Bahn-Knoten geprüft. */
 const LIVE_ROUTE_KEY='railway_empire_live_line_routes_v1';
 let liveRouteCache={};try{liveRouteCache=JSON.parse(localStorage.getItem(LIVE_ROUTE_KEY)||'{}')||{};}catch(e){}
-let liveTrips=new Map(),liveClock=0,liveAnimation=0,liveLoading=new Set(),liveAbortController=null;
+let liveTrips=new Map(),liveClock=0,liveAnimation=0,liveLoading=new Set(),liveAbortController=null,liveLastFrame=0,livePaused=false,liveSpeed=1;
 function lineSignature(line){return line.stops.map(s=>s.id+':'+s.lat.toFixed(5)+','+s.lng.toFixed(5)).join('|');}
 function invalidateLineRoute(id){
  delete liveRouteCache[id];try{localStorage.setItem(LIVE_ROUTE_KEY,JSON.stringify(liveRouteCache));}catch(e){}
@@ -807,6 +812,9 @@ function rideDistanceAt(ride,elapsedMs){
  return begin;
 }
 function paintLiveTrains(now){
+ if(!liveTrips.size){liveAnimation=0;liveLastFrame=0;return;}
+ if(liveLastFrame){const frameMs=Math.max(0,Math.min(100,now-liveLastFrame));if(!livePaused)liveClock+=frameMs*liveSpeed;}
+ liveLastFrame=now;
  liveAnimation=requestAnimationFrame(paintLiveTrains);
  for(const [id,ride] of liveTrips){
   const trains=S.fleet.filter(t=>t.operatingLine===id&&t.line===ride.contractId);
@@ -822,7 +830,7 @@ function paintLiveTrains(now){
     m.bindTooltip('Zug '+t.id+' · '+ride.name+' · simulierte Fahrt mit Halten und Wende');
     ride.markers.set(t.id,m);
    }
-   const tms=now-ride.started+(index*duration/Math.max(1,trains.length));
+   const tms=liveClock-ride.started+(index*duration/Math.max(1,trains.length));
    const kilometer=rideDistanceAt(ride,tms);
    m.setLatLng(onRailAtDistance(ride.points,ride.distance,kilometer));
   }
@@ -896,7 +904,7 @@ async function activateLineRide(id,focus=true){
   if(!plan)throw Error('Die Zwischenhalte liegen nicht in befahrbarer Reihenfolge auf dem Gleisweg. Bitte Haltefolge prüfen.');
   const layer=L.layerGroup().addTo(map),route=L.polyline(result.points,{color:'#0ea7c1',weight:5,opacity:.91}).addTo(layer);
   route.bindPopup('Live-Linie '+line.name+' · Route aus zusammenhängenden OSM-Gleisen');
-  const ride={name:line.name,contractId:line.contractId,points:result.points,distance:plan.distances,plan,started:performance.now(),layer,markers:new Map()};
+  const ride={name:line.name,contractId:line.contractId,points:result.points,distance:plan.distances,plan,started:liveClock,layer,markers:new Map()};
   liveTrips.set(id,ride);if(!liveAnimation)liveAnimation=requestAnimationFrame(paintLiveTrains);
   if(focus)map.fitBounds(route.getBounds(),{padding:[50,50]});
   note('🚆 '+trains.length+' Zug/Züge auf '+line.name+' fahren – inklusive Aufenthalten an '+line.stops.length+' Halten und Wende am Linienende.');
@@ -1169,6 +1177,8 @@ function initMap(){
  map.on('moveend',()=>{loadStops(false);if(railVisible)scheduleRailLoad();});
  renderMap();scheduleWonNetworkStationLoad();
 }
+$('pauseTrains').onclick=()=>{livePaused=!livePaused;$('pauseTrains').textContent=livePaused?'▶':'⏸';$('pauseTrains').setAttribute('aria-label',livePaused?'Live-Züge fortsetzen':'Live-Züge pausieren');};
+$('trainSpeed').onchange=()=>{liveSpeed=Number($('trainSpeed').value)||1;};
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){for(const ride of liveTrips.values())if(map&&ride.layer)map.removeLayer(ride.layer);liveTrips.clear();stopMapLineMode();S=fresh();selected=null;save();render();}};
 $('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();$('railStatus').textContent='Technische Gleisdetails aktiviert. Mit dem Gleissymbol wieder zur Spielkarte wechseln.';}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Spielkarte aktiv: Bahnhöfe und eigene Linien ohne technische Gleisüberlagerung.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.awards.length?S.awards.flatMap(a=>{const j=JOBS.find(j=>j.id===a.id);return j?[station(j.a),station(j.b),...(wonNetworkStops[a.id]||[])]:[];}):S.owned.map(station).filter(Boolean);const positions=pts.filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lng)).map(x=>[x.lat,x.lng]);if(positions.length)map.fitBounds(positions,{padding:[35,35],maxZoom:11});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
