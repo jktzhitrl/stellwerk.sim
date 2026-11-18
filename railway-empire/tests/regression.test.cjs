@@ -195,3 +195,19 @@ test('Missed tenders reopen in repeating 14-day rounds instead of locking progre
  assert.match(js,/Frist Tag '\+nextTenderDeadline\(j,S\.day\)/);
  assert.doesNotMatch(js,/b\.disabled=won\|\|pending\|\|S\.day>j\.deadline/);
 });
+
+test('Tender profitability preview matches expected daily contract arithmetic',()=>{
+ const setup=segment('const ST=[','let S=fresh()');
+ const economics=segment('function estimateBidEconomics(','// Ungewonnene Verkehrslose');
+ const calculate=new Function(setup+economics+'return estimateBidEconomics;')();
+ const profitable=calculate(12500,4,2,'emu','sb');
+ assert.equal(profitable.capacity,1);
+ assert.equal(profitable.revenue,12500);
+ assert.equal(profitable.operating,4*730+2*470);
+ assert.equal(profitable.profit,8640);
+ const loss=calculate(1000,25,1,'rb','rb');
+ assert.ok(loss.profit<0);
+ assert.ok(loss.capacity<1);
+ assert.equal(calculate(1000,0,1,'rb','rb'),null);
+ assert.match(js,/offerEl,tripsEl,vehicle,countEl/);
+});
