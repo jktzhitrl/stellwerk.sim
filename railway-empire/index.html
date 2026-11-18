@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Railway Empire Deutschland</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{font:14px system-ui;color:#e4f3fa;background:#0d1c2a;color-scheme:dark}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
-button,select,input{font:inherit}button{background:#24465c;color:#e8f4fb;border:1px solid #507a8c;border-radius:9px;padding:9px 11px;cursor:pointer;min-height:40px}button:hover{background:#35647a}button:disabled{opacity:.4;cursor:default}button.primary{background:#098078;border-color:#67dec0;font-weight:bold}
-#app{height:100dvh;display:grid;grid-template-columns:242px minmax(0,1fr) 315px;grid-template-rows:64px minmax(0,1fr)}
-header{grid-column:1/4;display:flex;align-items:center;gap:15px;background:#153044;border-bottom:1px solid #416174;padding:8px 14px}header .logo{font-size:20px;font-weight:800;white-space:nowrap}header .logo small{display:block;font-size:10px;font-weight:400;color:#acc7d4;letter-spacing:1px}.metric{display:grid;gap:2px;white-space:nowrap}.metric span{font-size:10px;color:#a4c2d1;text-transform:uppercase}.metric strong{font-size:16px}
-aside{overflow-y:auto;padding:12px;background:#192f3f;min-height:0}#left{border-right:1px solid #35596e}#right{border-left:1px solid #35596e}
-.panel{padding:12px;border:1px solid #3e6579;border-radius:13px;background:#203a4b;margin-bottom:12px}h2{font-size:15px;margin:0 0 9px}h3{font-size:12px;margin:0 0 8px;color:#98c9df}.muted{font-size:12px;line-height:1.5;color:#b3cbd6}.row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #315264}.row:last-child{border:0}.stack{display:grid;gap:7px}
+:root{font:14px system-ui;color:#eaf6ff;background:#091822;color-scheme:dark;--gold:#f4cf86;--teal:#69e4c5}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
+button,select,input{font:inherit}button{background:linear-gradient(160deg,#335b72,#203d53);color:#e8f4fb;border:1px solid #54798e;border-radius:11px;padding:9px 11px;cursor:pointer;min-height:42px;box-shadow:0 2px 0 #0c2130}button:hover{background:linear-gradient(160deg,#477d97,#27516c)}button:disabled{opacity:.4;cursor:default}button.primary{background:linear-gradient(150deg,#15aa8e,#067568);border-color:#84f9da;font-weight:bold;color:#f6fffb;box-shadow:0 3px 0 #07564e}
+#app{height:100dvh;display:grid;grid-template-columns:250px minmax(0,1fr) 330px;grid-template-rows:72px minmax(0,1fr)}
+header{grid-column:1/4;display:flex;align-items:center;gap:15px;background:linear-gradient(90deg,#071b28,#17394b 47%,#102734);border-bottom:2px solid #527d85;padding:8px 16px;box-shadow:0 6px 20px #041521a8;z-index:650}header .logo{font-size:23px;font-weight:900;white-space:nowrap;color:#fff0c5;text-shadow:0 2px 10px #f9b6504a}header .logo small{display:block;font-size:10px;font-weight:400;color:#acc7d4;letter-spacing:1px}.metric{display:grid;gap:2px;white-space:nowrap}.metric span{font-size:10px;color:#a4c2d1;text-transform:uppercase}.metric strong{font-size:16px}
+aside{overflow-y:auto;padding:12px;background:linear-gradient(180deg,#193847,#0d2330);min-height:0;scrollbar-color:#4c798a transparent}#left{border-right:1px solid #35596e}#right{border-left:1px solid #35596e}
+.panel{padding:15px;border:1px solid #52798a;border-radius:16px;background:linear-gradient(145deg,#244758,#142e3d);margin-bottom:12px;box-shadow:0 6px 18px #06172080,inset 0 1px 0 #ffffff18}h2{font-size:16px;margin:0 0 11px;color:#f4d8a5}h3{font-size:12px;margin:0 0 8px;color:#98c9df}.muted{font-size:12px;line-height:1.5;color:#b3cbd6}.row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #315264}.row:last-child{border:0}.stack{display:grid;gap:7px}
 #mapShell{position:relative;min-width:0;min-height:0}#map{position:absolute;inset:0}
-.floating{position:absolute;z-index:500;background:#123044ee;color:#dff2fa;border:1px solid #628ba0;border-radius:12px;box-shadow:0 5px 20px #0005;padding:9px 12px;font-size:12px}
+.floating{position:absolute;z-index:500;background:linear-gradient(145deg,#123547f0,#102b39f0);color:#eaf8fc;border:1px solid #84acb6;border-radius:15px;box-shadow:0 8px 25px #051725bd;padding:12px 14px;font-size:12px;backdrop-filter:blur(8px)}
 #mapTop{top:12px;left:12px;max-width:250px}#mapBottom{bottom:21px;left:12px;max-width:400px}#selected{top:12px;right:12px;max-width:200px}
 .tabs{display:flex;gap:5px;margin-bottom:12px}.tabs button{flex:1;padding:6px 2px;font-size:12px;min-height:36px}.tabs .active{background:#1688a1}
 .tab[hidden]{display:none}.tender,.vehicle{padding:11px;background:#192f40;border:1px solid #486e82;border-radius:11px;margin-bottom:10px}.tender strong{display:block}.tender button{margin-top:8px;width:100%}.badges{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.badge{padding:3px 5px;border-radius:4px;background:#315b72;color:#daebf4;font-size:10px}.vehicle select{width:100%;margin-top:7px}
@@ -17,24 +17,43 @@ select,input[type=number]{background:#132c3b;color:#e8f6fd;border:1px solid #658
 #notice{min-height:12px;color:#ffdb9b}#log{list-style:none;padding:0;margin:0;max-height:310px;overflow:auto;font-size:12px}#log li{padding:8px 0;border-bottom:1px solid #335267;color:#c1d9e5}
 #mobile{display:none}.station-icon{width:13px;height:13px;border:2px solid #e3f6ff;background:#37617a;border-radius:50%;box-shadow:0 0 3px #000}.station-icon.owned{background:#3bdfa6;width:17px;height:17px}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#18384a;color:#eff9fb}
+#map{background:#223d38}.leaflet-control-zoom a{background:#193f4c!important;color:#eaf8f9!important;border-color:#507782!important}.leaflet-control-attribution{background:#102a33b8!important;color:#cfe2e6!important}
+.gameCard{background:linear-gradient(130deg,#1b514e,#176c64);border:1px solid #8bf3b9;border-radius:13px;padding:12px;margin:10px 0;box-shadow:0 6px 14px #0004}
+.gameCard .big{font-weight:850;font-size:20px;color:#e2ffdc}.gameCard small{display:block;color:#c4e5dd;margin-top:5px}
+#railStatus{background:#153e4d;border-left:3px solid #72d7f1;padding:8px 10px;border-radius:7px;margin-top:10px;font-size:11px;line-height:1.4}
+#railButtons{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+#railButtons button{min-height:44px;font-size:12px}
+#routeLegend{font-size:11px;color:#cee5ed;line-height:1.7;margin-top:7px}
+#mapTop{border-color:#60dfbc!important;background:linear-gradient(120deg,#0c493eeb,#103d48ed)!important}
+#mapBottom{max-width:410px}.featureFlag{font-size:11px;border-radius:15px;border:1px solid #75dabb;color:#aaf3d9;padding:3px 8px;display:inline-block;margin:5px 0}
+#railDetail{font-size:11px;color:#c9e5f0;max-width:280px;margin-top:6px}
+.railicon{filter:drop-shadow(0 0 3px #25bf99)}
+.tender{border-color:#63877d;background:linear-gradient(155deg,#254c50,#1b3545);box-shadow:0 3px 10px #0003}.tender strong{color:#ffdf9a;font-size:14px}
+.vehicle{border-color:#547b8d;background:linear-gradient(155deg,#2b4b61,#173143)}
 @media(max-width:1010px){#app{grid-template-columns:190px minmax(0,1fr) 275px}aside{padding:8px}.logo{font-size:15px!important}}
 @media(max-width:700px){#app{grid-template-columns:1fr;grid-template-rows:58px minmax(0,1fr) 58px}header{grid-column:1;padding:5px 9px;gap:8px}header .logo{font-size:14px!important}header .metric:nth-of-type(n+3){display:none}header .metric strong{font-size:12px}header button{padding:6px;font-size:12px}aside{display:none;position:fixed;top:58px;bottom:58px;left:0;right:0;z-index:900;padding:12px}aside.open{display:block}#mapShell{grid-column:1;grid-row:2}#mobile{display:grid;grid-row:3;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#153044}#mobile button{padding:4px;font-size:11px}#mapTop{top:7px;left:7px;max-width:170px;padding:6px}#selected{top:7px;right:7px;max-width:130px;padding:6px}#mapBottom{bottom:18px;left:7px;padding:6px;max-width:230px}}
 </style></head>
 <body><div id="app">
-<header><div class="logo">🚆 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.2 ALPHA</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next">▶ Tag abschließen</button></header>
+<header><div class="logo">🚄 RAILWAY EMPIRE<small>DEUTSCHLAND · v0.3 · ECHTES STRECKENNETZ</small></div><div class="metric"><span>Kontostand</span><strong id="money"></strong></div><div class="metric"><span>Tag</span><strong id="day"></strong></div><div class="metric"><span>Unternehmensruf</span><strong id="rep"></strong></div><div style="flex:1"></div><button class="primary" id="next">▶ Tag abschließen</button></header>
 <aside id="left">
-<div class="panel"><h2>🗺️ Deutschlandkarte</h2><div class="muted">Echte OpenStreetMap-Karte. Beim Hineinzoomen kannst du reale Bahnhöfe und Haltepunkte entdecken und erschließen.</div><div class="stack" style="margin-top:9px"><button id="allGermany">Ganz Deutschland</button><button id="myMap">Mein Streckennetz</button><button id="loadStops">Haltepunkte nachladen</button></div><p id="mapStatus" class="muted">Bundesweite Bahnhöfe verfügbar.</p></div>
-<div class="panel"><h2>🏗️ Infrastruktur</h2><div class="row"><span>Eigene Bahnhöfe</span><b id="ownedCount"></b></div><div class="row"><span>Gewonnene Linien</span><b id="awardCount"></b></div><div class="row"><span>Züge</span><b id="fleetCount"></b></div><p class="muted">Wähle auf der Karte einen realen Bahnhof, um dort eine eigene Betriebsstelle zu eröffnen.</p><button id="build" style="width:100%">Bahnhof auswählen</button></div>
-<div class="panel"><h2>🏆 Ziele</h2><div id="goals" class="muted"></div></div>
+<div class="panel"><h2>🌍 Deine Spielwelt</h2><div class="gameCard"><div>DEIN STARTGEBIET</div><div class="big">Mitteldeutschland</div><small>Von Leipzig aus zum Eisenbahnkonzern</small></div>
+<div id="railButtons"><button id="allGermany">🌍 Deutschland</button><button id="myMap">🏠 Mein Netz</button><button id="showRail" class="active" aria-pressed="true">🛤️ Bahngleise</button><button id="loadStops">🚉 Stationen</button></div>
+<div id="railStatus" aria-live="polite">Die Karte zeigt echte Gleisverläufe von OpenRailwayMap.</div><p id="mapStatus" class="muted">Bahnhöfe in Deutschland verfügbar.</p>
+<div id="routeLegend">🟢 Eigener Bahnhof · 🟡 Erschließbarer Bahnhof · 🛤️ Gleise aus OpenRailwayMap</div></div>
+<div class="panel"><h2>🏗️ Baumenü</h2><div class="row"><span>Eigene Bahnhöfe</span><b id="ownedCount"></b></div><div class="row"><span>Gewonnene Linien</span><b id="awardCount"></b></div><div class="row"><span>Züge</span><b id="fleetCount"></b></div><p class="muted">Wähle auf der Karte einen realen Bahnhof, um dort eine eigene Betriebsstelle zu eröffnen.</p><button id="build" style="width:100%">Bahnhof auswählen</button></div>
+<div class="panel"><h2>⭐ Deine Missionen</h2><div id="goals" class="muted"></div></div>
 <div class="panel"><h2>💾 Spielstand</h2><div class="stack"><button id="save">Speichern</button><button id="reset">Neues Unternehmen</button></div><p class="muted">Unabhängig vom Stellwerk Simulator.</p></div>
 </aside>
-<div id="mapShell"><div id="map"></div><div class="floating" id="mapTop"><b>🇩🇪 Deutschland</b><div class="muted">Echte Karte · fiktive Vergaben</div></div><div class="floating" id="selected">📍 Bahnhof wählen</div><div class="floating" id="mapBottom"><div style="color:#52e2b4">━ Gewonnener Verkehrsvertrag</div><div style="color:#edc681">┄ Bewerbungsphase</div><div id="notice"></div></div></div>
+<div id="mapShell"><div id="map"></div>
+<div class="floating" id="mapTop"><b>🛤️ DEIN EISENBAHNNETZ</b><div class="featureFlag">ECHTE GLEISDATEN</div><div class="muted">Bahnhöfe erschließen · Verkehrslose gewinnen · Strecken entdecken</div><div id="railDetail">Zoom hinein für Gleise, Weichen und Streckenabschnitte.</div></div>
+<div class="floating" id="selected">📍 Bahnhof auf der Karte antippen</div>
+<div class="floating" id="mapBottom"><div style="color:#73e4be">● Eigene Betriebsstelle</div><div style="color:#f1cc7f">● Noch erschließbar</div><div style="color:#b7d7e6">━ Reale Gleise (OpenRailwayMap)</div><div id="notice"></div></div></div>
 <aside id="right"><div class="tabs"><button class="active" data-tab="tenders">Vergaben</button><button data-tab="fleet">Fuhrpark</button><button data-tab="finance">Firma</button></div>
-<div class="tab" id="tab-tenders"><h2>📋 Streckenausschreibungen</h2><p class="muted">Bewirb dich um fiktive öffentliche Verkehrsverträge zwischen realen Bahnhöfen. Angebotspreis, Fahrtenzahl und Fuhrpark beeinflussen deine Chancen.</p><div id="tenders"></div></div>
-<div class="tab" id="tab-fleet" hidden><h2>🚈 Zugmarkt</h2><div id="shop"></div><h2>Meine Fahrzeuge</h2><div id="fleet"></div></div>
-<div class="tab" id="tab-finance" hidden><h2>📊 Unternehmenszentrale</h2><div id="finances"></div><h3>Berichte</h3><ul id="log"></ul></div>
+<div class="tab" id="tab-tenders"><h2>🏆 Verkehrslose gewinnen</h2><p class="muted">Bewirb dich um fiktive öffentliche Verkehrsverträge zwischen realen Bahnhöfen. Angebotspreis, Fahrtenzahl und Fuhrpark beeinflussen deine Chancen.</p><div id="tenders"></div></div>
+<div class="tab" id="tab-fleet" hidden><h2>🚄 Fahrzeughändler</h2><div id="shop"></div><h2>Meine Fahrzeuge</h2><div id="fleet"></div></div>
+<div class="tab" id="tab-finance" hidden><h2>🏦 Dein Unternehmen</h2><div id="finances"></div><h3>Berichte</h3><ul id="log"></ul></div>
 </aside>
-<div id="mobile"><button data-mobile="left">🗺️ Karte & Bau</button><button data-mobile="map">🚆 Karte</button><button data-mobile="right">📋 Management</button></div>
+<div id="mobile"><button data-mobile="left">🏗️ Bauen</button><button data-mobile="map">🗺️ Weltkarte</button><button data-mobile="right">🏆 Aufträge</button></div>
 </div>
 <div id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div id="dialogCard"><h2 id="dialogTitle"></h2><div id="dialogContent"></div><div id="dialogActions"><button id="closeDialog">Abbrechen</button><button id="acceptDialog" class="primary">Angebot abgeben</button></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -50,7 +69,7 @@ const JOBS=[
 const TYPES={rb:{name:'Regionaltriebwagen',price:65000,seats:180,upkeep:330},emu:{name:'S-Bahn-Triebwagen',price:98000,seats:320,upkeep:470},re:{name:'Regionalexpress',price:153000,seats:560,upkeep:720},ic:{name:'Fernverkehrszug',price:242000,seats:780,upkeep:1050}};
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
-let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,selected=null,action=null,lastStops=0,loadToken=0;
+let S=fresh(),map=null,connections=null,stationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=true,railTimer=null;
 const dyn=new Map(),station=id=>ST.find(s=>s.id===id)||dyn.get(id);
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
@@ -60,10 +79,56 @@ function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.')
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent='Standort auswählen';b.onclick=()=>{select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
 function dot(owned){return L.divIcon({className:'',html:'<div class="station-icon'+(owned?' owned':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]});}
-function renderMap(){if(!map)return;connections.clearLayers();stationsLayer.clearLayers();for(const j of JOBS){const a=station(j.a),b=station(j.b),owned=S.awards.some(x=>x.id===j.id),bid=S.bids.some(x=>x.id===j.id);
-const line=L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{weight:owned?5:2,color:owned?'#05ac8c':bid?'#e4a943':'#658c9d',opacity:owned?.9:.55,dashArray:owned?null:'6 7'}).addTo(connections);
-line.bindTooltip(j.name,{sticky:true});line.on('click',()=>bidDialog(j.id));}
-for(const s of [...ST,...(S.customStations||[])]){const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));}}
+function renderMap(){
+ if(!map)return;
+ // Ausschreibungen sind Verkehrsverträge, keine belegten Gleisgeometrien.
+ // Deshalb KEINE erfundenen geraden Streckenlinien zwischen Städten zeichnen.
+ connections.clearLayers();stationsLayer.clearLayers();
+ for(const s of [...ST,...(S.customStations||[])]){
+   const m=L.marker([s.lat,s.lng],{icon:dot(S.owned.includes(s.id)),title:s.name}).addTo(stationsLayer);
+   m.bindPopup(()=>stationPopup(s));m.on('click',()=>select(s));
+ }
+}
+function scheduleRailLoad(){clearTimeout(railTimer);railTimer=setTimeout(loadRailGeometry,800);}
+async function loadRailGeometry(){
+ if(!map||!railVisible||map.getZoom()<12){if(railGeometry)railGeometry.clearLayers();$('railDetail').textContent='Reale Gleise weltweit im Kartenausschnitt sichtbar. Für anklickbare Gleise bitte auf Zoom 12 oder höher gehen.';return;}
+ const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());
+ if(area>.12){$('railDetail').textContent='Ausschnitt noch zu groß für Gleisdetails. Bitte weiter heranzoomen.';return;}
+ const now=Date.now();
+ if(now-lastRailQuery<12000)return;lastRailQuery=now;
+ if(railController)railController.abort();
+ const controller=new AbortController();railController=controller;
+ const token=++railToken;
+ const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(v=>v.toFixed(5)).join(',');
+ const query='[out:json][timeout:16];(way["railway"~"^(rail|light_rail|narrow_gauge|subway)$"]('+bbox+');node["railway"="switch"]('+bbox+'););out geom;';
+ $('railDetail').textContent='Lade reale Gleise und Weichen im Kartenausschnitt …';
+ const timeout=setTimeout(()=>controller.abort(),20000);
+ try{
+  const res=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:controller.signal});
+  if(!res.ok)throw Error('HTTP '+res.status);
+  const data=await res.json();if(token!==railToken)return;
+  railGeometry.clearLayers();let ways=0,switches=0;
+  for(const el of (data.elements||[]).slice(0,4500)){
+   if(el.type==='way'&&Array.isArray(el.geometry)&&el.geometry.length>1){
+     const pts=el.geometry.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>[p.lat,p.lon]);
+     if(pts.length<2)continue;
+     const service=el.tags&&el.tags.service;
+     const track=L.polyline(pts,{color:service?'#6d96a1':'#3be4b5',weight:service?2.5:3.3,opacity:service?.7:.85,interactive:true,pane:'overlayPane'}).addTo(railGeometry);
+     const content=document.createElement('div');content.textContent='🛤️ Echtes Gleis · OSM '+el.id+(service?' · '+service:'');
+     track.bindPopup(content);ways++;
+   }else if(el.type==='node'&&el.tags&&el.tags.railway==='switch'&&Number.isFinite(el.lat)&&Number.isFinite(el.lon)){
+     const marker=L.circleMarker([el.lat,el.lon],{radius:3.5,color:'#142c38',fillColor:'#ffd27b',fillOpacity:1,weight:1}).addTo(railGeometry);
+     const content=document.createElement('div');content.textContent='🔀 Reale Weiche · OSM '+el.id;marker.bindPopup(content);switches++;
+   }
+  }
+  $('railDetail').textContent='✓ '+ways+' echte Gleisabschnitte und '+switches+' Weichen geladen · antippen für Details.';
+  $('railStatus').textContent='Echte OpenRailwayMap-Gleise + '+ways+' verifizierte OSM-Gleisabschnitte im aktuellen Ausschnitt.';
+ }catch(e){
+  if(token!==railToken)return;
+  $('railDetail').textContent='Detaildaten gerade nicht verfügbar. Das OpenRailwayMap-Gleisbild bleibt sichtbar.';
+  $('railStatus').textContent='OpenRailwayMap-Kartenebene aktiv; Detailabfrage derzeit nicht erreichbar.';
+ }finally{clearTimeout(timeout);}
+}
 function loadStops(force){if(!map||map.getZoom()<10){stopsLayer.clearLayers();return;}if(!force&&Date.now()-lastStops<30000)return;const b=map.getBounds(),area=(b.getNorth()-b.getSouth())*(b.getEast()-b.getWest());if(area>2){$('mapStatus').textContent='Bitte weiter hineinzoomen, damit reale Haltepunkte geladen werden.';return;}
 lastStops=Date.now();const token=++loadToken;const bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(4)).join(',');
 const query='[out:json][timeout:15];(node["railway"~"station|halt"]('+bbox+');way["railway"~"station|halt"]('+bbox+'););out center 140;';
@@ -76,6 +141,14 @@ $('mapStatus').textContent=found+' reale Bahnhöfe/Haltepunkte geladen (OpenStre
 .catch(()=>{$('mapStatus').textContent='Stationsdienst gerade nicht erreichbar; Hauptbahnhöfe bleiben verfügbar.';});}
 function build(){if(!selected){note('Bitte zuerst einen Bahnhof auf der Karte wählen.');return;}if(S.owned.includes(selected.id))return;if(!debit(28000))return;S.owned.push(selected.id);if(selected.id.startsWith('osm-')&&!S.customStations.some(x=>x.id===selected.id))S.customStations.push({...selected});log(selected.name+' als Betriebsstelle erschlossen.');save();render();note('Neue Betriebsstelle: '+selected.name);}
 function modal(title,body,fn){$('dialogTitle').textContent=title;$('dialogContent').replaceChildren(body);action=fn;$('dialog').classList.add('show');}
+function showTenderOnMap(id){
+ const j=JOBS.find(x=>x.id===id);if(!j||!map)return;
+ const a=station(j.a),b=station(j.b);if(!a||!b)return;
+ map.fitBounds([[a.lat,a.lng],[b.lat,b.lng]],{padding:[65,65],maxZoom:11});
+ $('railDetail').textContent='Los: '+j.name+' · '+a.name+' ↔ '+b.name+'. Die Karte zeigt reale Gleise; die betriebliche Linienführung und Zwischenhalte sind noch nicht automatisch berechnet.';
+ $('railStatus').textContent='Echte Gleise statt künstlicher Luftlinien. Weitere Details beim Heranzoomen.';
+ if(window.matchMedia('(max-width:700px)').matches)document.querySelectorAll('aside.open').forEach(e=>e.classList.remove('open'));
+}
 function bidDialog(id){
  const j=JOBS.find(x=>x.id===id);if(!j)return;
  if(S.awards.some(x=>x.id===id)){note('Du betreibst dieses Los bereits.');return;}
@@ -144,16 +217,26 @@ function tab(which){document.querySelectorAll('[data-tab]').forEach(b=>b.classLi
 function textel(tag,txt){const x=document.createElement(tag);x.textContent=txt;return x;}
 function render(){ $('money').textContent=euro(S.money);$('day').textContent=S.day;$('rep').textContent=S.rep+'/100';$('ownedCount').textContent=S.owned.length;$('awardCount').textContent=S.awards.length;$('fleetCount').textContent=S.fleet.length;
 $('goals').innerHTML=[['Drei Linien gewinnen',S.awards.length>=3],['Fünf Bahnhöfe erschließen',S.owned.length>=5],['Sechs Züge besitzen',S.fleet.length>=6],['1 Mio. € Umsatz erreichen',S.totalEarned>=1000000]].map(([s,v])=>(v?'✅ ':'▫️ ')+s).join('<br>');
-$('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+j.deadline]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':S.day>j.deadline?'Frist abgelaufen':'Angebot erstellen');b.disabled=won||pending||S.day>j.deadline;b.onclick=()=>bidDialog(j.id);c.appendChild(b);$('tenders').appendChild(c);}
+$('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+j.deadline]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':S.day>j.deadline?'Frist abgelaufen':'Angebot erstellen');b.disabled=won||pending||S.day>j.deadline;b.onclick=()=>bidDialog(j.id);c.appendChild(b);
+const view=textel('button','🗺️ Streckenverlauf ansehen');view.onclick=()=>showTenderOnMap(j.id);c.appendChild(view);
+$('tenders').appendChild(c);}
 $('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c=document.createElement('div');c.className='tender';c.append(textel('strong',t.name),textel('div',t.seats+' Plätze · '+euro(t.upkeep)+'/Tag Unterhalt'));const b=textel('button','Kaufen · '+euro(t.price));b.onclick=()=>{if(!debit(t.price))return;S.fleet.push({id:S.nextTrain++,type,line:null});log(t.name+' gekauft.');save();render();};c.appendChild(b);$('shop').appendChild(c);}
 $('fleet').replaceChildren();for(const t of S.fleet){const c=document.createElement('div');c.className='vehicle';c.appendChild(textel('strong','Zug '+t.id+' · '+TYPES[t.type].name));const sel=document.createElement('select');sel.appendChild(new Option('Nicht eingesetzt',''));for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id);if(!a.type||a.type===t.type)sel.appendChild(new Option(j.name,j.id));}sel.value=t.line||'';sel.onchange=()=>{const target=sel.value;const contract=S.awards.find(a=>a.id===target);if(target&&contract&&contract.type&&contract.type!==t.type){note('Falscher Fahrzeugtyp für diesen Verkehrsvertrag.');render();return;}t.line=target||null;save();render();};c.appendChild(sel);$('fleet').appendChild(c);}
 $('finances').innerHTML=[['Bisherige Einnahmen',euro(S.totalEarned)],['Bisherige Ausgaben',euro(S.totalSpent)],['Beförderte Fahrgäste',S.totalRiders.toLocaleString('de-DE')],['Offene Bewerbungen',S.bids.length]].map(([a,b])=>'<div class="row"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
 $('log').replaceChildren(...S.log.slice(0,40).map(s=>textel('li',s)));renderMap();if(selected)select(selected);}
-function initMap(){if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
-map=L.map('map',{preferCanvas:true}).setView([51.16,10.45],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap-Mitwirkende'}).addTo(map);
-connections=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);map.on('moveend',()=>loadStops(false));renderMap();}
+function initMap(){
+ if(typeof L==='undefined'){$('mapStatus').textContent='Kartenbibliothek nicht erreichbar. Bitte Internetverbindung prüfen.';return;}
+ map=L.map('map',{preferCanvas:true,zoomControl:false}).setView([51.33,12.37],9);
+ L.control.zoom({position:'bottomright'}).addTo(map);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ railTiles=L.tileLayer('https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{minZoom:3,maxZoom:19,maxNativeZoom:19,opacity:.93,attribution:'Gleise © <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> / OSM'}).addTo(map);
+ railTiles.on('tileerror',()=>{$('railStatus').textContent='OpenRailwayMap-Kacheln momentan nicht erreichbar. Bitte Internetverbindung prüfen.';});
+ connections=L.layerGroup().addTo(map);railGeometry=L.layerGroup().addTo(map);stationsLayer=L.layerGroup().addTo(map);stopsLayer=L.layerGroup().addTo(map);
+ map.on('moveend',()=>{loadStops(false);scheduleRailLoad();});
+ renderMap();scheduleRailLoad();
+}
 $('next').onclick=nextDay;$('build').onclick=build;$('save').onclick=()=>{save();note('Spielstand gespeichert.');};$('reset').onclick=()=>{if(confirm('Neues Unternehmen gründen? Der bisherige Deutschland-Spielstand wird überschrieben.')){S=fresh();selected=null;save();render();}};
-$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
+$('allGermany').onclick=()=>map&&map.setView([51.16,10.45],6);$('showRail').onclick=()=>{if(!map)return;railVisible=!railVisible;if(railVisible){railTiles.addTo(map);scheduleRailLoad();}else{map.removeLayer(railTiles);railGeometry.clearLayers();$('railStatus').textContent='Gleise ausgeblendet.';}$('showRail').classList.toggle('active',railVisible);$('showRail').setAttribute('aria-pressed',String(railVisible));};$('myMap').onclick=()=>{if(!map)return;const pts=S.owned.map(station).filter(Boolean).map(s=>[s.lat,s.lng]);if(pts.length)map.fitBounds(pts,{padding:[35,35],maxZoom:9});};
 $('loadStops').onclick=()=>{lastStops=0;loadStops(true);};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('closeDialog').onclick=()=>{$('dialog').classList.remove('show');action=null;};$('acceptDialog').onclick=()=>{if(action&&action()!==false){$('dialog').classList.remove('show');action=null;}};$('dialog').onclick=e=>{if(e.target===$('dialog'))$('closeDialog').click();};
 document.querySelectorAll('[data-mobile]').forEach(b=>b.onclick=()=>{const which=b.dataset.mobile;for(const id of ['left','right'])$(id).classList.toggle('open',id===which&&!$(id).classList.contains('open'));if(which==='map'&&map)setTimeout(()=>map.invalidateSize(),100);});
