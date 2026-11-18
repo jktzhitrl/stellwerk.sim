@@ -2352,9 +2352,10 @@ function render() {
     const pos = S.sw[id];
     for (const [setting,path] of Object.entries(E_.swPath[id])) {
       const active = setting === pos;
-      path.setAttribute('stroke',active ? (switchLocked(id) ? COL.route : '#e8f6ff') : '#536875');
+      const occupied = S.occLegs.has(w.trunk) || S.occLegs.has(w[setting === '+' ? 's' : 'd']);
+      path.setAttribute('stroke',occupied ? COL.occ : active ? (switchLocked(id) ? COL.route : '#e8f6ff') : '#536875');
       path.setAttribute('stroke-width',active ? 5 : 2.5);
-      path.setAttribute('stroke-dasharray',active ? 'none' : '4 5');
+      path.setAttribute('stroke-dasharray',active || occupied ? 'none' : '4 5');
     }
     const color = S.swFault[id] ? '#ff8a3d' : switchLocked(id) ? COL.route : '#b6cbd6';
     E_.swBg[id].setAttribute('stroke',color);
