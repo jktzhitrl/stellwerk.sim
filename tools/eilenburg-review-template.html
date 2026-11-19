@@ -12,7 +12,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 300px;height:calc(100dvh -
 svg{width:100%;height:100%;touch-action:none}aside{padding:14px;overflow:auto;background:#203440}
 label{display:block;padding:8px}button{font:inherit;min-height:42px;background:#315871;color:white;border:1px solid #638a9c;border-radius:7px;padding:7px}
 #info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6}
-@media(max-width:760px){main{grid-template-columns:1fr;grid-template-rows:minmax(300px,1fr) 260px;height:calc(100dvh - 135px)}}
+@media(max-width:1000px){main{display:flex;flex-direction:column;height:auto}#map{height:55dvh;min-height:340px}aside{max-height:none;min-height:260px}header{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -43,6 +43,20 @@ function detail(label,obj){document.getElementById('info').textContent=label+'\n
 for(const s of data.osmSwitches||[]){const c=el('circle',{cx:s.x,cy:s.y,r:8,fill:'#ffae56',stroke:'#111','stroke-width':1},gW);c.addEventListener('click',()=>detail('Weiche · OSM-ID '+s.osmNodeId,s));}
 for(const s of data.signals||[]){const c=el('circle',{cx:s.x,cy:s.y,r:6,fill:s.railwayTags?.['railway:signal:main']?'#64c4f9':'#9fa5fa',stroke:'#111','stroke-width':1},gS);c.addEventListener('click',()=>detail('Signalbezogenes OSM-Objekt · ID '+s.osmNodeId,s));}
 for(const [key,layer]of [['showTracks',gT],['showSwitches',gW],['showSignals',gS]])document.getElementById(key).addEventListener('change',ev=>layer.style.display=ev.target.checked?'':'none');
+// Touch support: a nearby mapped point can be selected even if its SVG marker
+// is smaller than a finger. The threshold is in screen pixels, not map units.
+svg.addEventListener('click',ev=>{
+  if(ev.target.closest('circle'))return;
+  let winner=null,best=25;
+  for(const marker of svg.querySelectorAll('#switches circle,#signals circle')){
+    if(getComputedStyle(marker.parentNode).display==='none')continue;
+    const pt=svg.createSVGPoint();pt.x=Number(marker.getAttribute('cx'));pt.y=Number(marker.getAttribute('cy'));
+    const q=pt.matrixTransform(svg.getScreenCTM());
+    const distance=Math.hypot(q.x-ev.clientX,q.y-ev.clientY);
+    if(distance<best){best=distance;winner=marker;}
+  }
+  if(winner)winner.dispatchEvent(new MouseEvent('click',{bubbles:false}));
+});
 document.getElementById('counts').textContent=data.tracks.length+' Gleissegmente · '+data.osmSwitches.length+' kartierte Weichen · '+data.signals.filter(s=>s.railwayTags?.['railway:signal:main']).length+' Hauptsignalobjekte · '+data.signals.length+' signalbezogene Objekte insgesamt · '+data.report.connectedComponents.length+' topologische Komponenten';
 const touches=new Map();let pan=null,gesture=null;
 function p(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const m=svg.getScreenCTM();return pt.matrixTransform(m.inverse());}
