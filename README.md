@@ -23,7 +23,7 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 
 - **Halle (Saale) Hbf** (noch gesperrt – in Arbeit; schematisch nach dem realen Knoten, ohne Gleisdaten nachgebaut): 13 Bahnsteiggleise in drei Gruppen, Gütergleise 14/15, je Kopf vier zweigleisige Strecken (Norden: Delitzsch/Eilenburg, Bitterfeld/Berlin, Köthen/Magdeburg, Zugbildungsanlage; Süden: Leipzig über Schkeuditz, Flughafen/Erfurt (NBS), Merseburg, Angersdorf/Kassel); ICE-Halt, S-Bahn Mitteldeutschland und viele **Wendezüge**, die am Bahnsteig die Richtung wechseln. `index.html?bf=halle`
 
-In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg und Halle gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen gibt es überall.
+In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg und Halle gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen, Weichen-/Signalstörungen und zeitweise **Langsamfahrstellen** 🐌 (angekündigte Tempobeschränkung auf einem Streckenabschnitt, gelb gepunktet) gibt es in jedem Bahnhof.
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 

@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.bestenliste-1">
+<meta name="app-version" content="2026-11-19.langsamfahrstelle-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -526,6 +526,7 @@
       <li><b>Weichenstörung</b> (⚠ orange): Die Weiche bleibt einige Minuten in ihrer Lage – nimm Fahrstraßen, die sie so befahren, oder speichere die Fahrstraße.</li>
       <li><b>Signalstörung</b>: Das Signal kann nicht auf Fahrt. Fahrstraße stellen und Signal antippen → <b>Ersatzsignal Zs1</b> (weißes Blinklicht). Der Zug fährt dann <b>auf Sicht</b> (langsam) bis zum nächsten Signal.</li>
       <li><b>Bauarbeiten</b> 🚧: Ein Streckengleis wird angekündigt gesperrt (orange gestrichelt). Züge aus dieser Richtung kommen dann auf dem <b>Gegengleis</b> an <b>Signal A2</b> (West) bzw. <b>F2</b> (Ost) an – das Gleis teilen sie sich mit den ausfahrenden Zügen.</li>
+      <li><b>Langsamfahrstelle</b> 🐌 (gelb gepunktet): Auf einem angekündigten Streckenabschnitt dürfen Züge eine Zeit lang nur mit reduziertem Tempo fahren – sie brauchen dadurch länger bis zum Halt. Du musst nichts stellen, nur mit mehr Verspätung rechnen.</li>
       <li>Abschaltbar im ☰ Menü.</li>
     </ul>
     <div class="only-neustadt">
@@ -1461,7 +1462,7 @@ function newState() {
     autoSignal: P.autoSignal,
     density: P.density,
     occLegs: new Set(), occSecs: new Set(),
-    swFault: {}, sigFault: {}, closure: null, nextShunt: START_T + 4 * 60, rfNo: 0, nextDisrupt: START_T + 12 * 60, queue: [], turnBusy: {},
+    swFault: {}, sigFault: {}, closure: null, slow: null, nextShunt: START_T + 4 * 60, rfNo: 0, nextDisrupt: START_T + 12 * 60, queue: [], turnBusy: {},
     disrupt: P.disrupt, useQueue: P.useQueue,
     cnt: Object.fromEntries(Object.keys(TYPES).map(k => [k, 0])), genT: START_T, lastDir: { '1': -1e9, '-1': -1e9 },
     uid: 0, clockNext: {}, nextNetCheck: START_T,
@@ -2552,15 +2553,16 @@ function endLimit(tr) {
   if (tr.stopAt != null && tr.served && tr.s <= tr.stopAt + 0.5 && SIGNALS[tr.endSig] && !isGo(tr.endSig)) E = Math.min(E, tr.stopAt);
   return Math.min(E, followingLimit(tr));
 }
+function legV(id) { const L = LEGS[id]; return (S.slow && S.slow.active && S.slow.leg === id) ? Math.min(L.v, S.slow.limit) : L.v; }
 function stepTrain(tr, dt) {
   if (tr.frozen) { tr.v = 0; return; }
   const E = endLimit(tr);
   const [acc, dec] = trainDynamics(tr);
-  let vT = Math.min(tr.vmax, LEGS[segAt(tr, tr.s).leg].v);
+  let vT = Math.min(tr.vmax, legV(segAt(tr, tr.s).leg));
   if (tr.capUntil) { if (tr.s < tr.capUntil) vT = Math.min(vT, 12); else tr.capUntil = null; }
   for (const sg of tr.segs) {
     if (sg.a > tr.s && sg.a - tr.s < 260) {
-      const lv = Math.min(tr.vmax, LEGS[sg.leg].v);
+      const lv = Math.min(tr.vmax, legV(sg.leg));
       vT = Math.min(vT, Math.sqrt(lv * lv + 2 * dec * 0.8 * (sg.a - tr.s)));
     }
   }
@@ -2688,6 +2690,14 @@ function removeTrains() {
 function disruptions() {
   for (const id in S.swFault) if (S.t >= S.swFault[id]) { delete S.swFault[id]; log(`Weiche ${id} repariert – wieder stellbar.`, 'good'); }
   for (const id in S.sigFault) if (S.t >= S.sigFault[id]) { delete S.sigFault[id]; log(`Signal ${id} repariert.`, 'good'); }
+  if (S.slow) {
+    if (!S.slow.active && S.t >= S.slow.from) {
+      S.slow.active = true;
+      log(`🐌 Langsamfahrstelle auf der Strecke an Signal ${S.slow.sig}: Tempo ${S.slow.limit} bis ca. ${fmt(S.slow.until)}.`, 'bad');
+      toast(`🐌 Langsamfahrstelle an ${S.slow.sig} – Züge brauchen länger bis zum Halt`, true);
+    }
+    if (S.slow.active && S.t >= S.slow.until) { log('Langsamfahrstelle aufgehoben – Strecke wieder frei befahrbar.', 'good'); S.slow = null; }
+  }
   const c = S.closure;
   if (c) {
     if (!c.active && S.t >= c.from && !S.occSecs.has(c.leg)) {
@@ -2700,18 +2710,25 @@ function disruptions() {
   if (!S.disrupt || S.t < S.nextDisrupt) return;
   S.nextDisrupt = S.t + (18 + Math.random() * 20) * 60;
   const r = Math.random();
-  if (r < 0.4) {
+  if (r < 0.30) {
     const id = pick(Object.keys(SWITCHES));
     if (S.swFault[id]) return;
     S.swFault[id] = S.t + (6 + Math.random() * 6) * 60;
     log(`⚠ Weichenstörung ${id} (liegt ${posName(S.sw[id])}) bis ca. ${fmt(S.swFault[id])} – lässt sich nicht umstellen.`, 'bad');
     toast(`⚠ Weichenstörung ${id} – andere Fahrstraßen nutzen!`, true);
-  } else if (r < 0.75) {
+  } else if (r < 0.55) {
     const id = pick(Object.keys(SIGNALS).filter(k => !/^L/.test(k) && k !== 'A2' && k !== 'F2'));
     if (S.sigFault[id]) return;
     S.sigFault[id] = S.t + (8 + Math.random() * 6) * 60;
     log(`⚠ Signalstörung ${id} bis ca. ${fmt(S.sigFault[id])} – Signal antippen gibt Ersatzsignal Zs1 (Fahrt auf Sicht).`, 'bad');
     toast(`⚠ Signalstörung ${id} – nur Ersatzsignal Zs1 möglich`, true);
+  } else if (r < 0.80 && !S.slow) {
+    const cands = Object.values(ENTRY).filter(e => e.sec && LEGS[e.sec] && LEGS[e.sec].len > 50);
+    if (cands.length) {
+      const e = pick(cands), from = S.t + 4 * 60, limit = 15 + Math.floor(Math.random() * 3) * 5;
+      S.slow = { leg: e.sec, sig: e.sig, limit, from, until: from + (15 + Math.random() * 15) * 60, active: false };
+      log(`🐌 Bauankündigung: Langsamfahrstelle an Signal ${e.sig} ab ${fmt(from)}, Tempo ${limit}.`, 'info');
+    }
   } else if (CFG.closure && !S.closure) {
     const W = Math.random() < 0.5, from = S.t + 5 * 60;
     S.closure = W ? { side: 'W', leg: 'wL0', sig: 'A2', name: 'Streckengleis von Altdorf', from, until: from + (20 + Math.random() * 10) * 60, active: false }
@@ -3044,8 +3061,10 @@ function render() {
   for (const id in E_.legs) {
     const pend = S.pendingDel && performance.now() - S.pendingAt < 4000 && S.routes.includes(S.pendingDel) && S.pendingDel.r.legs.some(([l]) => l === id);
     const closed = (S.closure && S.closure.active && S.closure.leg === id) || (S.bau && S.bau.active && S.bau.legs.includes(id)) || dauerBauLeg(id);
-    const c = S.occLegs.has(id) ? COL.occ : closed && !rl.has(id) ? '#c0703a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
-    if (E_.legs[id]._d !== closed) { E_.legs[id].setAttribute('stroke-dasharray', closed ? '10 6' : 'none'); E_.legs[id]._d = closed; }
+    const slowOn = S.slow && S.slow.active && S.slow.leg === id;
+    const c = S.occLegs.has(id) ? COL.occ : closed && !rl.has(id) ? '#c0703a' : slowOn && !rl.has(id) ? '#e3c05a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
+    const dashState = closed ? 'c' : slowOn ? 's' : '';
+    if (E_.legs[id]._d !== dashState) { E_.legs[id].setAttribute('stroke-dasharray', closed ? '10 6' : slowOn ? '3 6' : 'none'); E_.legs[id]._d = dashState; }
     if (E_.legs[id]._c !== c) { E_.legs[id].setAttribute('stroke', c); E_.legs[id]._c = c; }
   }
   const targets = new Set(S.sel ? ROUTES.filter(r => r.from === S.sel).map(r => r.to) : []);
@@ -3300,6 +3319,7 @@ function renderPanel() {
   let al = '';
   for (const id in S.swFault) al += `<div>⚠ Weiche ${id} gestört bis ${fmt(S.swFault[id])}</div>`;
   for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
+  if (S.slow) al += `<div>🐌 Langsamfahrstelle an ${S.slow.sig} ${S.slow.active ? '(Tempo ' + S.slow.limit + ') bis ' + fmt(S.slow.until) : 'ab ' + fmt(S.slow.from)}</div>`;
   if (S.bau) al += `<div class="b">🚧 ${S.bau.name} ${S.bau.active ? 'gesperrt bis ' + fmt(S.bau.until) + ' – Züge enden hier' : 'gesperrt ab ' + fmt(S.bau.from)}</div>`;
   if (CFG.dauerBau) al += `<div class="b">🚧 ${CFG.dauerBau.name} – nur Bauzüge (gelb, „Bauz“)</div>`;
   if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
