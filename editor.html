@@ -8,23 +8,26 @@
 h1{font-size:19px;margin:0}small{color:#b0c4d1}a{color:#8ed5ff}button,input,select{font:inherit}
 button{background:#324957;border:1px solid #607b8b;color:#edf6ff;border-radius:7px;padding:9px;min-height:42px;cursor:pointer}
 button[aria-pressed=true]{background:#175c87;border-color:#71c8fa}button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible{outline:3px solid #90d9ff;outline-offset:2px}
 input[type=text]{min-width:140px;max-width:240px;background:#17242e;border:1px solid #607b8b;color:white;border-radius:6px;padding:10px}
 main{display:grid;grid-template-columns:250px minmax(0,1fr);height:calc(100dvh - 68px)}
 aside{background:#202f38;border-right:1px solid #425a69;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:12px}
 .group{display:flex;gap:6px;flex-wrap:wrap}.group button{flex:1;white-space:nowrap}
 h2{font-size:14px;color:#c1dae8;margin:0 0 8px}.panel{border-bottom:1px solid #425a69;padding-bottom:12px}
 label{display:flex;align-items:center;gap:7px;font-size:13px;margin:6px 0}
-#stage{position:relative;min-width:0;overflow:auto;background:#121b22;touch-action:pan-x pan-y}
-#board{width:max(100%,1020px);height:650px;display:block;touch-action:none;cursor:crosshair}
-#state{position:sticky;bottom:0;left:0;background:#253b48e8;padding:9px 12px;border-top:1px solid #516b7b;font-size:13px;max-width:100%}
+#stage{position:relative;min-width:0;min-height:0;overflow:hidden;background:#121b22;touch-action:none}
+#board{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+#board.dragging,#board.panning{cursor:grabbing}#board.pan-tool{cursor:grab}.shortcut{font-size:12px;color:#a9c3d1;margin:6px 0 0;line-height:1.5}
+#state{position:absolute;bottom:0;left:0;right:0;background:#253b48e8;padding:9px 12px;border-top:1px solid #516b7b;font-size:13px;pointer-events:none}#nav{position:absolute;right:12px;top:12px;display:flex;gap:5px;align-items:center;z-index:2;background:#172b38df;padding:6px;border:1px solid #597789;border-radius:10px;flex-wrap:wrap;max-width:calc(100% - 24px)}#nav button{min-width:44px;min-height:44px;padding:7px 10px}#zoomLabel{min-width:49px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:#e6f5ff}
 .legend{font-size:12px;color:#afc4d0;line-height:1.5}#notice{font-size:13px;color:#f5d48b}
-@media(max-width:750px){main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:calc(100dvh - 70px)}aside{flex-direction:row;flex-wrap:wrap;max-height:230px;border-right:0;border-bottom:1px solid #607b8b}.panel{min-width:170px;flex:1}#board{height:540px}}
+@media(max-width:750px){main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:calc(100dvh - 70px)}aside{flex-direction:row;flex-wrap:wrap;max-height:230px;border-right:0;border-bottom:1px solid #607b8b}.panel{min-width:170px;flex:1}#board{height:100%}#nav{top:8px;right:8px}}
 </style></head>
 <body>
 <header><h1>🚦 Bahnhofseditor</h1><small>Raster + freies Zeichnen · erster Baukasten</small><a href="./index.html">← Zum Stellwerk</a></header>
 <main><aside>
-<section class="panel"><h2>Bahnhof</h2><input id="name" type="text" maxlength="60" value="Mein Bahnhof" aria-label="Bahnhofsname"><p class="legend">Berühre zwei Punkte für ein Gleis. Für längere Gleise weitere Punkte wählen; Signal oder Bahnsteig durch Antippen setzen.</p></section>
+<section class="panel"><h2>Bahnhof</h2><input id="name" type="text" maxlength="60" value="Mein Bahnhof" aria-label="Bahnhofsname"><p class="legend">Gleis zeichnen: Finger oder Maus vom Start- zum Endpunkt ziehen. Alternativ zwei Punkte antippen und zum Weiterbauen weitere Punkte wählen. Signal oder Bahnsteig direkt aufs Gleis tippen.</p></section>
 <section class="panel"><h2>Werkzeug</h2><div class="group" id="tools">
+<button type="button" data-tool="pan" aria-pressed="false">✋ Verschieben</button>
 <button type="button" data-tool="track" aria-pressed="true">━ Gleis</button>
 <button type="button" data-tool="signal" aria-pressed="false">🚦 Signal</button>
 <button type="button" data-tool="platform" aria-pressed="false">▰ Bahnsteig</button>
@@ -34,52 +37,98 @@ label{display:flex;align-items:center;gap:7px;font-size:13px;margin:6px 0}
 <label><input type="checkbox" id="snap" checked> Rasterfang (20 px)</label>
 <label><input type="checkbox" id="grid" checked> Raster anzeigen</label>
 <label><input type="checkbox" id="angle" checked> 45°-Winkelhilfe</label>
-<div class="group"><button id="undo">↶ Rückgängig</button><button id="cancel">✕ Linie beenden</button></div></section>
+<label><input type="checkbox" id="connect" checked> Gleisenden automatisch verbinden</label>
+<div class="group"><button id="undo">↶ Rückgängig</button><button id="redo">↷ Wiederholen</button><button id="cancel">✕ Linie beenden</button></div>
+<p class="shortcut">Tablet: Zwei Finger zum Zoomen und Verschieben, oder ✋ Verschieben wählen. PC: Mausrad zoomt, Leertaste halten zum Verschieben. Strg+Z rückgängig · Strg+Y wiederholen · Esc Linie beenden.</p></section>
 <section class="panel"><h2>Speichern und Teilen</h2>
-<div class="group"><button id="save">Speichern</button><button id="load">Laden</button><button id="export">JSON exportieren</button><button id="import">JSON importieren</button></div><input type="file" id="file" accept=".json,application/json" hidden><div id="notice" role="status" aria-live="polite"></div></section>
+<div class="group"><button id="save">Speichern</button><button id="play" style="background:#146b55;border-color:#81d9bb">▶ Bahnhof spielen</button><button id="load">Laden</button><button id="export">JSON exportieren</button><button id="import">JSON importieren</button></div><input type="file" id="file" accept=".json,application/json" hidden><div id="notice" role="status" aria-live="polite"></div></section>
 <section class="panel"><h2>Gleisplan prüfen</h2><button id="validate">Verbindungen prüfen</button><div id="checks" class="legend">Noch nicht geprüft.</div></section>
 <section><h2>Hinweis</h2><div class="legend">Dies ist ein Gleisplan-Editor. Eigene Gleispläne werden noch nicht als spielbare Stellwerke geladen. Die Fahrstraßenautomatik und der Signalverschluss werden in einem späteren Schritt angebunden.</div></section>
 </aside>
-<div id="stage"><svg id="board" viewBox="0 0 1040 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zeichenfläche für eigene Gleispläne"><rect width="1040" height="650" fill="#14222c"/><g id="lines"></g><g id="marks"></g><g id="overlay"></g></svg><div id="state"></div></div>
+<div id="stage"><div id="nav" aria-label="Ansicht steuern"><button type="button" id="zoomOut" aria-label="Verkleinern">−</button><span id="zoomLabel" aria-live="polite">100 %</span><button type="button" id="zoomIn" aria-label="Vergrößern">+</button><button type="button" id="zoomFit" aria-label="Gesamten Gleisplan anzeigen">⤢</button></div><svg id="board" viewBox="0 0 1040 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zeichenfläche für eigene Gleispläne"><rect width="2800" height="1800" fill="#14222c"/><g id="lines"></g><g id="marks"></g><g id="overlay"></g></svg><div id="state"></div></div>
 </main>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg',SIZE=20,KEY='stw_editor_draft_v1';
 const e=(tag,attrs,parent)=>{const n=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));parent.appendChild(n);return n;};
-let data={version:1,name:'Mein Bahnhof',tracks:[],signals:[],platforms:[]},tool='track',anchor=null,history=[],pointer=null;
+let data={version:1,name:'Mein Bahnhof',tracks:[],signals:[],platforms:[]},tool='track',anchor=null,history=[],future=[],pointer=null,preview=null;
+const WORLD={w:2800,h:1800},BASE={w:1040,h:650},MIN_ZOOM=.45,MAX_ZOOM=4;
+let camera={x:0,y:0,zoom:1},touches=new Map(),gesture=null,spaceHeld=false;
 const clone=x=>JSON.parse(JSON.stringify(x)),ptkey=p=>p.x+','+p.y;
 function msg(s){$('notice').textContent=s;}
-function capture(){history.push(clone(data));if(history.length>70)history.shift();}
-function pos(ev){const r=$('board').getBoundingClientRect(), vb=$('board').viewBox.baseVal;return{x:(ev.clientX-r.left)*vb.width/r.width+vb.x,y:(ev.clientY-r.top)*vb.height/r.height+vb.y};}
+function capture(){history.push(clone(data));if(history.length>70)history.shift();future=[];}
+function pos(ev){const svg=$('board'),point=svg.createSVGPoint();point.x=ev.clientX;point.y=ev.clientY;const matrix=svg.getScreenCTM();return matrix?point.matrixTransform(matrix.inverse()):{x:0,y:0};}
+function clampCamera(){const w=BASE.w/camera.zoom,h=BASE.h/camera.zoom;camera.x=Math.max(0,Math.min(WORLD.w-w,camera.x));camera.y=Math.max(0,Math.min(WORLD.h-h,camera.y));}
+function updateCamera(){clampCamera();$('board').setAttribute('viewBox',[camera.x,camera.y,BASE.w/camera.zoom,BASE.h/camera.zoom].join(' '));$('zoomLabel').textContent=Math.round(camera.zoom*100)+' %';}
+function zoomAt(factor,clientX,clientY){const anchor=pos({clientX,clientY}),oldZoom=camera.zoom;camera.zoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,camera.zoom*factor));if(camera.zoom===oldZoom)return;updateCamera();const after=pos({clientX,clientY});camera.x+=anchor.x-after.x;camera.y+=anchor.y-after.y;updateCamera();}
+function panBy(a,b){camera.x+=a.x-b.x;camera.y+=a.y-b.y;updateCamera();}
+function fitPlan(){const points=data.tracks.flatMap(t=>[t.a,t.b]).concat(data.signals,data.platforms);if(!points.length){camera={x:0,y:0,zoom:1};updateCamera();return;}const minX=Math.max(0,Math.min(...points.map(p=>p.x))-100),maxX=Math.min(WORLD.w,Math.max(...points.map(p=>p.x))+100),minY=Math.max(0,Math.min(...points.map(p=>p.y))-100),maxY=Math.min(WORLD.h,Math.max(...points.map(p=>p.y))+100);camera.zoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,Math.min(BASE.w/Math.max(150,maxX-minX),BASE.h/Math.max(150,maxY-minY))));camera.x=(minX+maxX-BASE.w/camera.zoom)/2;camera.y=(minY+maxY-BASE.h/camera.zoom)/2;updateCamera();}
+function beginGesture(){if(touches.size<2)return;const pair=[...touches.values()].slice(0,2),mid={clientX:(pair[0].x+pair[1].x)/2,clientY:(pair[0].y+pair[1].y)/2};gesture={distance:Math.max(1,Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y)),mid,point:pos(mid),zoom:camera.zoom};pointer=null;preview=null;$('board').classList.remove('dragging');}
+function updateGesture(){if(touches.size<2||!gesture)return;const pair=[...touches.values()].slice(0,2),mid={clientX:(pair[0].x+pair[1].x)/2,clientY:(pair[0].y+pair[1].y)/2};camera.zoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,gesture.zoom*Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y)/gesture.distance));updateCamera();const after=pos(mid);camera.x+=gesture.point.x-after.x;camera.y+=gesture.point.y-after.y;updateCamera();}
+$('zoomIn').addEventListener('click',()=>{const r=$('board').getBoundingClientRect();zoomAt(1.25,r.left+r.width/2,r.top+r.height/2);});
+$('zoomOut').addEventListener('click',()=>{const r=$('board').getBoundingClientRect();zoomAt(.8,r.left+r.width/2,r.top+r.height/2);});
+$('zoomFit').addEventListener('click',fitPlan);
+$('board').addEventListener('wheel',ev=>{ev.preventDefault();zoomAt(Math.exp(-ev.deltaY*.0015),ev.clientX,ev.clientY);},{passive:false});
 function snapPoint(p){return $('snap').checked?{x:Math.round(p.x/SIZE)*SIZE,y:Math.round(p.y/SIZE)*SIZE}: {x:Math.round(p.x),y:Math.round(p.y)};}
 function orient(a,b){if(!$('angle').checked||!$('snap').checked)return b;const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dy)<Math.abs(dx)*.42)return{x:b.x,y:a.y};if(Math.abs(dx)<Math.abs(dy)*.42)return{x:a.x,y:b.y};const delta=Math.max(Math.abs(dx),Math.abs(dy));return{x:a.x+Math.sign(dx)*delta,y:a.y+Math.sign(dy)*delta};}
 function close(a,b){return Math.hypot(a.x-b.x,a.y-b.y)<14;}
+function joinPoint(p){if(!$('connect').checked)return p;let best=p,dist=16;for(const t of data.tracks){for(const end of [t.a,t.b]){const d=Math.hypot(p.x-end.x,p.y-end.y);if(d<dist){dist=d;best={x:end.x,y:end.y};}}}return best;}
+function trackPoint(p,start){const q=joinPoint(snapPoint(p));return start?joinPoint(orient(start,q)):q;}
+function addTrack(a,b){if(close(a,b)){msg('Gleis zu kurz – bitte einen längeren Abschnitt zeichnen.');return false;}if(data.tracks.some(t=>(close(a,t.a)&&close(b,t.b))||(close(a,t.b)&&close(b,t.a)))){msg('Dieses Gleis ist bereits vorhanden.');return false;}capture();data.tracks.push({a,b});msg('Gleis hinzugefügt.');return true;}
 function nearestTrack(p){let best=null,dist=18;data.tracks.forEach((t,i)=>{const vx=t.b.x-t.a.x,vy=t.b.y-t.a.y,len=vx*vx+vy*vy;if(!len)return;const k=Math.max(0,Math.min(1,((p.x-t.a.x)*vx+(p.y-t.a.y)*vy)/len));const q={x:t.a.x+k*vx,y:t.a.y+k*vy};const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<dist){dist=d;best={i,p:q,t}}});return best;}
-function switchTool(next){tool=next;anchor=null;document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));render();}
+function switchTool(next){tool=next;anchor=null;preview=null;document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));$('board').classList.toggle('pan-tool',tool==='pan');render();}
 function render(){const l=$('lines'),m=$('marks'),o=$('overlay');l.replaceChildren();m.replaceChildren();o.replaceChildren();
-if($('grid').checked){for(let x=0;x<=1040;x+=SIZE)e('line',{x1:x,y1:0,x2:x,y2:650,stroke:'#38515c','stroke-width':1,opacity:.45},l);for(let y=0;y<=650;y+=SIZE)e('line',{x1:0,y1:y,x2:1040,y2:y,stroke:'#38515c','stroke-width':1,opacity:.45},l);}
+if($('grid').checked){for(let x=0;x<=WORLD.w;x+=SIZE)e('line',{x1:x,y1:0,x2:x,y2:WORLD.h,stroke:'#38515c','stroke-width':1,opacity:.45},l);for(let y=0;y<=WORLD.h;y+=SIZE)e('line',{x1:0,y1:y,x2:WORLD.w,y2:y,stroke:'#38515c','stroke-width':1,opacity:.45},l);}
 data.tracks.forEach((t,i)=>{e('line',{x1:t.a.x,y1:t.a.y,x2:t.b.x,y2:t.b.y,stroke:'#b9c7d0','stroke-width':5,'stroke-linecap':'round'},l);e('line',{x1:t.a.x,y1:t.a.y,x2:t.b.x,y2:t.b.y,stroke:'transparent','stroke-width':22,'data-id':i},l);});
 data.platforms.forEach(p=>{e('rect',{x:p.x-45,y:p.y-11,width:90,height:22,rx:3,fill:'#5e6b72',stroke:'#9bacb4'},m);e('text',{x:p.x,y:p.y+4,'text-anchor':'middle','font-size':11,fill:'#e3ecf0'},m).textContent=p.label;});
 data.signals.forEach(s=>{e('line',{x1:s.x,y1:s.y-6,x2:s.x,y2:s.y-28,stroke:'#bcc7ce','stroke-width':3},m);e('circle',{cx:s.x,cy:s.y-30,r:9,fill:'#1d2228',stroke:'#d5e3ea','stroke-width':2},m);e('circle',{cx:s.x,cy:s.y-31,r:4,fill:'#ff5252'},m);});
+if(preview&&tool==='track'){const a=preview.a,b=preview.b;e('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#65dfff','stroke-width':5,'stroke-linecap':'round','stroke-dasharray':'12 7',opacity:.9},o);e('circle',{cx:b.x,cy:b.y,r:7,fill:'#65dfff',stroke:'#fff'},o);}
 if(anchor)e('circle',{cx:anchor.x,cy:anchor.y,r:7,fill:'#ffd34d',stroke:'#fff'},o);
-$('state').textContent='Gleise: '+data.tracks.length+' · Signale: '+data.signals.length+' · Bahnsteige: '+data.platforms.length+' · Werkzeug: '+({track:'Gleis',signal:'Signal',platform:'Bahnsteig',erase:'Löschen'}[tool])+(anchor?' · Zweiten Gleispunkt setzen':'');
-$('undo').disabled=history.length===0;
+$('state').textContent='Gleise: '+data.tracks.length+' · Signale: '+data.signals.length+' · Bahnsteige: '+data.platforms.length+' · Werkzeug: '+({pan:'Verschieben',track:'Gleis',signal:'Signal',platform:'Bahnsteig',erase:'Löschen'}[tool])+(anchor?' · Zweiten Gleispunkt setzen':'');
+$('undo').disabled=history.length===0;$('redo').disabled=future.length===0;
 }
-function applyClick(p){let point=snapPoint(p);
-if(tool==='track'){if(!anchor){anchor=point;render();return;}point=orient(anchor,point);if(close(anchor,point)){anchor=null;render();return;}capture();data.tracks.push({a:anchor,b:point});anchor=point;render();return;}
+function applyClick(p){if(tool==='pan')return;let point=snapPoint(p);
+if(tool==='track'){point=joinPoint(point);if(!anchor){anchor=point;render();return;}point=trackPoint(point,anchor);if(close(anchor,point)){anchor=null;render();return;}if(addTrack(anchor,point))anchor=point;render();return;}
 if(tool==='signal'){const near=nearestTrack(point);if(!near){msg('Signal bitte auf ein Gleis setzen.');return;}capture();data.signals.push({x:Math.round(near.p.x),y:Math.round(near.p.y),dir:1});}
 if(tool==='platform'){const near=nearestTrack(point);if(!near){msg('Bahnsteig bitte an ein Gleis setzen.');return;}capture();data.platforms.push({x:Math.round(near.p.x),y:Math.round(near.p.y),label:'Bst '+(data.platforms.length+1)});}
 if(tool==='erase'){const sig=data.signals.findIndex(s=>close(s,point));const platform=data.platforms.findIndex(s=>close(s,point));const tr=nearestTrack(point);if(sig<0&&platform<0&&!tr){msg('Kein Objekt zum Löschen gefunden.');return;}capture();if(sig>=0)data.signals.splice(sig,1);else if(platform>=0)data.platforms.splice(platform,1);else data.tracks.splice(tr.i,1);}
 render();}
-$('board').addEventListener('pointerdown',ev=>{pointer={x:ev.clientX,y:ev.clientY};});
-$('board').addEventListener('pointerup',ev=>{if(pointer&&Math.hypot(ev.clientX-pointer.x,ev.clientY-pointer.y)<18)applyClick(pos(ev));pointer=null;});
-$('board').addEventListener('pointercancel',()=>pointer=null);
+$('board').addEventListener('pointerdown',ev=>{
+  if(ev.pointerType==='mouse'&&ev.button!==0)return;
+  ev.preventDefault();
+  if(ev.pointerType==='touch')touches.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+  $('board').setPointerCapture(ev.pointerId);
+  if(touches.size>=2){beginGesture();return;}
+  pointer={id:ev.pointerId,x:ev.clientX,y:ev.clientY,start:pos(ev),moved:false,pan:tool==='pan'||spaceHeld,suppress:false};
+});
+$('board').addEventListener('pointermove',ev=>{
+  if(ev.pointerType==='touch'&&touches.has(ev.pointerId))touches.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+  if(touches.size>=2){updateGesture();return;}
+  if(!pointer||pointer.id!==ev.pointerId||pointer.suppress)return;
+  if(Math.hypot(ev.clientX-pointer.x,ev.clientY-pointer.y)>14)pointer.moved=true;
+  if(pointer.pan){if(pointer.moved){const before=pos({clientX:pointer.x,clientY:pointer.y}),after=pos(ev);panBy(before,after);$('board').classList.add('panning');pointer.x=ev.clientX;pointer.y=ev.clientY;}return;}
+  if(tool==='track'&&pointer.moved){const a=anchor||trackPoint(pointer.start),b=trackPoint(pos(ev),a);preview={a,b};$('board').classList.add('dragging');render();}
+});
+$('board').addEventListener('pointerup',ev=>{
+  if(ev.pointerType==='touch')touches.delete(ev.pointerId);
+  if(gesture){if(touches.size<2){gesture=null;pointer=null;$('board').classList.remove('panning');}return;}
+  if(!pointer||pointer.id!==ev.pointerId)return;
+  const p=pointer;pointer=null;preview=null;$('board').classList.remove('dragging','panning');
+  if(p.pan)return;
+  if(tool==='track'&&p.moved){const a=anchor||trackPoint(p.start),b=trackPoint(pos(ev),a);if(addTrack(a,b))anchor=b;render();}
+  else if(!p.moved)applyClick(pos(ev));
+});
+$('board').addEventListener('pointercancel',ev=>{touches.delete(ev.pointerId);pointer=null;preview=null;gesture=null;$('board').classList.remove('dragging','panning');render();});
 document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>switchTool(b.dataset.tool)));
-$('snap').addEventListener('change',render);$('grid').addEventListener('change',render);$('angle').addEventListener('change',render);
-$('cancel').addEventListener('click',()=>{anchor=null;render();});$('undo').addEventListener('click',()=>{if(history.length){data=history.pop();$('name').value=data.name;anchor=null;render();}});
+$('snap').addEventListener('change',render);$('grid').addEventListener('change',render);$('angle').addEventListener('change',render);$('connect').addEventListener('change',render);
+function restore(from,to){if(!from.length)return;to.push(clone(data));data=from.pop();$('name').value=data.name;anchor=null;preview=null;render();}
+$('cancel').addEventListener('click',()=>{anchor=null;preview=null;render();});$('undo').addEventListener('click',()=>restore(history,future));$('redo').addEventListener('click',()=>restore(future,history));
+document.addEventListener('keydown',ev=>{if(ev.code==='Space'&&!ev.target.closest('input,textarea,select,button')){ev.preventDefault();spaceHeld=true;}if(ev.target.closest('input,textarea,select'))return;if(ev.key==='Escape'){anchor=null;preview=null;render();return;}if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==='z'){ev.preventDefault();restore(ev.shiftKey?future:history,ev.shiftKey?history:future);}else if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==='y'){ev.preventDefault();restore(future,history);}});
+document.addEventListener('keyup',ev=>{if(ev.code==='Space')spaceHeld=false;});window.addEventListener('blur',()=>spaceHeld=false);
 $('name').addEventListener('change',()=>{capture();data.name=$('name').value.trim()||'Mein Bahnhof';});
 function validDoc(d){return d&&d.version===1&&typeof d.name==='string'&&Array.isArray(d.tracks)&&d.tracks.length<=3000&&Array.isArray(d.signals)&&Array.isArray(d.platforms)&&d.tracks.every(t=>t&&t.a&&t.b&&[t.a.x,t.a.y,t.b.x,t.b.y].every(Number.isFinite));}
 $('save').addEventListener('click',()=>{try{data.name=$('name').value.trim()||'Mein Bahnhof';localStorage.setItem(KEY,JSON.stringify(data));msg('Bahnhof lokal gespeichert.');}catch(err){msg('Speichern fehlgeschlagen: '+err.message);}});
+$('play').addEventListener('click',()=>{try{data.name=$('name').value.trim()||'Mein Bahnhof';if(!validDoc(data)||!data.tracks.length)throw Error('Baue zuerst mindestens ein Gleis.');localStorage.setItem(KEY,JSON.stringify(data));window.location.href='./custom-play.html';}catch(err){msg('Spielen nicht möglich: '+err.message);}});
 $('load').addEventListener('click',()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(!validDoc(d))throw Error('Kein gültiger Entwurf gespeichert.');capture();data=d;anchor=null;$('name').value=data.name;render();msg('Entwurf geladen.');}catch(err){msg(err.message);}});
 $('export').addEventListener('click',()=>{const body=JSON.stringify({...data,name:$('name').value.trim()||'Mein Bahnhof'},null,2);const blob=new Blob([body],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='stellwerk-bahnhof.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);msg('JSON-Datei exportiert.');});
 $('import').addEventListener('click',()=>$('file').click());
@@ -92,6 +141,6 @@ const bad=data.tracks.filter(t=>Math.hypot(t.a.x-t.b.x,t.a.y-t.b.y)<10).length;
 const messages=['Gleissegmente: '+data.tracks.length,'Weichenkandidaten (3 Endpunkte): '+switches,'Isolierte Segmente: '+isolated,'Knoten mit mehr als 3 Gleisenden: '+over,'Zu kurze Segmente: '+bad];
 $('checks').textContent=messages.join(' · ')+(over||bad?' · Bitte korrigieren.':' · Vorprüfung abgeschlossen.');msg('Topologie-Vorprüfung abgeschlossen. Keine betriebliche Fahrstraßenprüfung.');}
 $('validate').addEventListener('click',check);
-render();
+updateCamera();render();
 </script>
 </body></html>

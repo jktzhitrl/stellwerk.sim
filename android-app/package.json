@@ -1,0 +1,22 @@
+{
+  "name": "stellwerk-sim-android",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kostenlose Android-App für Stellwerk.sim",
+  "scripts": {
+    "prepare:web": "node scripts/prepare-web.mjs",
+    "android:init": "npm run prepare:web && npx cap add android && npx cap sync android",
+    "android:sync": "npm run prepare:web && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:bundle": "npm run android:sync && cd android && ./gradlew bundleRelease",
+    "check": "node --check scripts/prepare-web.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.2",
+    "@capacitor/android": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2"
+  }
+}

@@ -1,8 +1,8 @@
 // Service Worker: macht das Stellwerk offline spielbar.
 // Strategie: Netzwerk zuerst – immer beim Server nachfragen (cache: 'no-cache'), damit Updates sofort ankommen;
 // bei fehlender Verbindung aus dem Cache.
-const CACHE = 'stellwerk-v2';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
+const CACHE = 'stellwerk-v6-20261119-eilenburg-preview';
+const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png', './custom-play.html', './eilenburg-plan.js', './eilenburg-review.html', './data/eilenburg-osm-review.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
