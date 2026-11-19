@@ -14,7 +14,14 @@ svg{width:100%;height:100%;display:block;touch-action:none}
 aside{padding:14px;background:#202f3a;overflow:auto;border-left:1px solid #4c6574}
 h2{margin:0 0 9px;font-size:16px}p{line-height:1.45;font-size:14px}#message{color:#f7d58c;min-height:60px}#timetable{font-variant-numeric:tabular-nums}
 .status{padding:10px;border:1px solid #4a6372;border-radius:9px;margin-bottom:12px;background:#243746}
-.row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.muted{color:#b3c9d5;font-size:13px}
+.row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+#planWrap{overflow:auto;max-height:350px;margin:8px 0 16px;border:1px solid #4a6372;border-radius:8px}
+#plan{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#plan th{position:sticky;top:0;background:#304554;text-align:left;color:#c8dfed;padding:8px 6px;z-index:1}
+#plan td{padding:8px 6px;border-top:1px solid #3d5665}
+#plan tr.active{background:#244e62}#plan tr.late{color:#ffcf7d}#plan tr.done{color:#a4dac3}
+#planCaption{font-size:12px;color:#b6cfde}#planFilters{margin-bottom:7px}#planFilters button{font-size:12px;min-height:36px;padding:5px 8px}#planFilters button[aria-pressed=true]{background:#14678b}
+#next{max-width:100%}.muted{color:#b3c9d5;font-size:13px}
 #zoom{position:absolute;right:10px;top:10px;background:#1d303edc;padding:5px;border-radius:9px;display:flex;gap:5px;z-index:1}
 #zoom button{min-width:44px;padding:5px}
 #entryList button,#switchList button{margin:3px}#entryList button.active{background:#14678b;border-color:#8de5ff}.switch-row{padding:8px 0;border-bottom:1px solid #455e6b}.aspect{font-weight:700}.ok{color:#92efbf}.warn{color:#ffe19b}
@@ -25,12 +32,14 @@ h2{margin:0 0 9px;font-size:16px}p{line-height:1.45;font-size:14px}#message{colo
 <main><div id="map"><div id="zoom"><button id="minus" aria-label="Verkleinern">−</button><button id="plus" aria-label="Vergrößern">+</button><button id="fit" aria-label="Gesamtansicht">⤢</button></div>
 <svg id="board" viewBox="0 0 1040 650" xmlns="http://www.w3.org/2000/svg" aria-label="Gleisbild und Fahrstraßen"><rect width="2800" height="1800" fill="#15242d"/><g id="trackLayer"></g><g id="routeLayer"></g><g id="detailLayer"></g><g id="trainLayer"></g></svg></div>
 <aside><h2>Fahrdienstleitung</h2><div class="status"><div id="clock">06:00</div><div id="score">Punkte: 0 · Züge: 0</div><div id="timetable">Nächster Zug wird vorbereitet …</div></div>
+<h2>📋 Zugfahrplan</h2><div id="planCaption">Fahrten werden geladen …</div><div id="planFilters" class="row"><button data-filter="all" aria-pressed="true">Alle Fahrten</button><button data-filter="open" aria-pressed="false">Offene Fahrten</button><button data-filter="done" aria-pressed="false">Abgefertigt</button></div>
+<div id="planWrap"><table id="plan" aria-label="Zugfahrplan"><thead><tr><th>Zug</th><th>Art</th><th>Plan an</th><th>Plan ab</th><th>Von</th><th>Nach</th><th>Status</th></tr></thead><tbody id="planBody"></tbody></table></div>
 <p id="message" role="status" aria-live="polite"></p>
 <h2>Fahrstraße stellen</h2><p class="muted">1. Wähle bei einem wartenden Zug eine grüne Ausfahrt. 2. Stelle die erforderlichen Weichen. 3. Schalte das Einfahrsignal auf Fahrt. Erst dann fährt der Zug los.</p>
 <div id="entryList"></div><div id="routeStatus" class="status" aria-live="polite">Noch keine Fahrstraße gewählt.</div>
 <div class="row"><button id="clearRoute">✕ Fahrstraße auflösen</button><button id="signalGo">🚦 Signal auf Fahrt</button></div>
 <h2 style="margin-top:16px">Weichen</h2><div id="switchList" class="muted">Keine Weichen im Gleisplan.</div><p class="muted">Wähle am Knoten die angezeigte Gleisverbindung. Grün bedeutet passend zur gewählten Fahrstraße. Bei gesicherter Fahrstraße sind die beteiligten Weichen gesperrt. Signale im Plan werden zunächst vereinfacht gemeinsam mit dem Einfahrsignal bedient.</p>
-<div class="row"><button id="next">Nächsten Zug anfordern</button><button id="resetView">Ansicht zurücksetzen</button></div>
+<div class="row"><button id="next">Nächste Planfahrt bereitstellen</button><button id="resetView">Ansicht zurücksetzen</button></div>
 </aside></main>
 <script>
 'use strict';
@@ -40,8 +49,17 @@ const valid=p=>p&&p.version===1&&Array.isArray(p.tracks)&&p.tracks.length>0&&p.t
 const el=(tag,attrs,parent)=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);parent.appendChild(n);return n};
 const key=p=>p.x+','+p.y;const nodes=new Map(),edges=[],terminals=[],switches=new Map();
 const pairKey=(a,b)=>[a,b].sort((x,y)=>x-y).join(':');
-let sim={score:0,done:0,sec:21600,waiting:null,moving:null,route:null,signal:'Hp0',paused:false},camera={x:0,y:0,zoom:1},touches=new Map(),gesture=null,pan=null;
+let sim={score:0,done:0,sec:21600,waiting:null,moving:null,route:null,signal:'Hp0',paused:false,plan:[],active:null},planFilter='all',lastPlanStamp='',camera={x:0,y:0,zoom:1},touches=new Map(),gesture=null,pan=null;
 const WORLD={w:2800,h:1800},BASE={w:1040,h:650};
+const fmtClock=t=>{const m=Math.floor(t/60);return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
+function makePlan(){const routes=[];for(const from of terminals)for(const to of terminals)if(from!==to&&pathBetween(from,to))routes.push({from,to});const kinds=['RB','RE','GZ','S','ICE','RB','GZ','RE'];return Array.from({length:20},(_,i)=>{const link=routes[i%routes.length];const arr=21600+i*210+(i%4)*18;return{id:i+1,num:kinds[i%kinds.length]+' '+(201+i),type:kinds[i%kinds.length],from:link.from,to:link.to,arr,dep:arr+75,actualArr:null,actualDep:null,actualEnd:null,status:'geplant'};});}
+function planStatus(row){if(row.status==='abgefertigt')return '✓ ausgefahren'+(row.actualDep>row.dep?' +'+Math.ceil((row.actualDep-row.dep)/60)+'m':'');if(row.status==='fährt')return '▶ fährt'+(row.actualDep>row.dep?' +'+Math.ceil((row.actualDep-row.dep)/60)+'m':'');if(row.status==='bereit')return '● wartet'+(sim.sec>row.dep?' +'+Math.ceil((sim.sec-row.dep)/60)+'m':'');if(row.arr<=sim.sec)return '⚠ +'+Math.ceil((sim.sec-row.arr)/60)+'m';return 'geplant';}
+function paintPlan(force=false){const stamp=JSON.stringify([planFilter,sim.plan.map(r=>[r.id,r.status,r.actualDep,Math.max(0,Math.ceil((sim.sec-r.arr)/60))])]);if(!force&&stamp===lastPlanStamp)return;lastPlanStamp=stamp;const body=$('planBody');body.replaceChildren();const list=sim.plan.filter(row=>planFilter==='all'||(planFilter==='done'?row.status==='abgefertigt':row.status!=='abgefertigt'));for(const row of list){const tr=document.createElement('tr');if(row.status==='bereit'||row.status==='fährt')tr.className='active';else if(row.status==='abgefertigt')tr.className='done';else if(sim.sec>row.arr)tr.className='late';const cells=[row.num,row.type,fmtClock(row.arr),fmtClock(row.dep),'E'+(terminals.indexOf(row.from)+1),'E'+(terminals.indexOf(row.to)+1),planStatus(row)];for(const value of cells){const cell=document.createElement('td');cell.textContent=value;tr.appendChild(cell);}body.appendChild(tr);}
+$('planCaption').textContent=sim.plan.length+' Planfahrten · '+sim.plan.filter(r=>r.status!=='abgefertigt').length+' offen · '+sim.plan.filter(r=>r.status==='abgefertigt').length+' abgefertigt · Spielzeit '+fmtClock(sim.sec);
+}
+function nextPending(){return sim.plan.find(row=>row.status==='geplant')||null;}
+function prepareDue(force=false){if(sim.waiting||sim.moving)return false;const row=nextPending();if(!row)return false;if(!force&&sim.sec<row.arr)return false;row.status='bereit';row.actualArr=Math.max(sim.sec,row.arr);sim.active=row;sim.waiting={from:row.from,num:row.num};sim.route=null;sim.signal='Hp0';tell(row.num+' aus E'+(terminals.indexOf(row.from)+1)+' ist bereit. Geplante Ausfahrt E'+(terminals.indexOf(row.to)+1)+'. Weichen und Signal bedienen.');paintPlan(true);return true;}
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{planFilter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintPlan(true);}));
 function point(id){return nodes.get(id).p;}
 function tell(message){$('message').textContent=message;}
 function readPlan(){if(!valid(doc)){tell('Kein gültiger Gleisplan gespeichert. Baue zuerst im Editor mindestens ein Gleis und speichere den Bahnhof.');$('next').disabled=true;return false;}
@@ -63,7 +81,7 @@ $('signalGo').disabled=!sim.route||!!sim.moving||sim.signal==='Hp1'||!switchRead
 $('clearRoute').disabled=!sim.route||!!sim.moving;
 const exits=$('entryList');exits.replaceChildren();if(sim.waiting){for(const id of terminals){if(id===sim.waiting.from)continue;const b=document.createElement('button');b.textContent='Ausfahrt E'+(terminals.indexOf(id)+1);b.className=sim.route&&sim.route.to===id?'active':'';b.addEventListener('click',()=>chooseExit(id));exits.appendChild(b);}}
 }
-function signalOn(){if(!sim.route||!sim.waiting||sim.moving)return;if(!switchReady(sim.route)){tell('Signal bleibt Halt: Bitte zuerst alle Weichen passend stellen.');render();return;}sim.signal='Hp1';const route=sim.route;sim.moving={route,distance:0,total:route.points.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-route.points[i].x,p.y-route.points[i].y),0),num:sim.waiting.num};sim.waiting=null;tell('Hp1 – Fahrt! Fahrstraße verriegelt, '+sim.moving.num+' fährt.');render();}
+function signalOn(){if(!sim.route||!sim.waiting||sim.moving)return;if(!switchReady(sim.route)){tell('Signal bleibt Halt: Bitte zuerst alle Weichen passend stellen.');render();return;}sim.signal='Hp1';const route=sim.route;sim.moving={route,distance:0,total:route.points.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-route.points[i].x,p.y-route.points[i].y),0),num:sim.waiting.num};if(sim.active){sim.active.actualDep=sim.sec;sim.active.status='fährt';}sim.waiting=null;paintPlan(true);tell('Hp1 – Fahrt! Fahrstraße verriegelt, '+sim.moving.num+' fährt.');render();}
 function screenPos(ev){const svg=$('board'),pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const m=svg.getScreenCTM();return m?pt.matrixTransform(m.inverse()):{x:0,y:0};}
 function updateCamera(){const w=BASE.w/camera.zoom,h=BASE.h/camera.zoom;camera.x=Math.max(0,Math.min(WORLD.w-w,camera.x));camera.y=Math.max(0,Math.min(WORLD.h-h,camera.y));$('board').setAttribute('viewBox',[camera.x,camera.y,w,h].join(' '));}
 function zoomAt(factor,ev){const before=screenPos(ev);camera.zoom=Math.max(.45,Math.min(4,camera.zoom*factor));updateCamera();const after=screenPos(ev);camera.x+=before.x-after.x;camera.y+=before.y-after.y;updateCamera();}
@@ -82,16 +100,16 @@ const t=sim.moving?positionOnRoute(sim.moving.route.points,sim.moving.distance):
 if(t){el('rect',{x:t.x-14,y:t.y-9,width:28,height:18,rx:5,fill:'#69d4fc',stroke:'#ffffff','stroke-width':2},trains);}
 $('clock').textContent=new Date(sim.sec*1000).toISOString().slice(11,16)+(sim.paused?' · Pause':'');
 $('score').textContent='Punkte: '+sim.score+' · Züge abgefertigt: '+sim.done;
-$('timetable').textContent=sim.waiting?'Zug '+sim.waiting.num+' wartet an E'+(terminals.indexOf(sim.waiting.from)+1)+' · Signal Hp0':sim.moving?'Zug '+sim.moving.num+' fährt zur Ausfahrt':'Kein Zug im Bahnhof';
-$('next').disabled=!!sim.waiting||!!sim.moving||terminals.length<2;
+$('timetable').textContent=sim.waiting?'Aktuell: '+sim.waiting.num+' · E'+(terminals.indexOf(sim.waiting.from)+1)+' → E'+(terminals.indexOf(sim.active.to)+1)+' · '+(sim.sec>sim.active.dep?'+'+Math.ceil((sim.sec-sim.active.dep)/60)+' min':'pünktlich'):sim.moving?'Aktuell: '+sim.moving.num+' fährt · Signal Hp1':nextPending()?'Nächster: '+nextPending().num+' · '+fmtClock(nextPending().arr)+' von E'+(terminals.indexOf(nextPending().from)+1):'Dienst beendet · alle Fahrten erledigt';
+$('next').disabled=!!sim.waiting||!!sim.moving||!nextPending();
 controls();
 }
 function positionOnRoute(pts,distance){let rest=distance;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],len=Math.hypot(b.x-a.x,b.y-a.y);if(rest<=len)return{x:a.x+(b.x-a.x)*rest/len,y:a.y+(b.y-a.y)*rest/len};rest-=len;}return pts.at(-1);}
-function spawn(){if(sim.waiting||sim.moving||terminals.length<2)return;const from=terminals[Math.floor(Math.random()*terminals.length)];const options=terminals.filter(id=>id!==from&&pathBetween(from,id));if(!options.length){tell('Keine durchgehende Verbindung zwischen freien Gleisenden. Verbinde Gleisenden im Editor.');render();return;}const num='RB '+(100+sim.done+1);sim.waiting={from,num};sim.route=null;sim.signal='Hp0';tell(num+' wartet an E'+(terminals.indexOf(from)+1)+'. Bitte Ausfahrt wählen, Weichen stellen und Signal freigeben.');render();}
-function chooseExit(id){if(!sim.waiting||sim.moving){tell('Zunächst einen neuen Zug anfordern.');return;}if(id===sim.waiting.from){tell('Das ist die Einfahrt des Zuges. Bitte eine andere Ausfahrt wählen.');return;}const route=pathBetween(sim.waiting.from,id);if(!route){tell('Keine zusammenhängende Fahrstraße zu dieser Ausfahrt. Gleisenden im Baumodus verbinden.');return;}sim.route=route;sim.signal='Hp0';tell('Fahrstraße nach E'+(terminals.indexOf(id)+1)+' vorgemerkt. Stelle die Weichen passend und schalte das Signal auf Fahrt.');render();}
-function startNew(){sim={score:0,done:0,sec:21600,waiting:null,moving:null,route:null,signal:'Hp0',paused:false};$('pause').textContent='⏸ Pause';spawn();render();}
+function spawn(){if(sim.waiting||sim.moving)return;const row=nextPending();if(!row){tell('Alle geplanten Züge wurden abgefertigt.');render();return;}if(sim.sec<row.arr)sim.sec=row.arr;prepareDue(true);render();}
+function chooseExit(id){if(!sim.waiting||sim.moving){tell('Zunächst einen neuen Zug anfordern.');return;}if(id===sim.waiting.from){tell('Das ist die Einfahrt des Zuges. Bitte eine andere Ausfahrt wählen.');return;}const route=pathBetween(sim.waiting.from,id);if(!route){tell('Keine zusammenhängende Fahrstraße zu dieser Ausfahrt. Gleisenden im Baumodus verbinden.');return;}sim.route=route;sim.signal='Hp0';tell('Fahrstraße nach E'+(terminals.indexOf(id)+1)+(sim.active&&id!==sim.active.to?' (abweichend vom Fahrplan)':'')+' vorgemerkt. Weichen stellen und Signal freigeben.');render();}
+function startNew(){sim={score:0,done:0,sec:21600,waiting:null,moving:null,route:null,signal:'Hp0',paused:false,plan:[],active:null};$('pause').textContent='⏸ Pause';sim.plan=makePlan();prepareDue();render();paintPlan(true);}
 let last=performance.now(),lastPaint=0;
-function frame(now){const dt=Math.min(.075,(now-last)/1000);last=now;if(!sim.paused&&nodes.size){sim.sec+=dt*12;if(sim.moving){sim.moving.distance+=dt*90;if(sim.moving.distance>=sim.moving.total){sim.done++;sim.score+=10;sim.moving=null;sim.route=null;sim.signal='Hp0';tell('Zug erfolgreich ausgefahren! +10 Punkte. Signal wieder auf Halt, Fahrstraße frei.');}}if(now-lastPaint>100){render();lastPaint=now;}}requestAnimationFrame(frame);}
+function frame(now){const dt=Math.min(.075,(now-last)/1000);last=now;if(!sim.paused&&nodes.size){sim.sec+=dt*12;if(sim.moving){sim.moving.distance+=dt*90;if(sim.moving.distance>=sim.moving.total){sim.done++;const late=sim.active&&sim.active.actualDep>sim.active.dep+60;sim.score+=late?5:10;if(sim.active){sim.active.status='abgefertigt';sim.active.actualEnd=sim.sec;}sim.active=null;sim.moving=null;sim.route=null;sim.signal='Hp0';tell('Zug ausgefahren! '+(late?'+5':'+10')+' Punkte. Nächste Planfahrt folgt.');paintPlan(true);}}if(!sim.waiting&&!sim.moving)prepareDue();if(now-lastPaint>100){render();paintPlan();lastPaint=now;}}requestAnimationFrame(frame);}
 $('plus').addEventListener('click',()=>{const r=$('board').getBoundingClientRect();zoomAt(1.25,{clientX:r.left+r.width/2,clientY:r.top+r.height/2});});
 $('minus').addEventListener('click',()=>{const r=$('board').getBoundingClientRect();zoomAt(.8,{clientX:r.left+r.width/2,clientY:r.top+r.height/2});});
 $('fit').addEventListener('click',fit);$('resetView').addEventListener('click',fit);
@@ -103,6 +121,6 @@ $('board').addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.b
 $('board').addEventListener('pointermove',ev=>{if(ev.pointerType==='touch'&&touches.has(ev.pointerId))touches.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(touches.size>=2){updateGesture();return;}if(!pan||pan.id!==ev.pointerId)return;if(Math.hypot(ev.clientX-pan.clientX,ev.clientY-pan.clientY)>5)pan.moved=true;if(pan.moved){const before=screenPos({clientX:pan.clientX,clientY:pan.clientY}),after=screenPos(ev);camera.x+=before.x-after.x;camera.y+=before.y-after.y;updateCamera();pan.clientX=ev.clientX;pan.clientY=ev.clientY;}});
 $('board').addEventListener('pointerup',ev=>{if(ev.pointerType==='touch')touches.delete(ev.pointerId);if(gesture){if(touches.size<2){gesture=null;pan=null;}return;}if(pan&&!pan.moved&&sim.waiting){const p=screenPos(ev);let target=null,best=30;for(const id of terminals){const n=point(id),d=Math.hypot(n.x-p.x,n.y-p.y);if(d<best){target=id;best=d;}}if(target)chooseExit(target);}pan=null;});
 $('board').addEventListener('pointercancel',ev=>{touches.delete(ev.pointerId);gesture=null;pan=null;});
-if(readPlan()){fit();startNew();}else{$('clock').textContent='Kein Spiel geladen';$('timetable').textContent='Bitte zuerst einen Bahnhof bauen und speichern.';}
+if(readPlan()){fit();startNew();}else{$('clock').textContent='Kein Spiel geladen';$('timetable').textContent='Bitte zuerst einen Bahnhof bauen und speichern.';$('planCaption').textContent='Kein gültiger Gleisplan';}
 requestAnimationFrame(frame);
 </script></body></html>
