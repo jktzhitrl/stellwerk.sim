@@ -32,13 +32,26 @@ jobs:
         shell: bash
         run: |
           mkdir -p review-data
-          curl --fail --show-error --silent --location \
-            --max-time 180 --retry 2 --retry-delay 8 \
-            --request POST \
-            --data-urlencode 'data@docs/eilenburg-openrailwaymap-overpass.ql' \
-            'https://overpass-api.de/api/interpreter' \
-            --output review-data/eilenburg-overpass.json
-          node -e "const o=require('./review-data/eilenburg-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements')"
+          success=0
+          for host in 'https://overpass.private.coffee/api/interpreter' 'https://overpass-api.de/api/interpreter'; do
+            echo "Attempting OpenStreetMap data import from $host"
+            if curl --fail --show-error --silent --location \
+                --max-time 150 --retry 1 --retry-delay 5 \
+                --user-agent 'Stellwerk.sim Eilenburg mapping review (GitHub public draft)' \
+                --request POST \
+                --data-urlencode 'data@docs/eilenburg-openrailwaymap-overpass.ql' \
+                "$host" --output review-data/eilenburg-overpass.json; then
+              if node -e "const o=require('./review-data/eilenburg-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements')"; then
+                success=1
+                break
+              fi
+            fi
+            echo "Server could not deliver valid OSM data."
+          done
+          if [ "$success" != 1 ]; then
+            echo "::error::Neither Overpass server delivered usable OpenStreetMap railway data."
+            exit 1
+          fi
 
       - name: Convert exact OSM nodes into review dataset
         run: node tools/eilenburg-import.mjs review-data/eilenburg-overpass.json review-data/eilenburg-osm-review.json
