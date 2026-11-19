@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.ns-bau-1">
+<meta name="app-version" content="2026-11-19.ns-gl7-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -256,6 +256,7 @@
   #stCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
   .stCard { text-align: left; background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
     color: var(--text); font: inherit; cursor: pointer; min-height: 96px; }
+  .stCard.locked { opacity: .45; cursor: not-allowed; }
   .stCard b { font-size: 17px; display: block; margin-bottom: 3px; }
   .stCard .sub { font-size: 13px; line-height: 1.35; display: block; }
   .stCard .tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -455,7 +456,7 @@
         <li><b>Wendezüge</b>: Viele Züge enden in Halle. Nach dem Halt wechseln sie am Bahnsteig die Fahrtrichtung und fahren unter neuer Nummer zur Planzeit zurück („wendet“ im Fahrplan). Die Ausfahrt stellst du am anderen Ende desselben Gleises.</li>
         <li>Güterzüge warten auf <b>Gleis 5/8</b> manchmal, bis ein ICE durch ist (Überholung).</li>
       </ul></div>
-    <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>7 Bahnsteiggleisen</b> (Gleis 5 Baustelle, Gleis 7 Stumpfgleis). Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. (Am Haltepunkt Teutschenthal gibt es keine Anschlüsse.) Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
     <p><b>Streckennetz:</b> Neustadt und Teutschenthal sind über eine zweigleisige freie Strecke verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert.</p>
     <h3>Richtungen</h3>
@@ -546,6 +547,12 @@
       <li><b>Achtung:</b> Hole einen endenden Zug erst auf Gleis 1 bzw. 6, wenn das zugehörige Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
       <li>Fährt ein endender Zug stattdessen aus, kommt der Gegenzug als Ersatz von Osten (−10 Punkte).</li>
     </ul>
+    <h3>Gleis 7 (Stumpfgleis)</h3>
+    <ul>
+      <li><b>Gleis 7</b> (ganz unten) ist ein neues Stumpfgleis, nur vom Osten erreichbar. Hier enden die RB „Pendel Neuhafen“ (Fahrplan: „endet, wendet nach …“).</li>
+      <li>Einfahrt <b>F → P7</b>. Nach der Wendezeit fährt der Zug mit neuer Nummer über <b>N7 → „nach Neuhafen ▶“</b> zurück.</li>
+      <li>Durchgehende Züge dürfen nicht nach Gleis 7 – dort geht es nach Westen nicht weiter.</li>
+    </ul>
     <h3>🚧 Dauerbaustelle Gleis 5</h3>
     <ul>
       <li><b>Gleis 5</b> wird dauerhaft erneuert (orange gestrichelt). Normale Züge kommen nicht hinein – Richtung Osten bleiben <b>Gleis 4 und 6</b>, das wird eng.</li>
@@ -584,7 +591,7 @@ const DENSITY = { ruhig: 260, normal: 170, dicht: 115 };  // mittlerer Zugabstan
 // ---------- Bahnhofsauswahl ----------
 const STATIONS = {
   neustadt: { name: 'Bf Neustadt', short: 'Neustadt', stw: 'Stw Neustadt',
-    info: 'Fiktiver Knotenbahnhof: 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen',
+    info: 'Fiktiver Knotenbahnhof: 7 Bahnsteiggleise (Gl 5 Baustelle), zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen',
     tags: ['viel Reiseverkehr', 'ICE-Durchfahrten', 'Nebenbahn', 'Lok umsetzen'] },
   teutschenthal: { name: 'Bf Teutschenthal', short: 'Teutschenthal', stw: 'Stw Teutschenthal B1',
     info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
@@ -595,11 +602,11 @@ const STATIONS = {
   eilenburg: { name: 'Bf Eilenburg', short: 'Eilenburg', stw: 'Stw Eilenburg (LEG)',
     info: 'Nach realem Vorbild (vereinfacht nach OSM und DB-Gleisplan): Gleise 1–4, Güterbahnhof Gl 5–13, Strecken 6345 Halle – Torgau, 6360 Leipzig, 6831 Eilenburg Ost, 6825 Lüptitz',
     tags: ['reales Vorbild', '5 Strecken', 'S-Bahn & RE', 'Gbf Gl 5–13 & Rangieren', 'Lokwechsel', 'Baustellen', 'Leipzig · Halle · Torgau'] },
-  halle: { name: 'Halle (Saale) Hbf', short: 'Halle', stw: 'Stw Halle (Saale) Hbf',
+  halle: { locked: true, name: 'Halle (Saale) Hbf', short: 'Halle', stw: 'Stw Halle (Saale) Hbf',
     info: 'Großer Knoten nach realem Vorbild (schematisch): 13 Bahnsteiggleise, 8 zweigleisige Strecken, ICE Berlin – München, S-Bahn Mitteldeutschland, Gütergleise zur Zugbildungsanlage',
     tags: ['reales Vorbild (schematisch)', '13 Bahnsteiggleise', '8 Strecken', 'ICE-Halt', 'S-Bahn & Wendezüge', 'Gütergleise ZBA', 'sehr groß'] },
 };
-const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] ? b : 'neustadt'; })();
+const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] && !STATIONS[b].locked ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
 function chooseStation(id) {
   try { localStorage.setItem('stw_bf', id); } catch (e) {}
@@ -621,8 +628,8 @@ if (BF === 'neustadt') {
   // Der westliche Weichenbereich wird definiert; der östliche entsteht durch Punktspiegelung (x,y) → (WID−x, CY−y).
   WID = 1660; const CY = 580;
   X0 = 650; X1 = 1010;                       // Anfang / Ende der Bahnsteiggleise
-  TRACK_Y = { 1: 110, 2: 170, 3: 250, 4: 330, 5: 410, 6: 470 };
-  NTRACKS = 6; MAIN_Y = [250, 330]; THROUGH = ['G3', 'G4'];
+  TRACK_Y = { 1: 110, 2: 170, 3: 250, 4: 330, 5: 410, 6: 470, 7: 540 };   // Gleis 7: Stumpfgleis (nur von Osten)
+  NTRACKS = 7; MAIN_Y = [250, 330]; THROUGH = ['G3', 'G4'];
   const WEST_LEGS = {
     L0:  [[0,330],[130,330]],   L1: [[130,330],[200,330]], L2: [[200,330],[420,330]], L3: [[420,330],[480,330]], L4: [[480,330],[650,330]],
     U0:  [[0,250],[130,250]],   U1a: [[130,250],[210,250]], U1b: [[210,250],[280,250]], U2: [[280,250],[340,250]], U3: [[340,250],[470,250]], U4: [[470,250],[650,250]],
@@ -641,6 +648,11 @@ if (BF === 'neustadt') {
     XEi: [[WID,250],[WID+300,250]], XEo: [[WID,330],[WID+300,330]],     // außerhalb Ost  (ein / aus)
   };
   for (const k in VIRTUAL) LEGS[k] = { pts: VIRTUAL[k], virtual: true };
+  // Gleis 7: Stumpf-Bahnsteiggleis für Wendezüge aus Neuhafen, Weiche in der Gleisverbindung östlich von Gleis 6
+  delete LEGS.eK4d;                                     // (1010,470)→(1050,470)→(1110,410)
+  LEGS.eK4da = { pts: [[1010,470],[1050,470],[1080,440]] };
+  LEGS.eK4db = { pts: [[1080,440],[1110,410]] };
+  LEGS.eK7d  = { pts: [[1010,540],[1030,540],[1080,440]] };
   // Abstellgleis 7: Stumpfgleis östlich von Gleis 1 (Weiche im Ost-Kopf, Rangiersignal L7, Prellbock)
   delete LEGS.eK6d;                                     // (1010,110)→(1040,110)→(1100,170) wird an der neuen Weiche geteilt
   LEGS.eK6da = { pts: [[1010,110],[1040,110]] };
@@ -1172,7 +1184,8 @@ const CFG = BF === 'neustadt' ? {
   townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
   overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [6] : [1, 2] },
-  closure: true, fit: { by: 38, bh: 480 }, shunting: false,
+  closure: true, fit: { by: 38, bh: 560 }, shunting: false,
+  kopfGleis: 7,   // Stumpfgleis: nur Wendezüge aus Neuhafen
   // Dauerbaustelle: Gleis 5 wird erneuert – nur Bauzüge dürfen hinein
   dauerBau: { track: 5, legs: ['G5'], name: 'Dauerbaustelle Gleis 5 (Bahnsteigerneuerung)' },
   trackFor(type, dir) {
@@ -1188,6 +1201,7 @@ const CFG = BF === 'neustadt' ? {
       [0.08, 'P', () => addTrain('ICE', dir, t)],
       [0.07, 'F', () => { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
       [0.07, 'F', () => addTrain('GC', dir, t)],
+      [0.12, 'P', () => { if (dir < 0 && t > (S.kopfBusy || 0)) addKopfWende(t); else addTrain('RB', dir, t); }],
       [0.10, 'F', () => { if (t > (S.bzBusy || 0)) addBauzug(t, dir); else addTrain('GC', dir, t); }],
       [0.09, 'P', () => addTrain('IC', dir, t)],
       [0.25, 'P', () => { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }],
@@ -1520,6 +1534,8 @@ function checkRoute(r) {
   if (activeFrom(r.from)) return { msg: `Ab Signal ${r.from} ist noch eine Fahrstraße eingestellt.`, queue: true };
   const locked = lockedSecs();
   if (S.bau && S.bau.active && r.to === S.bau.exit && !S.trains.some(t => t.lz && t.endSig === r.from)) return { msg: `Strecke nach ${EXITS[r.to].town} wegen Bauarbeiten gesperrt (bis ca. ${fmt(S.bau.until)}).`, queue: true };
+  if (CFG.kopfGleis && r.to === 'P' + CFG.kopfGleis && !S.trains.some(t => t.wende && !t.bauTurned && t.endSig === r.from))
+    return { msg: `Gleis ${CFG.kopfGleis} ist ein Stumpfgleis – nur für Züge, die hier enden und wenden.`, queue: false };
   if (CFG.dauerBau && r.secs.some(dauerBauLeg) && !S.trains.some(t => t.type === 'BZ' && t.endSig === r.from))
     return { msg: `Gleis ${CFG.dauerBau.track} ist Baustelle – nur Bauzüge dürfen hinein.`, queue: false };
   for (const sec of r.secs) {
@@ -1796,6 +1812,14 @@ function addBauzug(t, dir) {
   B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60;
   S.bzBusy = B.plan.dep + 10 * 60;
   return B;
+}
+// Wendezug Neuhafen – Neustadt: endet auf dem Stumpfgleis 7 und fährt nach der Wendezeit zurück
+function addKopfWende(t) {
+  const R = addTrain('RB', -1, t);
+  R.to = ST.short; R.plan.track = CFG.kopfGleis; R.service = 'Pendel Neuhafen';
+  R.wende = { exit: 'OST', to: R.from, dep: Math.ceil((R.plan.arr + (8 + Math.floor(Math.random() * 4)) * 60) / 60) * 60 };
+  S.kopfBusy = R.wende.dep + 4 * 60;
+  return R;
 }
 const dauerBauLeg = id => !!(CFG.dauerBau && CFG.dauerBau.legs.includes(id));
 const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
@@ -2306,7 +2330,7 @@ function renderNetwork() {
     waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
     '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
-    '<div class="netlinks">' + Object.entries(STATIONS).filter(([id]) => id !== BF).map(([id,st]) =>
+    '<div class="netlinks">' + Object.entries(STATIONS).filter(([id, st]) => id !== BF && !st.locked).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
 }
 // ---------- Anschlussmanagement ----------
@@ -2670,7 +2694,7 @@ const trainDrawings = new Map(); // Zugobjekt -> dauerhaftes SVG
 // ---------- Bahnhofsgestaltung (Beschriftung, Bahnsteige, Pfeile) ----------
 function decorNeustadt(W, txt, arrow, buffer) {
   // Rahmen / Beschriftung
-  el('rect', { x: -14, y: 40, width: WID + 28, height: 474, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  el('rect', { x: -14, y: 40, width: WID + 28, height: 556, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
   txt(WID / 2, 66, 'Bf NEUSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
   txt(WID / 2, 83, 'Gleisbildstellwerk Ns · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
   txt(8, 60, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
@@ -2695,6 +2719,13 @@ function decorNeustadt(W, txt, arrow, buffer) {
     txt((X0 + X1) / 2, TRACK_Y[5] - 9, '🚧 BAUSTELLE – nur Bauzüge', { 'text-anchor': 'middle', fill: '#ffc83d', 'font-size': 11, 'font-weight': 700, 'letter-spacing': 1 }); }
   for (let g = 1; g <= NTRACKS; g++) txt(X1 - 22, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
 
+  // Gleis 7: Stumpfgleis mit Seitenbahnsteig und Prellbock im Westen
+  { const y = TRACK_Y[7];
+    el('rect', { x: X0 + 30, y: y + 17, width: X1 - X0 - 60, height: 18, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
+    txt((X0 + X1) / 2, y + 30, 'BAHNSTEIG 7 · Stumpfgleis', { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 10, 'letter-spacing': 1 });
+    el('line', { x1: X0 - 4, y1: y - 10, x2: X0 - 4, y2: y + 10, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
+    el('line', { x1: X0 - 4, y1: y - 6, x2: X0 - 10, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+    el('line', { x1: X0 - 4, y1: y + 6, x2: X0 - 10, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W); }
   // Abstellgleis 8 (West)
   txt(480, 497, 'Abstellgleis 8', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
   el('line', { x1: 398, y1: 460, x2: 398, y2: 480, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
@@ -3438,6 +3469,11 @@ function renderStart() {
   const cards = $('#stCards'); cards.innerHTML = '';
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
+    if (st.locked) {   // Bahnhof noch in Arbeit: sichtbar, aber nicht wählbar
+      b.className = 'stCard locked'; b.disabled = true;
+      b.innerHTML = `<b>🔒 ${st.name}</b><span class="sub">In Arbeit – bald spielbar</span>`;
+      cards.appendChild(b); continue;
+    }
     b.className = 'stCard' + (id === pickBF ? ' on' : '');
     b.innerHTML = `<b>${id === pickBF ? '✓ ' : ''}${st.name}</b><span class="sub">${st.info}</span><span class="tags">${(st.tags || []).map(t => `<span>${t}</span>`).join('')}</span>`;
     b.addEventListener('click', () => { pickBF = id; renderStart(); });
