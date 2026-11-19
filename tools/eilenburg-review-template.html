@@ -16,14 +16,14 @@ label{display:block;padding:8px}button{font:inherit;min-height:42px;background:#
 </style>
 </head>
 <body>
-<header><h1>Eilenburg – Gleisprüfung aus OpenStreetMap</h1><span class="warn">UNGEPRÜFTE GEODATEN · KEINE STELLWERKSFREIGABE</span><button id="reset">Gesamtansicht</button></header>
+<header><h1>Eilenburg – Gleisprüfung aus OpenStreetMap</h1><span class="warn">UNGEPRÜFTE GEODATEN · KEINE STELLWERKSFREIGABE</span><button id="station">Bahnhof zentrieren</button><button id="reset">Alle OSM-Gleise</button></header>
 <main>
 <div id="map"><svg id="board" role="img" aria-label="OSM-Eisenbahngleise, Weichen und Signale" xmlns="http://www.w3.org/2000/svg"><g id="tracks"></g><g id="switches"></g><g id="signals"></g></svg></div>
 <aside>
 <p id="counts"></p>
 <label><input type="checkbox" id="showTracks" checked> Gleise (hellgrau)</label>
 <label><input type="checkbox" id="showSwitches" checked> Weichen (orange)</label>
-<label><input type="checkbox" id="showSignals" checked> Signalobjekte (blau)</label>
+<label><input type="checkbox" id="showSignals" checked> Signalobjekte (blau)</label><p><small>Blau: Hauptsignal-Tags · Violett: andere Signale, Tafeln und Prellböcke. Nicht alles ist ein Fahrt zeigendes Signal.</small></p>
 <p>Tippe auf eine Weiche oder ein Signal, um die OSM-Kennung und Tags anzuzeigen. Mit zwei Fingern zoomen und verschieben.</p>
 <pre id="info">Noch kein Objekt ausgewählt.</pre>
 <p><small>© OpenStreetMap contributors, ODbL 1.0. Gleiszuordnung, Signalfunktion und Bauzustand 2026 fachlich prüfen.</small></p>
@@ -35,15 +35,15 @@ const data=JSON.parse(document.getElementById('dataset').textContent),svg=docume
 function el(tag,attrs,root){const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,v);root.append(e);return e;}
 const points=data.tracks.flatMap(t=>[t.a,t.b]),margin=50;
 const xs=points.map(p=>p.x),ys=points.map(p=>p.y),bounds={x:Math.min(...xs)-margin,y:Math.min(...ys)-margin,w:Math.max(...xs)-Math.min(...xs)+2*margin,h:Math.max(...ys)-Math.min(...ys)+2*margin};
-let view={...bounds};function drawView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}
-drawView();document.getElementById('reset').onclick=()=>{view={...bounds};drawView();};
+const stationView={x:0,y:0,w:2800,h:1800};let view={...stationView};function drawView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}
+drawView();document.getElementById('reset').onclick=()=>{view={...bounds};drawView();};document.getElementById('station').onclick=()=>{view={...stationView};drawView();};
 const gT=document.getElementById('tracks'),gW=document.getElementById('switches'),gS=document.getElementById('signals');
 for(const t of data.tracks)el('line',{x1:t.a.x,y1:t.a.y,x2:t.b.x,y2:t.b.y,stroke:t.service==='yard'?'#89b3c1':t.service==='siding'?'#8c969e':'#d8e3eb','stroke-width':3},gT);
 function detail(label,obj){document.getElementById('info').textContent=label+'\n'+JSON.stringify(obj,null,2);}
 for(const s of data.osmSwitches||[]){const c=el('circle',{cx:s.x,cy:s.y,r:8,fill:'#ffae56',stroke:'#111','stroke-width':1},gW);c.addEventListener('click',()=>detail('Weiche · OSM-ID '+s.osmNodeId,s));}
 for(const s of data.signals||[]){const c=el('circle',{cx:s.x,cy:s.y,r:6,fill:s.railwayTags?.['railway:signal:main']?'#64c4f9':'#9fa5fa',stroke:'#111','stroke-width':1},gS);c.addEventListener('click',()=>detail('Signalbezogenes OSM-Objekt · ID '+s.osmNodeId,s));}
 for(const [key,layer]of [['showTracks',gT],['showSwitches',gW],['showSignals',gS]])document.getElementById(key).addEventListener('change',ev=>layer.style.display=ev.target.checked?'':'none');
-document.getElementById('counts').textContent=data.tracks.length+' Gleissegmente · '+data.osmSwitches.length+' kartierte Weichen · '+data.signals.length+' signalbezogene Objekte · '+data.report.connectedComponents.length+' Komponenten';
+document.getElementById('counts').textContent=data.tracks.length+' Gleissegmente · '+data.osmSwitches.length+' kartierte Weichen · '+data.signals.filter(s=>s.railwayTags?.['railway:signal:main']).length+' Hauptsignalobjekte · '+data.signals.length+' signalbezogene Objekte insgesamt · '+data.report.connectedComponents.length+' topologische Komponenten';
 const touches=new Map();let pan=null,gesture=null;
 function p(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const m=svg.getScreenCTM();return pt.matrixTransform(m.inverse());}
 function startGesture(){const t=[...touches.values()].slice(0,2),mid={clientX:(t[0].x+t[1].x)/2,clientY:(t[0].y+t[1].y)/2};gesture={dist:Math.max(1,Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y)),zoom:{...view},anchor:p(mid)};pan=null;}
