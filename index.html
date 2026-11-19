@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.rangieren-2">
+<meta name="app-version" content="2026-11-19.lokwechsel-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -442,6 +442,8 @@
         <li><b>Strecke 6825 Lüptitz</b> (Güterverkehr, an <b>L</b>): zweigt aus der östlichen Weichenstraße des Güterbahnhofs ab.</li>
         <li>Güterzüge fahren durch die Gleise 5–9, enden im Gbf oder beginnen dort. Von Torgau erreichst du den Gbf und Gleis 4 über den Gleiswechsel und die Verbindung am Gleis 4.</li>
         <li><b>Rangieraufträge</b> (Rf, braun = Köf mit Wagen) im Gbf. Über <b>Ost</b> (nur Gleis 5–9): N… → „Rangierhalt ▶“ (Ausziehgleis an der Lüptitzer Ausfahrt), dann Rangiersignal <b>RO</b> → P… im Zielgleis. Über <b>West</b> (Gleis 5–13): P… → „◀ Rangierhalt“, dann <b>RW</b> → N… im Zielgleis. Der Fahrplan zeigt Auftrag, Frist und nächsten Schritt. +8 Punkte (verspätet +3), 10 Minuten nach der Frist wird abgebrochen (−5).</li>
+        <li><b>Lokwechsel</b>: Güterzüge nach <b>Wurzen über Lüptitz</b> (Strecke 6825 ohne Oberleitung) halten im Gbf (Gl 5–9) und tauschen die E-Lok gegen eine Diesellok. ① Die E-Lok fährt als Lokfahrt ab: <b>N… → „Torgau ▶“</b>. ② Danach steht die Diesellok auf dem Ausziehgleis Ost: <b>RO → P…</b> (gleiches Gleis), sie kuppelt vorne an. ③ Ausfahrt <b>N… → „Lüptitz (6825) ▶“</b>. Lokwechsel +8 Punkte, die Lokfahrt +3.</li>
+        <li><b>Baustelle Eilenburg – Torgau</b>: Ab und zu wird die Strecke nach Torgau gesperrt (Ankündigung ca. 15 Minuten vorher, das gesperrte Streckengleis ist orange gestrichelt). Dann enden Züge Richtung Torgau in Eilenburg, wechseln am Bahnsteig die Fahrtrichtung und fahren nach ca. 5 Minuten über <b>P…</b> zurück nach Halle bzw. Leipzig. Züge aus Torgau fallen aus, Güterzüge nach Torgau enden im Gbf.</li>
       </ul></div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. (Am Haltepunkt Teutschenthal gibt es keine Anschlüsse.) Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
@@ -577,7 +579,7 @@ const STATIONS = {
     tags: ['10 Bahnsteiggleise', '4 Strecken', 'Richtungsbetrieb', 'Güterbahnhof & Rangieren', '2 Güter-Einfahrgleise', 'groß'] },
   eilenburg: { name: 'Bf Eilenburg', short: 'Eilenburg', stw: 'Stw Eilenburg (LEG)',
     info: 'Nach realem Vorbild (vereinfacht nach OSM und DB-Gleisplan): Gleise 1–4, Güterbahnhof Gl 5–13, Strecken 6345 Halle – Torgau, 6360 Leipzig, 6831 Eilenburg Ost, 6825 Lüptitz',
-    tags: ['reales Vorbild', '5 Strecken', 'S-Bahn & RE', 'Gbf Gl 5–13 & Rangieren', 'Leipzig · Halle · Torgau'] },
+    tags: ['reales Vorbild', '5 Strecken', 'S-Bahn & RE', 'Gbf Gl 5–13 & Rangieren', 'Lokwechsel', 'Baustellen', 'Leipzig · Halle · Torgau'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -1152,7 +1154,8 @@ const CFG = BF === 'neustadt' ? {
     // Strecke 6831: RB Halle ↔ Eilenburg Ost (Bad Düben) über Gleis 1/2
     branch: { inDir: -1, town: 'Eilenburg Ost', entry: 'E', exitE: 'EBO', exitW: 'WEST', type: 'RBN', tracks: () => [1, 2] },
     overtake: { fast: 'RE', tracks: () => FT },
-    closure: false, fit: { by: 6, bh: 814 }, shunting: true, branchLabel: 'Strecke 6831',
+    closure: false, fit: { by: 6, bh: 814 }, shunting: true, branchLabel: 'Strecke 6831', lokw: true,
+    bau: { exit: 'OST', entry: '-1', legs: ['eL0', 'eL3', 'eU0', 'eU2'], name: 'Strecke Eilenburg – Torgau' },
     gbf: [5, 6, 7, 8, 9, 10, 11, 12, 13], shunt: { O: [5, 6, 7, 8, 9], W: [5, 6, 7, 8, 9, 10, 11, 12, 13] },
     gbf: ALLG, gbfTracks: () => FT, gbfEndTracks: dir => dir > 0 ? ALLG : FT,
     trackFor(type, dir) {
@@ -1183,6 +1186,7 @@ const CFG = BF === 'neustadt' ? {
         [0.06, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'LU', FT, FT)],         // von/nach Lüptitz (6825)
         [0.09, 'F', () => { addGbfEnd(t, dir); const G = lastTrain(); setLine(G, Math.random() < 0.75 ? 'H' : 'LZ', dir > 0 ? 'T' : pick(['T', 'LU'])); G.to = ST.short + ' Gbf'; }],
         [0.06, 'F', () => addGbfStart(t, dir)],
+        [0.06, 'F', () => dir > 0 && !S.bau && S.t > (S.lokwBusy || 0) ? addLokw(t) : svc(t, dir, 'GC', 'H', 'LU', FT, FT)],   // Lokwechsel E → Diesel für Lüptitz
       ]);
     },
   };
@@ -1360,8 +1364,9 @@ const rName = r => `${r.from} → ${TGT[r.to] ? TGT[r.to].label : r.to}`;
 function checkRoute(r) {
   if (activeFrom(r.from)) return { msg: `Ab Signal ${r.from} ist noch eine Fahrstraße eingestellt.`, queue: true };
   const locked = lockedSecs();
+  if (S.bau && S.bau.active && r.to === S.bau.exit && !S.trains.some(t => t.lz && t.endSig === r.from)) return { msg: `Strecke nach ${EXITS[r.to].town} wegen Bauarbeiten gesperrt (bis ca. ${fmt(S.bau.until)}).`, queue: true };
   for (const sec of r.secs) {
-    if (S.occSecs.has(sec) && !(r.couple && sec === 'G1')) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
+    if (S.occSecs.has(sec) && !(r.couple && sec === 'G1') && sec !== lokwCoupleSec(r)) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
     if (locked.has(sec)) return { msg: `${secName(sec)} ist durch eine andere Fahrstraße verschlossen.`, queue: true };
   }
   const toThrow = [];
@@ -1429,7 +1434,7 @@ function secName(sec) {
 function signalGo(id, quiet) {
   const ar = activeFrom(id);
   if (!ar) return fail(`Signal ${id}: keine Fahrstraße eingestellt.`);
-  for (const sec of ar.r.secs) if (S.occSecs.has(sec) && !(ar.r.couple && sec === 'G1')) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
+  for (const sec of ar.r.secs) if (S.occSecs.has(sec) && !(ar.r.couple && sec === 'G1') && sec !== lokwCoupleSec(ar.r)) return fail(`Signal ${id} kann nicht auf Fahrt: ${secName(sec)} besetzt.`);
   for (const sw in ar.r.sw) if (S.sw[sw] !== ar.r.sw[sw]) return fail(`Signal ${id} kann nicht auf Fahrt: Weiche ${sw} nicht in Endlage.`);
   if (S.sigFault[id]) {
     S.sig[id] = 'Zs1';
@@ -1671,6 +1676,7 @@ function reverseLoco(L) {
                         : `${L.num} am Umsetzhalt West – ③ RB antippen (Lok fährt an die Wagen auf Gleis 1).`, 'info');
 }
 function couple(L) {
+  if (L.cars.lokw) { coupleLokw(L); return; }
   const T = L.cars, B = T.link;
   const xW = pointAt(L, L.s - L.len)[0], xE = pointAt(T, T.s)[0];
   freeRoutesOf(L);
@@ -1681,6 +1687,151 @@ function couple(L) {
   S.trains = S.trains.filter(t => t !== L && t !== T); S.trains.push(B);
   S.score += 5;
   log(`Lok angekuppelt (+5 Punkte): ${B.num} nach ${B.to} steht auf Gleis 1 – Ausfahrt ◂ P1 → „◀ nach Altdorf“.`, 'good');
+}
+// ---------- Lokwechsel (Eilenburg) ----------
+// Güterzug Richtung Lüptitz (6825, nicht elektrifiziert): hält im Gbf Gl 5–9, die E-Lok fährt als Lokfahrt
+// nach Torgau ab, eine Diesellok kommt vom Ausziehgleis Ost (Rangiersignal RO) an die Wagen.
+const LOKW = { tracks: [5, 6, 7, 8, 9], dieselLeg: 'AZO', dieselSig: 'RO', elExit: 'OST', elTown: 'Torgau' };
+function addLokw(t) {
+  const G = addTrain('GC', 1, t);
+  G.lokw = true; G.stops = true; G.dwell = 60; G.hasLoco = true;
+  G.entry = Math.random() < 0.75 ? '1' : 'B'; G.from = G.entry === '1' ? 'Halle (Saale)' : 'Leipzig-Engelsdorf';
+  G.exit = 'LUE'; G.to = 'Wurzen (über Lüptitz)';
+  G.plan.track = pick(LOKW.tracks); G.plan.arr = t + 300; G.plan.dep = Math.ceil((t + 300 + 14 * 60) / 60) * 60;
+  G.elNo = 185000 + (S.uid * 7) % 900; G.dlNo = 232000 + (S.uid * 13) % 900;
+  S.lokwBusy = G.plan.dep + 5 * 60;
+  return G;
+}
+function lokwCoupleSec(r) {
+  if (!r.shunt || r.from !== LOKW.dieselSig) return null;
+  const D = S.trains.find(t => t.isLoco && t.cars && t.cars.lokw && t.cars.frozen && t.endSig === r.from);
+  return D && r.to === 'P' + D.cars.stopTrack ? 'G' + D.cars.stopTrack : null;
+}
+function startLokw(T) {
+  if (!LOKW.tracks.includes(T.stopTrack)) {
+    T.lokw = false; S.score -= 10;
+    log(`${T.num}: Lokwechsel geht nur im Gbf (Gl 5–9) – Zug fährt mit der E-Lok weiter, Umleitung nötig (−10 Punkte).`, 'bad');
+    return;
+  }
+  T.split = true;
+  const E = {
+    id: ++S.uid, type: 'LOK', num: 'Lok 185 ' + String(T.elNo).slice(3), lz: true, dir: T.dir, from: ST.short, to: LOKW.elTown, exit: LOKW.elExit,
+    len: 20, vmax: 30, dwell: 0, stops: false, color: '#d6dde4', plan: { spawn: S.t, arr: null, dep: S.t, track: T.stopTrack },
+    spawned: true, announced: true, done: false, segs: T.segs.map(x => ({ ...x })), pts: [], cum: [], total: 0, s: T.s, v: 0,
+    endSig: T.endSig, stopAt: null, stopTrack: null, dwellUntil: null, served: true,
+    exitOff: null, depOff: null, actArr: null, actDep: null, delay: null, waitLogged: true,
+  };
+  rebuild(E);
+  T.len -= 22; T.s -= 22; T.frozen = true; T.hasLoco = false; T.endSig = 'Wagen';
+  T.elok = E; S.trains.push(E);
+  log(`${T.num}: Lokwechsel auf Gl ${T.stopTrack}. ① E-Lok: ${E.endSig} → „Torgau ▶“ (Lokfahrt), ② Diesellok: RO → P${T.stopTrack} (an die Wagen).`, 'info');
+  toast(`${T.num}: Lokwechsel – ① ${E.endSig} → „Torgau ▶“ für die E-Lok`);
+}
+function handleLokw() {
+  if (!CFG.lokw) return;
+  for (const T of S.trains) {
+    if (!T.lokw || !T.split || T.diesel || T.lokwDone) continue;
+    if (T.elok && !T.elok.done && T.elok.actDep == null) continue;       // erst muss die E-Lok weg sein
+    const leg = LOKW.dieselLeg;
+    if (S.occSecs.has(leg) || lockedSecs().has(leg)) continue;           // Ausziehgleis belegt → Diesellok wartet
+    const D = {
+      id: ++S.uid, type: 'LOK', num: 'Lok 232 ' + String(T.dlNo).slice(3), isLoco: true, cars: T, dir: -T.dir, from: 'Bw', to: 'Lokwechsel',
+      len: 20, vmax: 22, dwell: 0, stops: false, color: '#c9a227', plan: { spawn: S.t, arr: null, dep: S.t, track: T.stopTrack },
+      spawned: true, announced: true, done: false, segs: [{ leg, d: -1 }], pts: [], cum: [], total: 0, s: 0, v: 0,
+      endSig: LOKW.dieselSig, stopAt: null, stopTrack: null, dwellUntil: null, served: false,
+      exitOff: null, depOff: null, actArr: null, actDep: null, delay: null, waitLogged: true,
+    };
+    rebuild(D); D.s = D.total - 12;
+    T.diesel = D; S.trains.push(D); computeOcc();
+    log(`${D.num} (Diesel) steht auf dem Ausziehgleis Ost bereit – ② RO → P${T.stopTrack} (an die Wagen von ${T.num}).`, 'info');
+  }
+}
+function coupleLokw(L) {
+  const T = L.cars;
+  freeRoutesOf(L);
+  S.trains = S.trains.filter(t => t !== L);
+  T.frozen = false; T.len += 22; T.s += 22; T.hasLoco = true; T.lokwDone = true;
+  T.endSig = 'N' + T.stopTrack; T.stopAt = T.s; T.served = true; T.waitLogged = false;
+  S.score += 8;
+  log(`Lokwechsel fertig (+8 Punkte): ${T.num} mit ${L.num} – Ausfahrt N${T.stopTrack} → „Lüptitz (6825) ▶“.`, 'good');
+  computeOcc();
+}
+function lokwStep(T) {
+  if (T.elok && !T.elok.done && T.elok.actDep == null) return `① E-Lok: ${T.elok.endSig} → „Torgau ▶“`;
+  if (!T.diesel) return 'Diesellok kommt (Ausziehgleis Ost muss frei sein)';
+  return `② RO → P${T.stopTrack} (Diesellok an die Wagen)`;
+}
+// ---------- Baustelle (Eilenburg – Torgau) ----------
+// Strecke nach Torgau zeitweise gesperrt: Reisezüge Richtung Torgau enden in Eilenburg und fahren nach
+// Fahrtrichtungswechsel zurück, Züge aus Torgau fallen aus, Güterzüge nach Torgau enden im Gbf.
+function handleBau() {
+  if (!CFG.bau) return;
+  const B = S.bau;
+  if (!B) {
+    if (S.nextBau == null) S.nextBau = S.t + (20 + Math.random() * 35) * 60;
+    if (S.t < S.nextBau) return;
+    const from = Math.ceil((S.t + 15 * 60) / 60) * 60;
+    S.bau = { from, until: from + (35 + Math.floor(Math.random() * 25)) * 60, active: false, exit: CFG.bau.exit, entry: CFG.bau.entry, legs: CFG.bau.legs, name: CFG.bau.name };
+    log(`🚧 Bauankündigung: ${S.bau.name} ab ${fmt(from)} bis ca. ${fmt(S.bau.until)} gesperrt. Züge Richtung ${EXITS[CFG.bau.exit].town} enden dann hier und fahren zurück, Züge von dort fallen aus.`, 'info');
+    toast(`🚧 Bauarbeiten ab ${fmt(from)}: ${S.bau.name}`);
+    return;
+  }
+  if (!B.active && S.t >= B.from) {
+    B.active = true;
+    log(`🚧 ${B.name} jetzt gesperrt bis ca. ${fmt(B.until)}. Züge Richtung ${EXITS[B.exit].town} enden in ${ST.short}.`, 'bad');
+    toast(`🚧 ${B.name} gesperrt – Züge enden hier`, true);
+  }
+  if (B.active && S.t >= B.until) {
+    log(`Bauarbeiten beendet – ${B.name} wieder befahrbar.`, 'good');
+    S.bau = null; S.nextBau = S.t + (90 + Math.random() * 90) * 60;
+    return;
+  }
+  // betroffene Züge anpassen (geplante und noch nicht abgefahrene)
+  for (const tr of S.schedule) {
+    if (tr.done || tr.bauChecked || tr.shunter || tr.isLoco || tr.lz || tr.gbfStart || tr.fromSiding || tr.fromRunaround || tr.turn || tr.lokw || tr.exitOff != null) continue;
+    const toExit = tr.dir > 0 && exitFor(tr) === B.exit && tr.actDep == null && !tr.overtake && !tr.overtakes;
+    const fromEntry = tr.dir < 0 && (tr.entry || String(tr.dir)) === B.entry && !tr.spawned;
+    if (toExit && tr.plan.dep >= B.from && tr.plan.dep <= B.until) {
+      tr.bauChecked = true;
+      if (tr.type === 'GC') {
+        if (tr.spawned) continue;                                   // schon im Bahnhof: wartet auf das Bauende
+        tr.endsGbf = true; tr.stops = true; tr.dwell = 150; tr.to = ST.short + ' Gbf (Bau)';
+        tr.plan.arr = tr.plan.spawn + 300; tr.plan.dep = Math.ceil((tr.plan.arr + 150) / 60) * 60;
+        if (!LOKW.tracks.includes(tr.plan.track)) tr.plan.track = pick(LOKW.tracks);
+      } else if (tr.stops && !tr.turn && !tr.runaround) {
+        tr.bauEnd = true; tr.origTo = tr.to; tr.to = ST.short + ' (Bau)';
+        for (const c of S.connections) if (c.receiver === tr.id && !c.resolved) c.resolved = true;
+        log(`🚧 ${tr.num} endet wegen der Bauarbeiten in ${ST.short} und fährt zurück nach ${tr.from}.`, 'info');
+        if (tr.spawned && tr.served && tr.v === 0 && tr.stopAt != null) bauTurn(tr);   // steht schon abfahrbereit am Bahnsteig
+      }
+    } else if (fromEntry && tr.plan.spawn + 300 >= B.from && tr.plan.spawn <= B.until - 5 * 60) {
+      tr.bauChecked = true; tr.done = true; tr.cancelled = true;
+      for (const c of S.connections) if ((c.feeder === tr.id || c.receiver === tr.id) && !c.resolved) c.resolved = true;
+      log(`🚧 ${tr.num} von ${tr.from} fällt wegen der Bauarbeiten aus (Ersatzverkehr mit Bussen).`, 'info');
+    }
+  }
+}
+// Zug endet wegen Bauarbeiten: Fahrtrichtungswechsel am Bahnsteig, Rückfahrt in die Herkunftsrichtung
+function bauTurn(T) {
+  const tail = T.s - T.len, span = T.segs.filter(sg => sg.b > tail && sg.a < T.s);
+  const g = span.find(sg => /^G\d+$/.test(sg.leg));
+  if (!g || span[0].leg !== g.leg) {        // Zug steht nicht ganz im Gleis – nicht wenden, sondern abstellen
+    T.bauTurned = true; T.done = true; T.actDep = S.t; S.trains = S.trains.filter(t => t !== T); freeRoutesOf(T);
+    log(`${T.num} endet hier und wird abgestellt.`, 'info');
+    return;
+  }
+  const b1 = span[span.length - 1].b;
+  freeRoutesOf(T);
+  T.segs = span.reverse().map(sg => ({ leg: sg.leg, d: -sg.d, a: 0, b: 0 }));
+  rebuild(T);
+  T.s = b1 - tail; T.v = 0; T.dir = -T.dir;
+  T.bauTurned = true; T.bauEnd = false;
+  const back = T.entry === 'B' ? 'LPZ' : 'WEST';
+  T.exit = back; T.to = T.from; T.from = ST.short;
+  T.endSig = (T.dir > 0 ? 'N' : 'P') + T.stopTrack;
+  T.stopAt = T.s; T.served = false; T.exitOff = null; T.depOff = null; T.waitLogged = false;
+  T.plan.dep = Math.ceil((S.t + 5 * 60) / 60) * 60; T.dwellUntil = T.plan.dep; T.extraDelay = 0;
+  log(`${T.num} wendet (Bauarbeiten): Rückfahrt nach ${T.to} ab ${fmt(T.plan.dep)} über ${T.endSig}.`, 'info');
 }
 // ---------- Rangieren im Güterbahnhof (Teutschenthal) ----------
 const GBF = CFG.gbf || [3, 5, 6, 7, 8, 9, 10, 12];
@@ -1910,7 +2061,7 @@ function networkDest(tr) {
   return null;
 }
 function transferTrain(tr) {
-  if (tr.networkTransferred || tr.shunter || tr.isLoco || tr.turn || tr.endsGbf || tr.fromSiding || tr.fromRunaround) return;
+  if (tr.networkTransferred || tr.shunter || tr.isLoco || tr.lz || tr.bauTurned || tr.turn || tr.endsGbf || tr.fromSiding || tr.fromRunaround) return;
   const dest = networkDest(tr);
   if (!dest) return;
   tr.networkTransferred = true;
@@ -2074,6 +2225,13 @@ function appendRoute(tr, ar) {
     const xTail = pointAt(tr.cars, tr.cars.s - tr.cars.len)[0];
     tr.coupleAt = g.a + (xTail - X0) - 1;
     tr.vmax = Math.min(tr.vmax, 12); // vorsichtiges Heranfahren an den Wagenzug
+  } else if (tr.isLoco && tr.cars && tr.cars.frozen && tr.cars.lokw) {   // Lokwechsel: Diesellok fährt an die Wagen
+    const g = added.find(sg => sg.leg === 'G' + tr.cars.stopTrack);
+    if (g) {
+      const P = LEGS[g.leg].pts, xEntry = (g.d < 0 ? P[P.length - 1] : P[0])[0], xFront = pointAt(tr.cars, tr.cars.s)[0];
+      tr.coupleAt = g.a + Math.abs(xEntry - xFront) - 1;
+      tr.vmax = Math.min(tr.vmax, 12);
+    }
   }   // Fahrt auf Sicht bis zum Ende der Fahrstraße
 }
 function assignRoutes() {
@@ -2165,7 +2323,7 @@ function trainEvents(tr) {
     tr.v = 0; tr.s = tr.stopAt;
     if (tr.dwellUntil == null) {
       tr.actArr = S.t;
-      tr.dwellUntil = Math.max(S.t + tr.dwell, tr.plan.dep);
+      tr.dwellUntil = tr.lokw ? S.t + tr.dwell : Math.max(S.t + tr.dwell, tr.plan.dep);
       if (!tr.shunter && tr.type !== 'GC' && !tr.turn && !tr.overtakes && !tr.runaround && Math.random() < 0.08) {
         const ext = 60 * (1 + Math.floor(Math.random() * 2));
         tr.dwellUntil += ext; tr.extraDelay = (tr.extraDelay || 0) - ext; // nicht vom Fdl verschuldet
@@ -2186,6 +2344,8 @@ function trainEvents(tr) {
       tr.served = true;
       if (tr.runaround && !tr.split) { if (tr.stopTrack === 1) { splitLoco(tr); return; } abortRunaround(tr); }
       if (tr.endsGbf) { dissolveGbf(tr); return; }
+      if (tr.lokw && !tr.split) { startLokw(tr); return; }
+      if (tr.bauEnd && !tr.bauTurned) { bauTurn(tr); return; }
       if (SIGNALS[tr.endSig] && !isGo(tr.endSig)) log(`${tr.num} in Gleis ${tr.stopTrack} abfahrbereit – Ausfahrt über Signal ${tr.endSig}.`, 'info');
     }
   }
@@ -2210,7 +2370,8 @@ function trainEvents(tr) {
     }
   }
   // Abfahrt (Vorbeifahrt am Ausfahrsignal)
-  if (tr.depOff != null && tr.actDep == null && tr.s > tr.depOff) {
+  if (tr.lz && tr.depOff != null && tr.actDep == null && tr.s > tr.depOff) { tr.actDep = S.t; S.score += 3; log(`${tr.num} als Lokfahrt nach ${tr.to} ausgefahren (+3 Punkte).`, 'good'); }
+  if (!tr.lz && tr.depOff != null && tr.actDep == null && tr.s > tr.depOff) {
     tr.actDep = S.t;
     tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep + (tr.extraDelay || 0)) / 60));
     const pts = tr.delay <= 1 ? 10 : Math.max(-10, 10 - 2 * (tr.delay - 1));
@@ -2303,6 +2464,8 @@ function update(dt) {
   if (S.t >= S.nextNetCheck) { S.nextNetCheck = S.t + 15; importNetwork(); }
   resolveConnections();
   delayReports();
+  handleBau();
+  handleLokw();
   computeOcc();
   disruptions();
   spawnTrains();
@@ -2585,7 +2748,7 @@ function render() {
   const rl = routeLegs();
   for (const id in E_.legs) {
     const pend = S.pendingDel && performance.now() - S.pendingAt < 4000 && S.routes.includes(S.pendingDel) && S.pendingDel.r.legs.some(([l]) => l === id);
-    const closed = S.closure && S.closure.active && S.closure.leg === id;
+    const closed = (S.closure && S.closure.active && S.closure.leg === id) || (S.bau && S.bau.active && S.bau.legs.includes(id));
     const c = S.occLegs.has(id) ? COL.occ : closed ? '#c0703a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
     if (E_.legs[id]._d !== closed) { E_.legs[id].setAttribute('stroke-dasharray', closed ? '10 6' : 'none'); E_.legs[id]._d = closed; }
     if (E_.legs[id]._c !== c) { E_.legs[id].setAttribute('stroke', c); E_.legs[id]._c = c; }
@@ -2777,6 +2940,9 @@ function trainStatus(tr) {
   }
   if (tr.endsGbf && !tr.done && tr.dwellUntil != null) return { txt: `wird in Gl ${tr.stopTrack} aufgelöst`, cls: 'stop' };
   if (tr.endsGbf && tr.done) return { txt: 'aufgelöst', cls: 'done' };
+  if (tr.cancelled) return { txt: 'fällt aus (Bauarbeiten)', cls: 'done' };
+  if (tr.lokw && tr.split && !tr.lokwDone) return { txt: lokwStep(tr), cls: 'act' };
+  if (tr.bauEnd && !tr.spawned) return { txt: 'endet hier (Bau) – wendet', cls: 'warn' };
   if (tr.runaround && tr.done) return { txt: `Lok umgesetzt → ${tr.link.num}`, cls: 'done' };
   if (tr.runaround && tr.split) return { txt: runStep(S.trains.find(x => x.cars === tr)), cls: 'act' };
   if (tr.fromRunaround && !tr.spawned) return { txt: `wartet: Lok von ${tr.link.num} umsetzen`, cls: S.t >= tr.plan.dep ? 'warn' : '' };
@@ -2831,7 +2997,7 @@ function renderPanel() {
     h += `<tr class="${priority ? priority.level : st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
       <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">${tr.takt ? '⏱ 60-Minuten-Takt · ' : ''}${tr.service && !tr.takt ? tr.service + ' · ' : ''}von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' ? ' · Durchfahrt' : ''}</div></td>
-      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
+      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : tr.cancelled ? '<span class="sub">fällt aus</span>' : tr.bauEnd ? '<span class="sub">endet (Bau)</span>' : tr.lokw && !tr.lokwDone ? '<span class="sub">Lokwechsel</span> ' + fmt(tr.plan.dep) : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
@@ -2839,6 +3005,7 @@ function renderPanel() {
   let al = '';
   for (const id in S.swFault) al += `<div>⚠ Weiche ${id} gestört bis ${fmt(S.swFault[id])}</div>`;
   for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
+  if (S.bau) al += `<div class="b">🚧 ${S.bau.name} ${S.bau.active ? 'gesperrt bis ' + fmt(S.bau.until) + ' – Züge enden hier' : 'gesperrt ab ' + fmt(S.bau.from)}</div>`;
   if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
   if (S.queue.length) al += `<div class="q">Speicher: ${S.queue.map(rName).join(' · ')}</div>`;
   for (const tr of S.schedule) {
