@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.eilenburg-2">
+<meta name="app-version" content="2026-11-19.eilenburg-3">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -435,7 +435,8 @@
     <div class="only-eilenburg">Du bist Fahrdienstleiter im <b>Bahnhof Eilenburg (LEG)</b>. Der Gleisplan ist nach den <b>OpenStreetMap-Gleisdaten</b> und dem <b>DB-InfraGO-Gleisplan</b> vereinfacht nachgebaut: Personengleise <b>1–4</b>, Güterbahnhof <b>5–9</b> (durchgehend) und <b>10–13</b> (Stumpfgleise, nur von Westen). Doppelkreuzungsweichen sind als einfache Weichenpaare dargestellt; Signalnamen und Abhängigkeiten sind spielerisch, nicht das echte Stellwerk.
       <ul>
         <li><b>Strecke 6345 Halle – Torgau</b> (zweigleisig): ▶ von Delitzsch/Halle an <b>A</b> meist auf <b>Gleis 3</b>, ◀ von Torgau an <b>F</b> meist auf <b>Gleis 2</b>.</li>
-        <li><b>Strecke 6360 Leipzig</b> (eingleisig, an <b>B</b>): S 4 und RE nach Torgau/Cottbus. Gleis 4 führt geradeaus nach Leipzig, Gleis 1–3 über Weichenverbindungen – Gegenzüge aus Leipzig abwarten!</li>
+        <li><b>Strecke 6360 Leipzig</b> (zweigleisig, ▶ an <b>B</b>, fädelt vor dem Bahnhof ein): S 4 und RE nach Torgau/Cottbus. Gleis 4 führt geradeaus nach Leipzig, Gleis 1–3 über Weichenverbindungen.</li>
+        <li><b>Wendezüge</b>: Manche S-Bahnen aus Leipzig und RB aus Halle enden in Eilenburg. Nach dem Halt fährst du sie über <b>N1/N2</b> ins <b>Abstellgleis 39/40</b>. Später kommen sie über die Rangiersignale <b>L39/L40</b> zurück an den Bahnsteig.</li>
         <li><b>Strecke 6831 Eilenburg Ost</b> (eingleisig, an <b>E</b>): nur über <b>Gleis 1</b> und <b>Gleis 2</b> erreichbar.</li>
         <li><b>Strecke 6825 Lüptitz</b> (Güterverkehr, an <b>L</b>): zweigt aus der östlichen Weichenstraße des Güterbahnhofs ab.</li>
         <li>Güterzüge fahren durch die Gleise 5–9, enden im Gbf oder beginnen dort. Von Torgau erreichst du den Gbf und Gleis 4 über den Gleiswechsel und die Verbindung am Gleis 4.</li>
@@ -786,8 +787,9 @@ if (BF === 'neustadt') {
   add('wX2', [[320,200],[380,260]]);    // Gleiswechsel ◀ von Gl 3/4 auf das Streckengleis Richtung Halle
   add('wX3', [[540,260],[600,200]]);    // Verbindung Gl 1/2 ↔ Leipzig
   add('wG1', [[640,200],[700,140],[750,140]]);   // Abzweig Gleis 1
-  // Strecke 6360 Leipzig (eingleisig), Einmündung in Gl 3 und durchgehend auf Gl 4
-  add('wLZ0', [[0,320],[110,320]]); add('wLZ1', [[110,320],[420,320]]); add('wLZ2', [[420,320],[660,320]]); add('wLZ3', [[660,320],[700,320]]); add('wLZ4', [[700,320],[750,320]]);
+  // Strecke 6360 Leipzig: ◀ y 320 (durchgehend auf Gl 4, Einmündung in Gl 3), ▶ y 380 fädelt vor dem Bahnhof ein
+  add('wLZ0', [[0,320],[110,320]]); add('wLZ1', [[110,320],[360,320]]); add('wLZ1b', [[360,320],[420,320]]);
+  add('wLI0', [[0,380],[110,380]]); add('wLI1', [[110,380],[300,380]]); add('wLI2', [[300,380],[360,320]]); add('wLZ2', [[420,320],[660,320]]); add('wLZ3', [[660,320],[700,320]]); add('wLZ4', [[700,320],[750,320]]);
   add('wJ3', [[420,320],[480,260]]);    // Leipzig ↔ Gl 3
   add('wX4', [[600,260],[660,320]]);    // Gl 3-Strecke ↔ Gl 4 / Güterbahnhof
   // Weichenstraße Güterbahnhof West (Leiter, Gl 5–13)
@@ -800,7 +802,10 @@ if (BF === 'neustadt') {
   for (let g = 10; g <= 13; g++) add('G' + g, [[1180, TRACK_Y[g]], [1400, TRACK_Y[g]]]);   // Stumpfgleise
   // --- Ostkopf ---
   // Gleis 1 → Strecke 6831 Eilenburg Ost (eingleisig), Verbindung zu Gl 2
-  add('eG1a', [[1250,140],[1520,140]]); add('eEO1', [[1520,140],[2190,140]]); add('eEO0', [[2190,140],[2300,140]]);
+  add('eG1a', [[1250,140],[1520,140]]); add('eEO2', [[1520,140],[1580,140]]); add('eEO1', [[1580,140],[2190,140]]);
+  // Abstellgleise 39 und 40 (Stumpfgleise nördlich der Strecke 6831), Rangiersignale L39 / L40
+  add('eA0', [[1580,140],[1620,100]]); add('eA39', [[1620,100],[1660,100]]); add('AG39', [[1660,100],[1900,100]]);
+  add('eA40', [[1620,100],[1660,60],[1700,60]]); add('AG40', [[1700,60],[1900,60]]); add('eEO0', [[2190,140],[2300,140]]);
   add('eX0', [[1460,200],[1520,140]]);  // Gl 2 ↔ Eilenburg Ost
   // Strecke 6345 Torgau: ◀ y 200 (Einfahrt F), ▶ y 260
   add('eU5', [[1250,200],[1460,200]]); add('eU4', [[1460,200],[1980,200]]); add('eU3', [[1980,200],[2020,200]]); add('eU2', [[2020,200],[2190,200]]); add('eU0', [[2190,200],[2300,200]]);
@@ -817,35 +822,45 @@ if (BF === 'neustadt') {
   add('eLP1', [[1710,360],[2190,360]]); add('eLP0', [[2190,360],[2300,360]]);
   Object.assign(LEGS, {
     XWi: { pts: [[-300,260],[0,260]], virtual: true }, XWo: { pts: [[-300,200],[0,200]], virtual: true },
-    XLZ: { pts: [[-300,320],[0,320]], virtual: true },
+    XLZ: { pts: [[-300,320],[0,320]], virtual: true }, XLZi: { pts: [[-300,380],[0,380]], virtual: true },
     XEi: { pts: [[2300,200],[2600,200]], virtual: true }, XEo: { pts: [[2300,260],[2600,260]], virtual: true },
     XEB: { pts: [[2300,140],[2600,140]], virtual: true }, XLP: { pts: [[2300,360],[2600,360]], virtual: true },
   });
   Object.assign(SIGNALS, {
     A: { x: 110,  y: 260, dir:  1, kind: 'Einfahrsignal' },            // von Delitzsch / Halle
-    B: { x: 110,  y: 320, dir:  1, kind: 'Einfahrsignal' },            // von Leipzig (6360)
+    B: { x: 110,  y: 380, dir:  1, kind: 'Einfahrsignal' },            // von Leipzig (6360)
     F: { x: 2190, y: 200, dir: -1, kind: 'Einfahrsignal' },            // von Torgau
     E: { x: 2190, y: 140, dir: -1, kind: 'Einfahrsignal' },            // von Eilenburg Ost (6831)
     L: { x: 2190, y: 360, dir: -1, kind: 'Einfahrsignal (Güter)' },    // von Lüptitz (6825)
+    L39: { x: 1660, y: 100, dir: -1, kind: 'Rangiersignal (Abstellgleis 39)' },
+    L40: { x: 1700, y: 60,  dir: -1, kind: 'Rangiersignal (Abstellgleis 40)' },
+  });
+  Object.assign(ENDS, {
+    AG39: { label: 'Abstellgl. 39 ▶', node: '1900,100', dir: 1, box: [1914, 88, 116, 24] },
+    AG40: { label: 'Abstellgl. 40 ▶', node: '1900,60',  dir: 1, box: [1914, 48, 116, 24] },
+  });
+  Object.assign(SIDINGS, {
+    AG39: { no: 39, name: 'Abstellgleis 39', short: 'Abst. 39', track: 1, inSig: 'N1', outSig: 'L39', outTarget: 'P1', dirIn: 1 },
+    AG40: { no: 40, name: 'Abstellgleis 40', short: 'Abst. 40', track: 2, inSig: 'N2', outSig: 'L40', outTarget: 'P2', dirIn: 1 },
   });
   for (let g = 1; g <= 13; g++) {
     SIGNALS['P' + g] = { x: g <= 4 ? X0 : 1180, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
     SIGNALS['N' + g] = { x: g <= 4 ? X1 : g <= 9 ? 1450 : 1400, y: TRACK_Y[g], dir: 1, kind: g <= 9 ? 'Ausfahrsignal' : 'Gleisabschluss (Stumpfgleis)' };
   }
   Object.assign(DISTANT, {
-    VA: { x: 40, y: 260, dir: 1, main: 'A' }, VB: { x: 40, y: 320, dir: 1, main: 'B' },
+    VA: { x: 40, y: 260, dir: 1, main: 'A' }, VB: { x: 40, y: 380, dir: 1, main: 'B' },
     VF: { x: 2260, y: 200, dir: -1, main: 'F' }, VE: { x: 2260, y: 140, dir: -1, main: 'E' }, VL: { x: 2260, y: 360, dir: -1, main: 'L' },
   });
   Object.assign(EXITS, {
     WEST: { label: '◀ Delitzsch / Halle', town: 'Halle (Saale)', node: '0,200',    dir: -1, virt: 'XWo', box: [6, 154, 150, 26] },
     LPZ:  { label: '◀ Leipzig (6360)',    town: 'Leipzig Hbf',   node: '0,320',    dir: -1, virt: 'XLZ', box: [6, 334, 150, 26] },
     OST:  { label: 'Torgau ▶',            town: 'Torgau',        node: '2300,260', dir:  1, virt: 'XEo', box: [2186, 274, 108, 26] },
-    EBO:  { label: 'Eilenburg Ost ▶',     town: 'Eilenburg Ost', node: '2300,140', dir:  1, virt: 'XEB', box: [1990, 90, 138, 24] },
+    EBO:  { label: 'Eilenburg Ost ▶',     town: 'Eilenburg Ost', node: '2300,140', dir:  1, virt: 'XEB', box: [2156, 100, 138, 24] },
     LUE:  { label: 'Lüptitz (6825) ▶',    town: 'Lüptitz',       node: '2300,360', dir:  1, virt: 'XLP', box: [2156, 374, 138, 26] },
   });
   Object.assign(ENTRY, {
     '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0',  d:  1 }], sec: 'wL0',  sig: 'A' },
-    'B':  { segs: [{ leg: 'XLZ', d:  1 }, { leg: 'wLZ0', d:  1 }], sec: 'wLZ0', sig: 'B' },
+    'B':  { segs: [{ leg: 'XLZi', d:  1 }, { leg: 'wLI0', d:  1 }], sec: 'wLI0', sig: 'B' },
     '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0',  d: -1 }], sec: 'eU0',  sig: 'F' },
     'E':  { segs: [{ leg: 'XEB', d: -1 }, { leg: 'eEO0', d: -1 }], sec: 'eEO0', sig: 'E' },
     'L':  { segs: [{ leg: 'XLP', d: -1 }, { leg: 'eLP0', d: -1 }], sec: 'eLP0', sig: 'L' },
@@ -929,8 +944,8 @@ for (const k in LEGS) {
   L.len = l;
   L.sec = L.virtual ? null : k;                       // jeder Gleisabschnitt hat eigene Freimeldung
   const mainStraight = !curved && MAIN_Y.includes(p[0][1]);
-  if (k === 'tub' || k === 'tlb') { L.v = 40; continue; }   // Abzweig Talburg: flacher Bogen, kein Langsamfahrbegriff
-  L.v = L.virtual || /L0$|U0$/.test(k) ? 55 : (k === 'BR0' || k === 'C0' || k === 'wGZ0' || k === 'eGZ0' || k === 'wLZ0' || k === 'eEO0' || k === 'eLP0') ? 35 : THROUGH.includes(k) ? 45 : /^G/.test(k) ? 30
+  if (k === 'tub' || k === 'tlb' || k === 'wLI2') { L.v = 40; continue; }   // Abzweig Talburg: flacher Bogen, kein Langsamfahrbegriff
+  L.v = L.virtual || /L0$|U0$/.test(k) ? 55 : (k === 'BR0' || k === 'C0' || k === 'wGZ0' || k === 'eGZ0' || k === 'wLZ0' || k === 'wLI0' || k === 'eEO0' || k === 'eLP0') ? 35 : THROUGH.includes(k) ? 45 : /^G/.test(k) ? 30
       : /^AG|^AN/.test(k) ? 18 : curved ? 20 : mainStraight ? 45 : 30;
 }
 
@@ -1111,14 +1126,14 @@ const CFG = BF === 'neustadt' ? {
     // Strecke 6831: RB Halle ↔ Eilenburg Ost (Bad Düben) über Gleis 1/2
     branch: { inDir: -1, town: 'Eilenburg Ost', entry: 'E', exitE: 'EBO', exitW: 'WEST', type: 'RBN', tracks: () => [1, 2] },
     overtake: { fast: 'RE', tracks: () => FT },
-    closure: false, fit: { by: 40, bh: 780 }, shunting: false, branchLabel: 'Strecke 6831',
+    closure: false, fit: { by: 6, bh: 814 }, shunting: false, branchLabel: 'Strecke 6831',
     gbf: ALLG, gbfTracks: () => FT, gbfEndTracks: dir => dir > 0 ? ALLG : FT,
     trackFor(type, dir) {
       if (type === 'GC') return pick(FT);
       return dir > 0 ? pick([3, 3, 4]) : pick([2, 2, 3]);       // Halle ↔ Torgau: ▶ Gl 3/4, ◀ Gl 2/3
     },
     gbfStartHook(G, dir) {
-      if (dir < 0) { G.plan.track = pick(ALLG); setLine(G, Math.random() < 0.5 ? 'H' : 'LZ', 'T'); }
+      if (dir < 0) { G.plan.track = pick(ALLG); setLine(G, Math.random() < 0.8 ? 'H' : 'LZ', 'T'); }
       else setLine(G, 'H', Math.random() < 0.4 ? 'LU' : 'T');
       G.from = ST.short + ' Gbf';
     },
@@ -1126,13 +1141,20 @@ const CFG = BF === 'neustadt' ? {
       pickWeighted(t, [
         [0.26, 'P', () => svc(t, dir, 'S', 'LZ', 'T', [3, 4], [2, 4], ['Leipzig-Stötteritz', 'Torgau'], 'S 4')],
         [0.14, 'P', () => svc(t, dir, 'RE', 'LZ', 'T', [3], [2], ['Leipzig Hbf', 'Cottbus'], 'RE 10')],
+        [0.12, 'P', () => {                                                            // Wendezüge: enden in Eilenburg, wenden im Abstellgleis 39/40
+          const sid = sidingFree('AG40', t) ? 'AG40' : sidingFree('AG39', t) ? 'AG39' : null;
+          if (dir < 0 || !sid) return svc(t, dir, 'S', 'LZ', 'T', [3, 4], [2, 4], ['Leipzig-Stötteritz', 'Torgau'], 'S 4');
+          const fromLZ = sid === 'AG40' || Math.random() < 0.5, A = addTurnPair(t, sid, fromLZ ? 'S' : 'RB'), B = A.link;
+          A.entry = fromLZ ? 'B' : '1'; A.from = fromLZ ? 'Leipzig-Stötteritz' : 'Halle (Saale)'; A.to = ST.short;
+          B.exit = fromLZ ? 'LPZ' : 'WEST'; B.to = A.from; if (fromLZ) { A.service = B.service = 'S 4'; }
+        }],
         [0.07, 'P', () => svc(t, dir, 'RBN', 'LZ', 'EO', [1, 2], [1, 2], ['Leipzig Hbf', 'Bad Düben'])],
         [0.10, 'P', () => addBranch(t, dir)],                                          // Halle ↔ Eilenburg Ost
         [0.06, 'P', () => addTrain('RB', dir, t)],                                    // Halle ↔ Torgau
         [0.05, 'X', () => addOvertake(t, dir)],                                       // Güterzug wartet im Gbf auf den RE
-        [0.10, 'F', () => svc(t, dir, 'GC', pick(['H', 'LZ']), 'T', FT, FT)],          // Güterzug durch den Gbf
-        [0.06, 'F', () => svc(t, dir, 'GC', pick(['H', 'LZ']), 'LU', FT, FT)],         // von/nach Lüptitz (6825)
-        [0.09, 'F', () => { addGbfEnd(t, dir); const G = lastTrain(); setLine(G, pick(['H', 'LZ']), dir > 0 ? 'T' : pick(['T', 'LU'])); G.to = ST.short + ' Gbf'; }],
+        [0.10, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'T', FT, FT)],          // Güterzug durch den Gbf
+        [0.06, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'LU', FT, FT)],         // von/nach Lüptitz (6825)
+        [0.09, 'F', () => { addGbfEnd(t, dir); const G = lastTrain(); setLine(G, Math.random() < 0.75 ? 'H' : 'LZ', dir > 0 ? 'T' : pick(['T', 'LU'])); G.to = ST.short + ' Gbf'; }],
         [0.06, 'F', () => addGbfStart(t, dir)],
       ]);
     },
@@ -1358,12 +1380,13 @@ function trySetRoute(r, fromQueue) {
 }
 function secName(sec) {
   if (/^G\d+$/.test(sec)) return 'Gleis ' + sec.slice(1);
+  if (/^AG(39|40)$/.test(sec)) return 'Abstellgleis ' + sec.slice(2);
   if (/^AG8/.test(sec)) return 'Abstellgleis 8';
   if (/^AG/.test(sec)) return 'Abstellgleis 7';
   if (/^BR/.test(sec)) return 'Nebenbahn Waldheim';
   if (/^eN[UL]0$/.test(sec)) return 'Strecke Talburg';
   if (/^wN[UL]0$/.test(sec)) return 'Strecke Westerburg';
-  if (sec === 'wLZ0') return 'Strecke 6360 Leipzig';
+  if (sec === 'wLZ0' || sec === 'wLI0') return 'Strecke 6360 Leipzig';
   if (sec === 'eEO0') return 'Strecke 6831 Eilenburg Ost';
   if (sec === 'eLP0') return 'Strecke 6825 Lüptitz';
   if (/^wGZ/.test(sec)) return 'Güter-Einfahrgleis West';
@@ -1565,6 +1588,7 @@ function addTurnPair(spawn, sid, type) {
   else { B.plan.arr = null; B.plan.dep = Math.ceil((B.plan.spawn + 180) / 60) * 60; }
   A.link = B; B.link = A;
   S.turnBusy[sid] = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug für dieses Abstellgleis planen
+  return A;
 }
 const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
 // ---------- Lok umsetzen ----------
@@ -2337,15 +2361,15 @@ function decorBurgstadt(W, txt, arrow, buffer) {
   [[75, 450, 1], [75, 350, -1], [75, 200, 1], [75, 150, -1], [2125, 350, -1], [2125, 450, 1], [2125, 150, -1], [2125, 200, 1], [170, 600, 1], [200, 600, -1], [2000, 535, 1], [2030, 535, -1]].forEach(a => arrow(...a));
 }
 function decorEilenburg(W, txt, arrow, buffer) {
-  el('rect', { x: -14, y: 40, width: WID + 28, height: 770, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
-  txt(1000, 62, 'Bf EILENBURG', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
-  txt(1000, 78, 'LEG · Strecken 6345 · 6360 · 6831 · 6825', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
-  txt(8, 60, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(8, 76, 'Leipzig · Delitzsch · Halle (Saale)', { 'font-size': 11 });
-  txt(WID - 8, 60, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(WID - 8, 76, 'Torgau · Eilenburg Ost · Lüptitz', { 'text-anchor': 'end', 'font-size': 11 });
-  txt(6, 378, '⇄ Strecke 6360 Leipzig (Einfahrt an B)', { fill: '#c9ced3' });
-  txt(WID - 240, 132, '⇄ 6831 (Einfahrt an E)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  el('rect', { x: -14, y: 14, width: WID + 28, height: 796, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  txt(1000, 46, 'Bf EILENBURG', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
+  txt(1000, 62, 'LEG · Strecken 6345 · 6360 · 6831 · 6825', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
+  txt(8, 40, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(8, 56, 'Leipzig · Delitzsch · Halle (Saale)', { 'font-size': 11 });
+  txt(WID - 8, 40, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(WID - 8, 56, 'Torgau · Eilenburg Ost · Lüptitz', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(150, 410, '▶ von Leipzig, Strecke 6360 (Einfahrt an B)', { fill: '#c9ced3' });
+  txt(WID - 330, 132, '⇄ 6831 (Einfahrt an E)', { 'text-anchor': 'end', fill: '#c9ced3' });
   txt(WID - 6, 418, '⇄ 6825 Güterstrecke (Einfahrt an L)', { 'text-anchor': 'end', fill: '#c9ced3' });
   // Empfangsgebäude, Hausbahnsteig Gl 1, Mittelbahnsteig Gl 2/3, Bahnsteig Gl 4
   el('rect', { x: 900, y: 88, width: 200, height: 18, rx: 2, fill: '#6b5a3a', stroke: '#a08a5c' }, W);
@@ -2358,9 +2382,10 @@ function decorEilenburg(W, txt, arrow, buffer) {
   for (const g of [1, 2, 3, 4]) txt(1236, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
   for (let g = 5; g <= 13; g++) txt(1300, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'middle', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
   for (let g = 10; g <= 13; g++) buffer(1408, TRACK_Y[g], 1);
+  buffer(1900, 100, 1); buffer(1900, 60, 1);
   txt(1720, 700, 'GÜTERBAHNHOF · Gl 5–9 durchgehend · Gl 10–13 Stumpfgleise', { 'text-anchor': 'middle', fill: '#8b9298', 'font-size': 11, 'letter-spacing': 1 });
   // Fahrtrichtungspfeile (Rechtsverkehr), eingleisige Strecken mit Doppelpfeil
-  [[62, 260, 1], [62, 200, -1], [170, 320, -1], [200, 320, 1], [WID - 62, 200, -1], [WID - 62, 260, 1],
+  [[62, 260, 1], [62, 200, -1], [62, 320, -1], [62, 380, 1], [WID - 62, 200, -1], [WID - 62, 260, 1],
    [WID - 200, 140, -1], [WID - 170, 140, 1], [WID - 200, 360, -1], [WID - 170, 360, 1]].forEach(a => arrow(...a));
 }
 function buildStatic() {
