@@ -76,6 +76,8 @@ jobs:
       - name: Save OSM review snapshot to draft branch (never publish as playable geometry)
         shell: bash
         run: |
+          git fetch origin chatgpt/eilenburg-db-track-layout-20261119
+          git rebase origin/chatgpt/eilenburg-db-track-layout-20261119
           mkdir -p data
           cp review-data/eilenburg-osm-review.json data/eilenburg-osm-review.json
           git config user.name "github-actions[bot]"
