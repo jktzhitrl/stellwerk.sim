@@ -54,3 +54,13 @@ Die importierten Track-Referenzen umfassen unter anderem 6345, 6360, 6825 und 68
 ## Vorschau im öffentlichen Spiel
 
 Auf ausdrücklichen Wunsch des Nutzers ist Eilenburg als **spielbare, deutlich als schematisch gekennzeichnete Vorschau** im Startmenü freigegeben. Der Spielmodus bleibt auf dem manuell übertragenen 145-Segment-Plan und verwendet vereinfachte Weichen-/Signalregeln. Zusätzlich ist die echte 499-Segment-OSM-Gleisprüfung über `eilenburg-review.html` verfügbar. Keine reale Fahrstraße, Signalabhängigkeit oder Weichenbezeichnung wird dadurch als bestätigt dargestellt. Der öffentliche Release ist ausdrücklich **nicht** die Freigabe eines 1:1-Stellwerks.
+
+## Eilenburg im Hauptspiel (19.11.2026)
+
+Eilenburg ist jetzt als eigener Bahnhof im Hauptspiel (`index.html?bf=eilenburg`) mit dem normalen Stellwerkskern (Weichen, Fahrstraßen, Signale, Fahrplan) eingebaut. Die Gleistopologie wurde aus den gedrehten OSM-Gleisdaten (`data/eilenburg-osm-review.json`) abgelesen und vereinfacht:
+
+- Personengleise 1–4. Gleis 1 hängt im Westen am Streckengleis Richtung Halle und führt im Osten auf die Strecke 6831. Gleis 2/3 sind die Hauptgleise der Strecke 6345. Gleis 4 führt im Westen geradeaus auf die Strecke 6360.
+- Güterbahnhof mit Weichenleitern an beiden Seiten: Gleise 5–9 durchgehend, 10–13 Stumpfgleise mit Zugang nur von Westen. Die Strecke 6825 nach Lüptitz zweigt aus der östlichen Weichenleiter ab.
+- Doppelkreuzungsweichen sind als Paare einfacher Weichen dargestellt. Signalnamen (A, B, F, E, L, N/P) und Abhängigkeiten sind spielerisch und entsprechen nicht dem echten Stellwerk.
+
+Die schematische Vorschau `custom-play.html?bf=eilenburg` bleibt als Datei erhalten, ist aber nicht mehr im Startmenü verlinkt.
