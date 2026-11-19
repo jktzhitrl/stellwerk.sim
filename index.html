@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.clock-main-1">
+<meta name="app-version" content="2026-11-19.trains-routes-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2077,6 +2077,7 @@ function update(dt) {
 
 // ---------- Darstellung ----------
 const E_ = {};  // Elementreferenzen
+const trainDrawings = new Map(); // Zugobjekt -> dauerhaftes SVG
 // ---------- Bahnhofsgestaltung (Beschriftung, Bahnsteige, Pfeile) ----------
 function decorNeustadt(W, txt, arrow, buffer) {
   // Rahmen / Beschriftung
@@ -2179,6 +2180,7 @@ function decorBurgstadt(W, txt, arrow, buffer) {
   [[75, 450, 1], [75, 350, -1], [75, 200, 1], [75, 150, -1], [2125, 350, -1], [2125, 450, 1], [2125, 150, -1], [2125, 200, 1], [170, 600, 1], [200, 600, -1], [2000, 535, 1], [2030, 535, -1]].forEach(a => arrow(...a));
 }
 function buildStatic() {
+  trainDrawings.clear();
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
@@ -2348,6 +2350,7 @@ function render() {
     E_.dist[id].forEach((e, i) => e.setAttribute('fill', c[i]));
   }
   for (const id in SWITCHES) {
+    const w = SWITCHES[id];
     const pos = S.sw[id];
     for (const [setting,path] of Object.entries(E_.swPath[id])) {
       const active = setting === pos;
@@ -2368,28 +2371,54 @@ function render() {
     qh += `<path d="M${LEGS[l].pts.map(p => p.join(',')).join(' L')}" fill="none" stroke="#5ad1ff" stroke-width="2.5" stroke-dasharray="6 5"/>`;
   }
   if (E_.queue._h !== qh) { E_.queue.innerHTML = qh; E_.queue._h = qh; }
-  // Züge
-  let h = '';
+  // Züge: SVG-Elemente pro Zug wiederverwenden statt das gesamte SVG in jedem Frame zu ersetzen.
+  // So bleiben Zuganzeigen auf Tablets stabil und die Bewegungen werden flüssiger.
+  const live = new Set(S.trains);
+  for (const [tr, drawing] of trainDrawings) {
+    if (!live.has(tr)) { drawing.group.remove(); trainDrawings.delete(tr); }
+  }
   for (const [idx, tr] of S.trains.entries()) {
+    let drawing = trainDrawings.get(tr);
+    if (!drawing) {
+      const group = el('g', {}, E_.trains);
+      const outline = el('polyline', { fill: 'none', stroke: '#0d0e0f', 'stroke-width': 11, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, group);
+      const body = el('polyline', { fill: 'none', stroke: tr.color, 'stroke-width': 7, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, group);
+      const loco = el('polyline', { fill: 'none', stroke: '#39424b', 'stroke-width': 7 }, group);
+      const tip = el('polygon', { fill: '#ffffff', stroke: '#000', 'stroke-width': 1.2 }, group);
+      const label = el('text', { 'text-anchor': 'middle', 'font-size': 11.5, 'font-weight': 700, fill: tr.color, stroke: '#0d0e0f', 'stroke-width': 3.5, 'paint-order': 'stroke', 'font-family': 'ui-monospace,Menlo,Consolas,monospace' }, group);
+      const hit = el('polyline', { fill: 'none', stroke: 'transparent', 'stroke-width': 24, 'data-hit': 'train', 'data-id': idx }, group);
+      const labelHit = el('rect', { width: 70, height: 22, fill: 'transparent', 'data-hit': 'train', 'data-id': idx, style: 'cursor:pointer' }, group);
+      drawing = { group, outline, body, loco, tip, label, hit, labelHit };
+      trainDrawings.set(tr, drawing);
+    }
     const pts = subPath(tr, tr.s - tr.len, tr.s);
     const ps = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-    const head = pointAt(tr, tr.s);
-    const mid = pointAt(tr, tr.s - tr.len / 2);
-    h += `<polyline points="${ps}" fill="none" stroke="#0d0e0f" stroke-width="11" stroke-linejoin="round"/>`;
-    h += `<polyline points="${ps}" fill="none" stroke="${tr.color}" stroke-width="7" stroke-linejoin="round"/>`;
-    if (tr.hasLoco) {   // Lok an der Zugspitze dunkel absetzen
-      const lp = subPath(tr, tr.s - 18, tr.s).map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-      h += `<polyline points="${lp}" fill="none" stroke="#39424b" stroke-width="7"/>`;
-    }
+    drawing.outline.setAttribute('points', ps);
+    drawing.body.setAttribute('points', ps);
+    drawing.body.setAttribute('stroke', tr.color);
+    drawing.hit.setAttribute('points', ps);
+    drawing.hit.setAttribute('data-id', idx);
+    drawing.labelHit.setAttribute('data-id', idx);
+    drawing.hit.setAttribute('class', 'train-hit' + (selectedTrain === tr ? ' train-selected' : ''));
+    if (tr.hasLoco) {
+      drawing.loco.setAttribute('points', subPath(tr, tr.s - 18, tr.s).map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+      drawing.loco.removeAttribute('display');
+    } else drawing.loco.setAttribute('display', 'none');
+    const head = pointAt(tr, tr.s), mid = pointAt(tr, tr.s - tr.len / 2);
     const back = pointAt(tr, tr.s - 6), dx = head[0] - back[0], dy = head[1] - back[1], dl = Math.hypot(dx, dy) || 1;
-    const ux = dx / dl, uy = dy / dl, tipX = head[0] + ux * 7, tipY = head[1] + uy * 7;
-    h += `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(head[0] - uy * 6).toFixed(1)},${(head[1] + ux * 6).toFixed(1)} ${(head[0] + uy * 6).toFixed(1)},${(head[1] - ux * 6).toFixed(1)}" fill="#ffffff" stroke="#000" stroke-width="1.2"/>`;
-    const lbl = tr.dir > 0 ? `${tr.num} ▸ ${tr.to}` : `${tr.to} ◂ ${tr.num}`;
-    h += `<text x="${mid[0].toFixed(1)}" y="${(mid[1] - 12).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tr.color}" stroke="#0d0e0f" stroke-width="3.5" paint-order="stroke" font-family="ui-monospace,Menlo,Consolas,monospace">${lbl}</text>`;
-    h += `<polyline class="train-hit${selectedTrain === tr ? ' train-selected' : ''}" points="${ps}" fill="none" stroke="transparent" stroke-width="24" data-hit="train" data-id="${idx}"/>`;
-    h += `<rect x="${(mid[0] - 35).toFixed(1)}" y="${(mid[1] - 27).toFixed(1)}" width="70" height="22" fill="transparent" data-hit="train" data-id="${idx}" style="cursor:pointer"/>`;
+    const ux = dx / dl, uy = dy / dl;
+    const tipX = head[0] + ux * 7, tipY = head[1] + uy * 7;
+    drawing.tip.setAttribute('points',
+      tipX.toFixed(1) + ',' + tipY.toFixed(1) + ' ' +
+      (head[0] - uy * 6).toFixed(1) + ',' + (head[1] + ux * 6).toFixed(1) + ' ' +
+      (head[0] + uy * 6).toFixed(1) + ',' + (head[1] - ux * 6).toFixed(1));
+    drawing.label.setAttribute('x', mid[0].toFixed(1));
+    drawing.label.setAttribute('y', (mid[1] - 12).toFixed(1));
+    const label = tr.dir > 0 ? tr.num + ' ▸ ' + tr.to : tr.to + ' ◂ ' + tr.num;
+    if (drawing.label.textContent !== label) drawing.label.textContent = label;
+    drawing.labelHit.setAttribute('x', (mid[0] - 35).toFixed(1));
+    drawing.labelHit.setAttribute('y', (mid[1] - 27).toFixed(1));
   }
-  E_.trains.innerHTML = h;
   $('#clock').textContent = fmt(S.t, true);
   renderTrainCard();
 }
