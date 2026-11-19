@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.ns-agr-1">
+<meta name="app-version" content="2026-11-19.tt-dichte-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1231,13 +1231,21 @@ const CFG = BF === 'neustadt' ? {
     if (type === 'GC') return dir > 0 ? pick([1, 3]) : pick([2, 3]);
     return dir > 0 ? 1 : 2;                                                       // Haltepunkt: Gleis 1 Richtung Halle, Gleis 2 Richtung Röblingen
   },
+  // Takt wie auf der Strecke Halle – Sangerhausen: RB stündlich, RE alle 2 Stunden, nachts Betriebspause
+  clockLines: [
+    { type: 'RB', dir:  1, minute: 22, line: 'RB Sangerhausen – Halle',  from: 'Sangerhausen', to: 'Halle (Saale)', pause: [0, 4] },
+    { type: 'RB', dir: -1, minute: 37, line: 'RB Halle – Sangerhausen',  from: 'Sangerhausen', to: 'Halle (Saale)', pause: [0, 4] },
+    { type: 'RE', dir:  1, minute: 51, line: 'RE Kassel – Halle', every: 7200, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
+    { type: 'RE', dir: -1, minute:  6, line: 'RE Halle – Kassel', every: 7200, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
+  ],
+  shuntGap: { night: [6, 5], day: [9, 7] },    // Rangieraufträge etwas seltener
   gen(t, dir) {
     pickWeighted(t, [
-      [0.13, 'P', () => addTrain('RB', dir, t)],          // wenige Reisezüge …
-      [0.07, 'P', () => addTrain('RE', dir, t)],
-      [0.18, 'F', () => addTrain('GC', dir, t)],          // … viel Güterverkehr
+      [0.03, 'P', () => addTrain('RB', dir, t)],          // wenige Zusatz-Reisezüge (Verstärker) …
+      [0.02, 'P', () => addTrain('RE', dir, t)],
+      [0.30, 'F', () => addTrain('GC', dir, t)],          // … viel Güterverkehr auf der Hauptstrecke
       [0.20, 'F', () => addBranch(t, dir)],
-      [0.08, 'P', () => addOvertake(t, dir)],             // Güterzug wartet auf RE
+      [0.05, 'P', () => addOvertake(t, dir)],             // Güterzug wartet auf RE
       [0.08, 'F', () => { if (dir > 0 && sidingFree('AN', t) && !anBusyByShunts()) addTurnPair(t, 'AN', 'GC'); else addGbfEnd(t, dir); }],
       [0.26, 'F', () => addGbfEnd(t, dir)],               // Güterzug endet im Gbf und wird aufgelöst
     ]);
@@ -2150,7 +2158,9 @@ const anBusyByTurns = () => S.t < (S.turnBusy.AN || 0) || S.trains.some(x => x.s
 function handleShunts() {
   if (!CFG.shunting) return;
   if (S.t >= S.nextShunt) {              // neue Aufträge für bereitstehende Wagen
-    S.nextShunt = S.t + (dayPart(S.t) === 'night' ? 4 + Math.random() * 4 : 6 + Math.random() * 6) * 60;
+    const SG = CFG.shuntGap || { night: [4, 4], day: [6, 6] };
+    const sg = dayPart(S.t) === 'night' ? SG.night : SG.day;
+    S.nextShunt = S.t + (sg[0] + Math.random() * sg[1]) * 60;
     const open = S.schedule.filter(t => t.shunter && !t.done).length;
     const an = CFG.shunt && CFG.shunt.an;
     if (open < 3) addShuntTask(an && Math.random() < 0.15 && !anBusyByTurns() ? 'AN' : pick(an && anBusyByTurns() ? GBF.filter(g => g !== 12) : GBF), S.t + 60);
@@ -2239,7 +2249,7 @@ const CLOCK_LINES = [
   {type:'RB',dir:-1,minute:10,line:'RB-Takt West'}
 ];
 function ensureClockface(horizon) {
-  for (const def of CLOCK_LINES) {
+  for (const def of CFG.clockLines || CLOCK_LINES) {
     const key = def.type + ':' + def.dir;
     if (S.clockNext[key] == null) {
       let t = Math.floor(S.t / 3600) * 3600 + def.minute * 60;
@@ -2247,13 +2257,17 @@ function ensureClockface(horizon) {
       S.clockNext[key] = t;
     }
     while (S.clockNext[key] <= horizon) {
+      const hr = Math.floor(S.clockNext[key] / 3600) % 24;
+      if (def.pause && hr >= def.pause[0] && hr < def.pause[1]) { S.clockNext[key] += def.every || 3600; continue; }   // Nachtpause im Takt
       const tr = addTrain(def.type, def.dir, S.clockNext[key]);
       tr.takt = true; tr.service = def.line;
       tr.from = def.dir > 0 ? CFG.townsW[0] : CFG.townsE[0];
       tr.to = def.dir > 0 ? CFG.townsE[0] : CFG.townsW[0];
       tr.inboundDelay = Math.random() < 0.15 ? 60 * (1 + Math.floor(Math.random() * 3)) : 0;
+      if (def.from) tr.from = def.dir > 0 ? def.from : def.to;
+      if (def.to) tr.to = def.dir > 0 ? def.to : def.from;
       if (CFG.clockHook) CFG.clockHook(tr, def);
-      S.clockNext[key] += 3600;
+      S.clockNext[key] += def.every || 3600;
     }
   }
 }
