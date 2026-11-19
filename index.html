@@ -117,10 +117,11 @@
   #ticker { padding: 8px 10px; font-size: 13px; border-top: 1px solid #000; background: var(--panel2); color: #cfe8ff;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 36px; }
   #ticker .t { color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-right: 6px; }
-  #logWrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 90px; }
+  #logWrap { flex: 0 0 auto; height: min(35dvh, 300px); min-height: 120px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   #menu { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 94vw); z-index: 40; background: var(--panel);
           border-left: 1px solid #000; box-shadow: -8px 0 24px rgba(0,0,0,.6); display: flex; flex-direction: column;
           transform: translateX(105%); transition: transform .25s ease;
+          overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
           padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-right: env(safe-area-inset-right); }
   #menu.open { transform: none; }
   #menu h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
@@ -177,7 +178,7 @@
   #ticker.bad { color: #ffb3a8; }
   #log li.bad { color: #ffb3a8; }
   #log li.info { color: #cfe8ff; }
-  #settings { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-bottom: 1px solid #000; }
+  #settings { padding: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; border-bottom: 1px solid #000; flex-shrink: 0; }
   #settings .btn { font-size: 13px; min-height: 44px; padding: 0 8px; white-space: normal; line-height: 1.1; }
 
   @media (max-width: 1150px) {
@@ -360,7 +361,6 @@
     <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
     <button class="btn" id="btnHome" style="grid-column: span 2">🏠 Startmenü – Bahnhof, Schicht, neues Spiel</button>
     <button class="btn" id="btnEditor" style="grid-column: span 2">🛠️ Baumodus · Bahnhofseditor</button>
-    <button class="btn" id="btnTycoon" style="grid-column: span 2">🏗️ Tycoon-Modus · Wirtschaft &amp; Ausbau</button>
   </div>
   <h2><span>Meldungen</span></h2>
   <div id="logWrap"><ul id="log"></ul></div>
@@ -377,7 +377,6 @@
     <div class="box"><h2>Spielbereich auswählen</h2>
       <div class="modeChoices">
         <button class="modeChoice on" id="modeStellwerk" type="button"><b>🚦 Stellwerk spielen</b><span>Fahrstraßen und Signale bedienen · bestehender Simulator</span></button>
-        <button class="modeChoice" id="modeTycoon" type="button"><b>🏗️ Tycoon-Modus</b><span>Eigenes Eisenbahnunternehmen &amp; Infrastruktur verwalten · Prototyp</span></button>
         <button class="modeChoice" id="modeBuild" type="button"><b>🛠️ Bahnhof bauen</b><span>Gleisplan mit Raster und freiem Zeichnen erstellen</span></button>
       </div>
     </div>
@@ -2786,9 +2785,7 @@ $('#stResume').addEventListener('click', () => {
   syncOptions(); hideStart(); setSpeed(homeSpeed || 1);
 });
 $('#btnEditor').addEventListener('click', () => { window.location.href = './editor.html'; });
-$('#btnTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
 $('#modeStellwerk').addEventListener('click', () => { document.getElementById('modeStellwerk').classList.add('on'); document.getElementById('stCards').scrollIntoView({behavior:'smooth',block:'center'}); });
-$('#modeTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
 $('#modeBuild').addEventListener('click', () => { window.location.href = './editor.html'; });
 $('#stHelp').addEventListener('click', () => openHelp(true));
 $('#stInstall').addEventListener('click', () => $('#btnInstall').click());
