@@ -260,6 +260,18 @@ const JOBS=[
 const TYPES={rb:{name:'Regionaltriebwagen',price:65000,seats:180,upkeep:330},emu:{name:'S-Bahn-Triebwagen',price:98000,seats:320,upkeep:470},re:{name:'Regionalexpress',price:153000,seats:560,upkeep:720},ic:{name:'Fernverkehrszug',price:242000,seats:780,upkeep:1050}};
 const SERVICES={sb:{name:'S-Bahn',pattern:'Alle geeigneten Zwischenhalte',types:['emu'],demand:135,cost:730,description:'Dichter Haltabstand und hohe Kapazität. S-Bahn-Triebwagen erforderlich.'},rb:{name:'Regionalbahn',pattern:'Die meisten Zwischenhalte',types:['rb','emu','re'],demand:115,cost:650,description:'Regionale Anbindung mit vielen Halten.'},re:{name:'Regionalexpress',pattern:'Wichtige Zwischenhalte',types:['re','emu'],demand:125,cost:590,description:'Weniger Halte und schnellere Reisezeiten.'}};
 const serviceForJob=j=>j.id==='L01'?'sb':null;
+// Reiner Planungswert: Vertragserloes minus fahrplan- und fahrzeugbezogene Tageskosten.
+function estimateBidEconomics(offer,trips,count,type,service){
+ const vehicle=TYPES[type],operation=SERVICES[service];
+ if(!vehicle||!operation||![offer,trips,count].every(Number.isFinite)||trips<=0||count<=0)return null;
+ const capacity=Math.min(1,count*vehicle.seats/(trips*operation.demand));
+ const revenue=Math.round(offer*(.25+.75*capacity));
+ const operating=Math.round(trips*operation.cost+count*vehicle.upkeep);
+ return {revenue,operating,profit:revenue-operating,capacity};
+}
+
+// Ungewonnene Verkehrslose werden alle 14 Spieltage erneut ausgeschrieben.
+const nextTenderDeadline=(j,day)=>j.deadline+14*Math.max(0,Math.ceil((day-j.deadline)/14));
 const euro=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const fresh=()=>({v:2,day:1,money:540000,rep:67,owned:['leipzig','halle'],customStations:[],lines:[],nextLine:1,fleet:[{id:1,type:'emu',line:null},{id:2,type:'rb',line:null}],nextTrain:3,bids:[],awards:[],totalEarned:0,totalSpent:0,totalRiders:0,log:['Deine Eisenbahngesellschaft startet mit den Betriebsstellen Leipzig und Halle.']});
 let S=fresh(),map=null,vectorMap=null,connections=null,stationsLayer=null,networkStationsLayer=null,stopsLayer=null,railTiles=null,railGeometry=null,selected=null,action=null,lastStops=0,loadToken=0,railToken=0,lastRailQuery=0,railController=null,railVisible=false,railTimer=null;
@@ -282,7 +294,19 @@ async function fetchOverpass(options){
 function note(s){$('notice').textContent=s;clearTimeout(note.timeout);note.timeout=setTimeout(()=>$('notice').textContent='',5500);}
 function log(s){S.log.unshift('Tag '+S.day+': '+s);S.log=S.log.slice(0,60);}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){note('Speichern fehlgeschlagen.');}}
-function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet))S=x;S.customStations=S.customStations||[];S.lines=Array.isArray(S.lines)?S.lines:[];S.nextLine=Number.isInteger(S.nextLine)?S.nextLine:1;for(const st of S.customStations)dyn.set(st.id,st);}catch(e){}}
+function load(){
+ try{
+  const x=JSON.parse(localStorage.getItem(KEY)||'null');
+  // Reject damaged saves instead of loading partial state that breaks rendering.
+  if(x&&x.v===2&&Array.isArray(x.bids)&&Array.isArray(x.awards)&&Array.isArray(x.fleet)
+    &&Array.isArray(x.owned)&&Array.isArray(x.log)
+    &&Number.isFinite(x.money)&&Number.isInteger(x.day)&&x.day>=1)S=x;
+  S.customStations=Array.isArray(S.customStations)?S.customStations.filter(st=>st&&typeof st.id==='string'&&typeof st.name==='string'&&Number.isFinite(st.lat)&&Number.isFinite(st.lng)):[];
+  S.lines=Array.isArray(S.lines)?S.lines:[];
+  S.nextLine=Number.isInteger(S.nextLine)&&S.nextLine>0?S.nextLine:1;
+  for(const st of S.customStations)dyn.set(st.id,st);
+ }catch(e){note('Spielstand konnte nicht geladen werden. Ein neuer Spielstand wurde gestartet.');}
+}
 function debit(n){if(S.money<n){note('Nicht genug Geld: '+euro(n)+' benötigt.');return false;}S.money-=n;S.totalSpent+=n;return true;}
 function select(s){selected=s;$('selected').textContent='📍 '+s.name;$('build').textContent=S.owned.includes(s.id)?'✓ Schon erschlossen':'🏢 Erschließen · 28.000 €';$('build').disabled=S.owned.includes(s.id);}
 function stationPopup(s){const wrap=document.createElement('div'),title=document.createElement('strong');title.textContent=s.name;const b=document.createElement('button');b.textContent=mapLineMode?'＋ Als Linienhalt hinzufügen':'Standort auswählen';b.onclick=()=>{if(mapLineMode)addMapStop(s);else select(s);map.closePopup();};wrap.append(title,document.createElement('br'),b);return wrap;}
@@ -1059,7 +1083,6 @@ function bidDialog(id){$('acceptDialog').textContent='Angebot abgeben';
  const j=JOBS.find(x=>x.id===id);if(!j)return;
  if(S.awards.some(x=>x.id===id)){note('Du betreibst dieses Los bereits.');return;}
  if(S.bids.some(x=>x.id===id)){note('Dein Angebot wurde bereits eingereicht.');return;}
- if(S.day>j.deadline){note('Die Bewerbungsfrist ist abgelaufen.');return;}
  const body=document.createElement('div'),txt=document.createElement('p');txt.className='muted';
  txt.textContent=station(j.a).name+' ↔ '+station(j.b).name+' · mindestens '+j.min+' Fahrten pro Tag. Richtwert '+euro(j.guide)+'/Tag.';
  body.appendChild(txt);
@@ -1075,14 +1098,16 @@ function bidDialog(id){$('acceptDialog').textContent='Angebot abgeben';
  const countEl=addNumber('bidCount','Benötigte Fahrzeuganzahl',2,1,20);
  const hint=document.createElement('p');hint.className='muted';body.appendChild(hint);
  const updateHint=()=>{
-  const type=TYPES[vehicle.value],count=Number(countEl.value),trips=Number(tripsEl.value);
+  const type=TYPES[vehicle.value],count=Number(countEl.value),trips=Number(tripsEl.value),offer=Number(offerEl.value);
   const allocated=S.fleet.filter(t=>t.type===vehicle.value&&!t.line).length;
   const missing=Math.max(0,count-allocated);
   const capacity=count*type.seats,needed=trips*SERVICES[mode.value].demand;
   serviceDescription.textContent=SERVICES[mode.value].description+' Die genaue Auswahl einzelner realer Haltepunkte wird in einer späteren Version ergänzt.';
-  hint.textContent='Flottenplan: '+allocated+' verfügbare Fahrzeuge · '+missing+' nötige Neukäufe ('+euro(missing*type.price)+'). Plan-Kapazität '+capacity+' / '+needed+' Plätze. Bewerbungsgebühr 1.200 €. Zuschlag am nächsten Betriebstag. Bei Gewinn werden fehlende Fahrzeuge automatisch gekauft und dem Los zugewiesen.';
+  const forecast=estimateBidEconomics(offer,trips,count,vehicle.value,mode.value);
+  const forecastText=forecast?' Erwarteter Tagesbeitrag: '+euro(forecast.revenue)+' Erlös − '+euro(forecast.operating)+' Betriebskosten = '+euro(forecast.profit)+(forecast.profit<0?' ⚠ Unrentables Angebot.':'')+'.':' Bitte gültige Angebotswerte eingeben.';
+  hint.textContent='Flottenplan: '+allocated+' verfügbare Fahrzeuge · '+missing+' nötige Neukäufe ('+euro(missing*type.price)+'). Plan-Kapazität '+capacity+' / '+needed+' Plätze.'+forecastText+' Ohne anteilige Bahnhofskosten und einmalige Ausgaben. Bewerbungsgebühr 1.200 €. Zuschlag am nächsten Betriebstag. Bei Gewinn werden fehlende Fahrzeuge automatisch gekauft und dem Los zugewiesen.';
  };
- for(const e of [tripsEl,vehicle,countEl])e.addEventListener('change',updateHint);mode.addEventListener('change',()=>{updateVehicles();updateHint();});updateHint();
+ for(const e of [offerEl,tripsEl,vehicle,countEl])e.addEventListener('input',updateHint);mode.addEventListener('change',()=>{updateVehicles();updateHint();});updateHint();
  modal('Ausschreibung: '+j.name,body,()=>{
   const offer=Number(offerEl.value),trips=Number(tripsEl.value),count=Number(countEl.value),type=vehicle.value,service=mode.value;
   if(!Number.isInteger(offer)||offer<1000||offer>999999||!Number.isInteger(trips)||trips<j.min||trips>25||!Number.isInteger(count)||count<1||count>20||!TYPES[type]||!SERVICES[service]||!SERVICES[service].types.includes(type)){note('Bitte alle Angebotsangaben gültig ausfüllen.');return false;}
@@ -1098,7 +1123,7 @@ function bidDialog(id){$('acceptDialog').textContent='Angebot abgeben';
 function resolveBids(){
  const bids=S.bids.splice(0);
  for(const b of bids){const j=JOBS.find(x=>x.id===b.id);if(!j)continue;
-  if(b.submitted!==undefined&&b.submitted>j.deadline){log('Fristüberschreitung bei '+j.name+'.');continue;}
+  if(b.submitted!==undefined&&(!Number.isInteger(b.submitted)||b.submitted<1||b.submitted>S.day)){log('Ungültiger Angebotstag bei '+j.name+'.');continue;}
   const type=TYPES[b.type]||TYPES.rb,count=b.count||1;
   const available=S.fleet.filter(t=>t.type===b.type&&!t.line);
   const missing=Math.max(0,count-available.length),procurement=missing*type.price;
@@ -1123,12 +1148,12 @@ function nextDay(){S.day++;resolveBids();let rev=0,cost=0,riders=0;
 for(const a of S.awards){const j=JOBS.find(x=>x.id===a.id),assigned=S.fleet.filter(t=>t.line===a.id&&(!a.type||t.type===a.type)),seats=assigned.reduce((n,t)=>n+TYPES[t.type].seats,0),need=(a.trips||j.min)*(SERVICES[a.service]?.demand||115),coverage=Math.min(1,seats/need);
 const income=Math.round(a.offer*(.25+.75*coverage)),penalty=coverage<.7?Math.round(a.offer*.2):0;
 rev+=income-penalty;riders+=Math.round(coverage*j.min*180);cost+=(a.trips||j.min)*(SERVICES[a.service]?.cost||650);if(penalty){S.rep=Math.max(0,S.rep-2);log('⚠ Vertragsstrafe '+j.name+': zu wenig Kapazität.');}}
-cost+=S.owned.length*250+S.fleet.reduce((n,v)=>n+TYPES[v.type].upkeep,0);S.money+=rev-cost;S.totalEarned+=rev;S.totalSpent+=cost;S.totalRiders+=riders;log('Tagesergebnis '+euro(rev-cost)+' · '+riders+' Fahrgäste.');save();render();note('Betriebstag abgeschlossen. Ergebnis '+euro(rev-cost));}
+cost+=S.owned.length*250+S.fleet.reduce((n,v)=>n+TYPES[v.type].upkeep,0);S.money+=rev-cost;S.totalEarned+=rev;S.totalSpent+=cost;S.totalRiders+=riders;log('Tagesergebnis '+euro(rev-cost)+' · Einnahmen '+euro(rev)+' · Ausgaben '+euro(cost)+' · '+riders+' Fahrgäste.');save();render();note('Betriebstag abgeschlossen: '+euro(rev)+' Einnahmen − '+euro(cost)+' Ausgaben = '+euro(rev-cost));}
 function tab(which){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===which));document.querySelectorAll('.tab').forEach(x=>x.hidden=x.id!=='tab-'+which);}
 function textel(tag,txt){const x=document.createElement(tag);x.textContent=txt;return x;}
 function render(){ updateTutorial();renderLines(); $('money').textContent=euro(S.money);$('day').textContent=S.day;$('rep').textContent=S.rep+'/100';$('ownedCount').textContent=S.owned.length;$('awardCount').textContent=S.awards.length;$('fleetCount').textContent=S.fleet.length;
 $('goals').innerHTML=[['Drei Linien gewinnen',S.awards.length>=3],['Fünf Bahnhöfe erschließen',S.owned.length>=5],['Sechs Züge besitzen',S.fleet.length>=6],['1 Mio. € Umsatz erreichen',S.totalEarned>=1000000]].map(([s,v])=>(v?'✅ ':'▫️ ')+s).join('<br>');
-$('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [(serviceForJob(j)?'🚉 S-Bahn':'🚆 RB / RE'),j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+j.deadline]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':S.day>j.deadline?'Frist abgelaufen':'Angebot erstellen');b.disabled=won||pending||S.day>j.deadline;b.onclick=()=>bidDialog(j.id);c.appendChild(b);
+$('tenders').replaceChildren();for(const j of JOBS){const won=S.awards.some(x=>x.id===j.id),pending=S.bids.some(x=>x.id===j.id),c=document.createElement('div');c.className='tender';c.append(textel('strong',j.name),textel('div',station(j.a).name+' ↔ '+station(j.b).name));const badges=document.createElement('div');badges.className='badges';for(const txt of [(serviceForJob(j)?'🚉 S-Bahn':'🚆 RB / RE'),j.min+' Fahrten/Tag','Richtwert '+euro(j.guide),'Frist Tag '+nextTenderDeadline(j,S.day)]){const b=textel('span',txt);b.className='badge';badges.appendChild(b);}c.appendChild(badges);const b=textel('button',won?'✓ Zuschlag erhalten':pending?'⏳ Bewerbung läuft':'Angebot erstellen');b.disabled=won||pending;b.onclick=()=>bidDialog(j.id);c.appendChild(b);
 const view=textel('button','🗺️ Streckenverlauf ansehen');view.onclick=()=>showTenderOnMap(j.id);c.appendChild(view);
 $('tenders').appendChild(c);}
 $('shop').replaceChildren();for(const [type,t] of Object.entries(TYPES)){const c=document.createElement('div');c.className='tender';c.append(textel('strong',t.name),textel('div',t.seats+' Plätze · '+euro(t.upkeep)+'/Tag Unterhalt'));const b=textel('button','Kaufen · '+euro(t.price));b.onclick=()=>{if(!debit(t.price))return;S.fleet.push({id:S.nextTrain++,type,line:null});log(t.name+' gekauft.');save();render();};c.appendChild(b);$('shop').appendChild(c);}
@@ -1251,7 +1276,7 @@ $('startAction').onclick=()=>{
  if(mode==='finance')openPanel('right','finance','showFinance');
  if(mode==='offer'){
   openPanel('right','tenders','showContracts');
-  const first=JOBS.find(j=>!S.awards.some(a=>a.id===j.id)&&!S.bids.some(b=>b.id===j.id)&&S.day<=j.deadline);
+  const first=JOBS.find(j=>!S.awards.some(a=>a.id===j.id)&&!S.bids.some(b=>b.id===j.id));
   if(first)bidDialog(first.id);
   else note('Kein offenes Los verfügbar. Du kannst das Beispiel im Tutorial lesen.');
  }
