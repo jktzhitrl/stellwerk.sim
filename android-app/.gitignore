@@ -1,0 +1,15 @@
+# Generated web bundle (regenerated from the existing root HTML files)
+/www/
+
+# Native Android project is generated with Capacitor CLI in the first step.
+# Do not commit signing keys, keystores or local machine build settings.
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/node_modules/
+*.keystore
+*.jks
+*.apk
+*.aab
+*.env

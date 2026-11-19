@@ -1,0 +1,9 @@
+{
+  "appId": "de.stellwerksim.app",
+  "appName": "Stellwerk.sim",
+  "webDir": "www",
+  "backgroundColor": "#17232c",
+  "android": {
+    "allowMixedContent": false
+  }
+}
