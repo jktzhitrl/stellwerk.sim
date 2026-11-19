@@ -31,6 +31,15 @@ Die reproduzierbare OSM-Abfrage liegt in [eilenburg-openrailwaymap-overpass.ql](
 - Die statischen Gleise werden im Spiel nicht mehr bei jedem Animationsbild neu aufgebaut.
 - Die fünf Außenanschlüsse werden im Zugfahrplan mit Herkunfts- und Zielnamen statt nur E1–E5 angezeigt.
 
+
+## Echte OpenStreetMap-Rohdaten erfasst (19.11.2026)
+
+Der alternative Abfrageweg über die OpenStreetMap-Haupt-API hat funktioniert (erfolgreicher GitHub-Actions-Lauf [#44507027158](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44507027158)). Das Review-Artefakt enthält **499 Gleissegmente, 486 Gleisknoten, 45 kartierte Weichen, 53 signalbezogene Objekte und 22 Endpunkte** aus dem gewählten Kartenausschnitt. **18** der signalbezogenen Objekte tragen ein Tag für Hauptsignale; andere sind beispielsweise Vorsignale, Rangiersignale oder Schilder/Prellböcke. Vier Weichen sind als Doppelkreuzungsweichen erfasst. Die 499 Abschnitte sind im OSM-Knotengraphen zusammenhängend, aber ein zusammenhängender Gleisgraph garantiert **keine** zulässigen Zugfahrten durch Weichen und Kreuzungen.
+
+Die importierten Track-Referenzen umfassen unter anderem 6345, 6360, 6825 und 6831 sowie die Gleisbezeichnungen 1–13, 22, 39 und 40. Die in den OSM-Daten enthaltene Gleis- und Signallage muss erst gegen den [DB-InfraGO-Plan vom 05.05.2026](https://trassenfinder.de/apn/LEG) und gegen den tatsächlichen Bauzustand 2026 geprüft werden. Die OSM-Rohdaten enthalten auch Teile benachbarter Ways außerhalb des angefragten Kartenrechtecks. Zum Kartenreview dient die neue [eilenburg-review-template.html](../tools/eilenburg-review-template.html); der GitHub-Workflow erzeugt daraus eine eigenständige Offline-Prüfkarte mit echten OSM-Tags.
+
+**Der bisher spielbare Entwurf mit 145 Segmenten bleibt schematisch.** Die 499 echten OSM-Segmente sind **nicht** automatisch auf den Spielbetrieb mit zugelassenen Fahrstraßen umgestellt worden, weil die echten Verschluss- und Signalabhängigkeiten fehlen. Keine Nummern anhand von Koordinaten raten.
+
 ## Voraussetzungen für einen exakten Nachbau
 
 - Vollständige **OSM-XML-/PBF-/GeoJSON-Geometrie** aus dem OpenRailwayMap-Einzugsgebiet mit track nodes, Abzweigpunkten, railway=switch, railway=signal, ggf. railway:signal:* und railway:track_ref.
