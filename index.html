@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.citytunnel-golis-1">
+<meta name="app-version" content="2026-11-19.citytunnel-haltepunkte-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -458,11 +458,12 @@
         <li>Güterzüge warten auf <b>Gleis 5/8</b> manchmal, bis ein ICE durch ist (Überholung).</li>
       </ul></div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>7 Bahnsteiggleisen</b> (Gleis 5 Baustelle, Gleis 7 Stumpfgleis). Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
-    <div class="only-citytunnel">Du bist Fahrdienstleiter im <b>Leipziger Citytunnel</b>, genauer am <b>Nordkopf von Leipzig Hbf (tief)</b> – nur dort gibt es echte Weichen. Die Tunnelstrecke selbst (weiter nach Markt, Wilhelm-Leuschner-Platz und MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Strecke ohne Weichen, hier nur als Fahrtziel „weiter durch Citytunnel“ dargestellt.
+    <div class="only-citytunnel">Du bist Fahrdienstleiter im <b>Leipziger Citytunnel</b>, genauer am <b>Nordkopf von Leipzig Hbf (tief)</b> – nur dort gibt es echte Weichen. Die Tunnelstrecke dahinter (weiter nach Markt, Wilhelm-Leuschner-Platz und MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Strecke ohne Weichen – Züge Richtung Süden fahren dort nach Verlassen des Weichenbereichs automatisch weiter und halten von selbst an diesen drei Haltepunkten, ohne dass du etwas stellen musst.
       <ul>
         <li><b>Gleis 1</b> (unten) Richtung Süden/Citytunnel, <b>Gleis 2</b> (oben) Richtung Norden. Züge von Halle (Saale) kommen an <b>Signal A</b> auf Gleis 1, Züge aus dem Citytunnel an <b>Signal F</b> auf Gleis 2.</li>
         <li><b>Abzweig Bitterfeld</b> (S2, eingleisig, Portal Nord) zweigt an <b>Signal C</b> von Gleis 2 ab. Ausfahrt dorthin: <b>P1/P2 → „◀ nach Bitterfeld“</b>.</li>
         <li><b>Abzweig Gohlis</b> (S1, eingleisig, Portal Nordwest) zweigt an <b>Signal G</b> von Gleis 1 ab. Ausfahrt dorthin: <b>P1/P2 → „◀ nach Gohlis“</b>.</li>
+        <li><b>Markt, Wilhelm-Leuschner-Platz, MDR</b>: Ein Zug, der über N1/N2 nach „weiter durch Citytunnel ▶“ ausfährt, hält auf dem Weg dorthin automatisch 25 Sekunden an jedem dieser drei Haltepunkte (Protokoll meldet das). Du musst nichts tun – es gibt dort keine Signale. Züge aus dem Citytunnel (Einfahrt an F) erscheinen schon „durchgefahren“.</li>
         <li>Nur <b>S-Bahn und RE/RB</b> – kein Güterverkehr, kein Rangieren.</li>
       </ul>
     </div>
@@ -734,7 +735,6 @@ if (BF === 'neustadt') {
     VA: { x: 40,       y: 330, dir:  1, main: 'A' },
     VF: { x: WID - 40, y: 250, dir: -1, main: 'F' },
     VC: { x: 40,       y: 170, dir:  1, main: 'C' },
-    VG: { x: 40,       y: 410, dir:  1, main: 'G' },
   });
   Object.assign(EXITS, {
     WEST: { label: '◀ nach Altdorf',  town: 'Altdorf',  node: '0,250',      dir: -1, virt: 'XWo', box: [6, 212, 112, 28] },
@@ -1030,7 +1030,8 @@ if (BF === 'neustadt') {
   // (weiter nach Markt, Wilhelm-Leuschner-Platz, MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Tunnelstrecke
   // ohne Weichen – nur hier am Nordkopf gibt es eine echte Weichenstraße (Hauptstrecke Halle (Saale), Abzweig
   // Bitterfeld/S2). Kein Güterverkehr, kein Rangieren.
-  WID = 1660; X0 = 650; X1 = 1010;
+  const NK = 1660;   // Grenze des Weichenbereichs Nordkopf (dort bleiben Signal F/VF/XEi), WID reicht weiter für die Tunnelhalte
+  WID = 2660; X0 = 650; X1 = 1010;
   TRACK_Y = { 1: 330, 2: 250 };   // Gl 1 Richtung Süden (Citytunnel), Gl 2 Richtung Norden (Halle/Bitterfeld)
   NTRACKS = 2; MAIN_Y = [250, 330]; THROUGH = ['G1', 'G2'];
   const WEST_LEGS = {
@@ -1047,11 +1048,13 @@ if (BF === 'neustadt') {
   LEGS.eL0  = { pts: [[1130,330],[WID,330]] };
   LEGS.eU1  = { pts: [[X1,250],[1050,250]] };
   LEGS.eX1  = { pts: [[1050,250],[1130,330]] };
-  LEGS.eU1b = { pts: [[1050,250],[WID - 130,250]] };   // Bahnsteigbereich bis Signal F
-  LEGS.eU0  = { pts: [[WID - 130,250],[WID,250]] };    // Signal F bis zur virtuellen Einfahrt (Vorsignal VF)
+  LEGS.eU1b = { pts: [[1050,250],[NK - 130,250]] };   // Bahnsteigbereich bis Signal F
+  LEGS.eU0  = { pts: [[NK - 130,250],[NK,250]] };     // Signal F bis zur virtuellen Einfahrt (Vorsignal VF)
+  // Rein automatische Haltepunkte ohne Signal auf Gl 1 Richtung Süden (Markt, Wilhelm-Leuschner-Platz, MDR) –
+  // siehe CFG.tunnelStops. Züge von dort (Richtung Norden, Einfahrt an F) erscheinen schon "durchgefahren".
   const VIRTUAL = {
     XWi: [[-300,330],[0,330]], XWo: [[-300,250],[0,250]],
-    XEi: [[WID,250],[WID+300,250]], XEo: [[WID,330],[WID+300,330]],
+    XEi: [[NK,250],[NK+300,250]], XEo: [[WID,330],[WID+300,330]],
   };
   for (const k in VIRTUAL) LEGS[k] = { pts: VIRTUAL[k], virtual: true };
   // Abzweig Bitterfeld (S2, eingleisig) – flache Einmündung ins Streckengleis Richtung Norden
@@ -1064,7 +1067,7 @@ if (BF === 'neustadt') {
   LEGS.XG = { pts: [[-300,410],[0,410]], virtual: true };
   Object.assign(SIGNALS, {
     A: { x: 130,       y: 330, dir:  1, kind: 'Einfahrsignal' },           // von Halle (Saale)
-    F: { x: WID - 130, y: 250, dir: -1, kind: 'Einfahrsignal' },          // aus dem Citytunnel (Süden)
+    F: { x: NK - 130,  y: 250, dir: -1, kind: 'Einfahrsignal' },          // aus dem Citytunnel (Süden)
     C: { x: 130,       y: 170, dir:  1, kind: 'Einfahrsignal' },          // von der Strecke Bitterfeld (S2)
     G: { x: 130,       y: 410, dir:  1, kind: 'Einfahrsignal' },          // von der Strecke Gohlis (S1)
   });
@@ -1475,6 +1478,13 @@ const CFG = BF === 'neustadt' ? {
   townsW: ['Halle (Saale)', 'Bitterfeld'], townsE: ['Bayerischer Bahnhof', 'Gaschwitz', 'Plagwitz', 'Markkleeberg'],
   branch: { inDir: 1, town: 'Bitterfeld', type: 'S', exitE: 'OST', exitW: 'BITT', tracks: dir => [dir > 0 ? 1 : 2] },
   closure: false, fit: { by: 30, bh: 470 }, shunting: false,
+  // Automatische Zwischenhalte ohne Signal auf Gl 1 Richtung Süden, nachdem ein Zug den Weichenbereich verlassen
+  // hat (echte Haltepunkte des Citytunnels ohne Weichen): x-Position auf 'eL0', Name, Haltezeit in Spielsekunden.
+  tunnelStops: [
+    { x: 1850, name: 'Leipzig Markt', dwell: 25 },
+    { x: 2150, name: 'Wilhelm-Leuschner-Platz', dwell: 25 },
+    { x: 2450, name: 'MDR (Bayerischer Bahnhof)', dwell: 25 },
+  ],
   trackFor(type, dir) { return dir > 0 ? 1 : 2; },
   // Zweiter Abzweig Richtung Gohlis (Portal Nordwest) – eigene, kleine Erzeugung statt über CFG.branch,
   // das schon für Bitterfeld (Portal Nord) belegt ist.
@@ -2767,6 +2777,24 @@ function signalsAndRelease() {
   }
   S.routes = S.routes.filter(ar => !(ar.passed && ar.r.secs.every(s => ar.released.has(s))));
 }
+// Citytunnel: automatische Zwischenhalte ohne Signal auf Gl 1 Richtung Süden (Markt, Wilhelm-Leuschner-Platz, MDR).
+// Läuft unabhängig vom normalen Fahrstraßen-/Haltesystem, da es dort keinen Fahrdienstleiter-Eingriff gibt – der
+// Zug hält und fährt rein zeitgesteuert weiter, nachdem er den Weichenbereich Nordkopf schon verlassen hat.
+function tunnelAutoStops() {
+  if (!CFG.tunnelStops) return;
+  for (const tr of S.trains) {
+    if (tr.dir <= 0 || tr.done || exitFor(tr) !== 'OST') continue;
+    if (tr.twIdx == null) tr.twIdx = 0;
+    if (tr.twIdx >= CFG.tunnelStops.length) continue;
+    const seg = tr.segs.find(sg => sg.leg === 'eL0');
+    if (!seg) continue;   // noch nicht auf dem Südgleis hinter dem Weichenbereich
+    const wp = CFG.tunnelStops[tr.twIdx], at = seg.a + (wp.x - 1130);
+    if (tr.s < at - 0.3) continue;
+    tr.s = Math.min(tr.s, at); tr.v = 0;
+    if (tr.twDwellUntil == null) { tr.twDwellUntil = S.t + wp.dwell; log(`${tr.num} hält (automatisch, ohne Fahrdienstleiter) an ${wp.name}.`, 'info'); }
+    else if (S.t >= tr.twDwellUntil) { tr.twDwellUntil = null; tr.twIdx++; log(`${tr.num} fährt von ${wp.name} weiter.`, 'info'); }
+  }
+}
 function removeTrains() {
   for (const tr of S.trains) {
     if (tr.exitOff != null && tr.s - tr.len > tr.exitOff + 2) {
@@ -2852,6 +2880,7 @@ function update(dt) {
   processQueue();
   assignRoutes();
   for (const tr of S.trains) { stepTrain(tr, dt); trainEvents(tr); }
+  tunnelAutoStops();
   signalsAndRelease();
   removeTrains();
   computeOcc();
@@ -2915,17 +2944,26 @@ function decorCitytunnel(W, txt, arrow, buffer) {
   txt(8, 60, '◀ NORDEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
   txt(8, 76, 'Halle (Saale) · Bitterfeld · Gohlis', { 'font-size': 11 });
   txt(WID - 8, 60, 'SÜDEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(WID - 8, 76, 'Markt · Wilhelm-Leuschner-Platz · MDR', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(WID - 8, 76, 'Gaschwitz · Plagwitz', { 'text-anchor': 'end', 'font-size': 11 });
   txt(6, 352, '▶ von Halle (Einfahrt an A)', { fill: '#c9ced3' });
   txt(138, 141, '⇄ Strecke Bitterfeld (S2, eingleisig) · Portal Nord', { 'font-size': 11, fill: '#c9ced3' });
   txt(138, 441, '⇄ Strecke Gohlis (S1, eingleisig) · Portal Nordwest', { 'font-size': 11, fill: '#c9ced3' });
-  txt(WID - 6, 206, '◀ aus dem Citytunnel (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
-  [[75, 330, 1], [100, 330, 1], [75, 250, -1], [100, 250, -1], [WID - 75, 250, -1], [WID - 100, 250, -1], [WID - 75, 330, 1], [WID - 100, 330, 1], [72, 170, 1], [102, 170, -1], [72, 410, 1], [102, 410, -1]].forEach(a => arrow(...a));
+  txt(1090, 206, '◀ aus dem Citytunnel (Einfahrt an F)', { fill: '#c9ced3' });
+  txt(1090, 234, 'dort schon „durchgefahren“ durch Markt · Wilhelm-Leuschner-Platz · MDR', { 'font-size': 10, fill: '#7a8188' });
+  [[75, 330, 1], [100, 330, 1], [75, 250, -1], [100, 250, -1], [1600, 250, -1], [1625, 250, -1], [WID - 75, 330, 1], [WID - 100, 330, 1], [72, 170, 1], [102, 170, -1], [72, 410, 1], [102, 410, -1]].forEach(a => arrow(...a));
   const y0 = TRACK_Y[2] + 17, y1 = TRACK_Y[1] - 17;
   el('rect', { x: X0 + 30, y: y0, width: X1 - X0 - 60, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
   txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, 'BAHNSTEIG 1/2', { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
   for (let g = 1; g <= NTRACKS; g++) txt(X1 - 22, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
-  txt(WID / 2, 470, 'Der Citytunnel selbst (Markt, Wilhelm-Leuschner-Platz, MDR) ist eine reine Tunnelstrecke ohne Weichen.', { 'text-anchor': 'middle', 'font-size': 10, fill: '#7a8188' });
+  // Tunnelstrecke ohne Weichen Richtung Süden: nur automatische Haltepunkte, kein Fahrdienstleiter-Eingriff nötig
+  el('line', { x1: 1660, y1: 330, x2: 1660, y2: 300, stroke: '#44505a', 'stroke-width': 2, 'stroke-dasharray': '4 4' }, W);
+  txt(1660, 292, 'Weichenbereich Nordkopf endet hier', { 'text-anchor': 'middle', 'font-size': 9, fill: '#7a8188' });
+  if (CFG.tunnelStops) for (const wp of CFG.tunnelStops) {
+    el('rect', { x: wp.x - 24, y: 330 + 14, width: 48, height: 9, rx: 2, fill: '#3a4047', stroke: '#5a636b' }, W);
+    txt(wp.x, 372, wp.name, { 'text-anchor': 'middle', 'font-size': 10, fill: '#9aa1a8' });
+    txt(wp.x, 385, '(Haltepunkt, ohne Signal)', { 'text-anchor': 'middle', 'font-size': 9, fill: '#5a636b' });
+  }
+  txt(WID / 2, 470, 'Der Citytunnel selbst (Markt, Wilhelm-Leuschner-Platz, MDR) ist eine reine Tunnelstrecke ohne Weichen – Züge halten dort automatisch, ohne dass du etwas stellen musst.', { 'text-anchor': 'middle', 'font-size': 10, fill: '#7a8188' });
 }
 function decorTeutschenthal(W, txt, arrow, buffer) {
   el('rect', { x: -14, y: 40, width: WID + 28, height: 540, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
