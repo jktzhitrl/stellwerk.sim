@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-18.5">
+<meta name="app-version" content="2026-11-19.clock-main-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2700,16 +2700,36 @@ function startGame() {
   syncOptions(); setCancel(false);
   computeOcc(); render(); renderPanel();
 }
-let last = performance.now();
+let last = performance.now(), lastRenderError = false;
 function frame(now) {
-  const dtReal = Math.min(0.1, (now - last) / 1000); last = now;
-  if (S.speed > 0) {
-    let sim = dtReal * S.speed;
-    const n = Math.ceil(sim / 0.05);
-    for (let i = 0; i < n; i++) update(sim / n);
-  }
-  render();
+  // Schedule the next frame before any simulation/drawing code runs:
+  // an SVG/rendering exception must never permanently stop the game clock.
   requestAnimationFrame(frame);
+  if (!S) return;
+  const dtReal = Math.max(0, Math.min(0.15, (now - last) / 1000)); last = now;
+  if (S.speed > 0) {
+    try {
+      const sim = dtReal * S.speed;
+      const n = Math.max(1, Math.ceil(sim / 0.05));
+      for (let i = 0; i < n; i++) update(sim / n);
+    } catch (error) {
+      console.error('Stellwerk: Spielsimulation angehalten', error);
+      setSpeed(0);
+      toast('Simulationsfehler: ' + (error && error.message || error), true);
+    }
+  }
+  try {
+    render();
+    lastRenderError = false;
+  } catch (error) {
+    if (!lastRenderError) {
+      console.error('Stellwerk: Gleisbild konnte nicht aktualisiert werden', error);
+      toast('Gleisbildfehler – die Spieluhr läuft weiter', true);
+    }
+    lastRenderError = true;
+  }
+  // The clock stays visible even if part of the SVG drawing fails.
+  $('#clock').textContent = fmt(S.t, true);
 }
 // Bahnhof: Titel und Auswahlknöpfe
 document.body.dataset.bf = BF;
@@ -2780,12 +2800,12 @@ function showStart() {
 function hideStart() { $('#start').classList.add('hidden'); }
 $('#stGo').addEventListener('click', () => {
   if (pickBF !== BF) { try { sessionStorage.setItem('stw_autostart', '1'); } catch (e) {} chooseStation(pickBF); return; }
-  hideStart(); startGame(); played = true; setSpeed(1); fit();
+  hideStart(); startGame(); played = true; last = performance.now(); setSpeed(1); fit();
 });
 $('#stResume').addEventListener('click', () => {
   for (const k of ['autoSwitch', 'autoSignal', 'disrupt', 'useQueue', 'density']) S[k] = P[k];
   if (!S.useQueue) S.queue = [];
-  syncOptions(); hideStart(); setSpeed(homeSpeed || 1);
+  syncOptions(); hideStart(); last = performance.now(); setSpeed(homeSpeed || 1);
 });
 $('#btnEditor').addEventListener('click', () => { window.location.href = './editor.html'; });
 $('#modeStellwerk').addEventListener('click', () => { document.getElementById('modeStellwerk').classList.add('on'); document.getElementById('stCards').scrollIntoView({behavior:'smooth',block:'center'}); });
@@ -2858,7 +2878,7 @@ try {
 }
 $('#help').classList.add('hidden');
 let autoStart = false; try { autoStart = sessionStorage.getItem('stw_autostart') === '1'; sessionStorage.removeItem('stw_autostart'); } catch (e) {}
-if (autoStart && S) { hideStart(); played = true; setSpeed(1); } else showStart();
+if (autoStart && S) { hideStart(); played = true; last = performance.now(); setSpeed(1); } else showStart();
 if (narrow.matches) $('#side').classList.remove('open');
 if (S) {
   fit();
