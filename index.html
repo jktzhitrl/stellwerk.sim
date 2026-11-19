@@ -380,7 +380,7 @@
         <button class="modeChoice" id="modeBuild" type="button"><b>🛠️ Bahnhof bauen</b><span>Gleisplan mit Raster und freiem Zeichnen erstellen</span></button>
       </div>
     </div>
-    <div class="box"><h2>Stellwerksbetrieb · Bahnhof wählen</h2><div id="stCards"></div></div>
+    <div class="box"><h2>Stellwerksbetrieb · Bahnhof wählen</h2><div id="stCards"></div><div id="customStation" class="group" style="margin-top:10px"></div></div>
     <div class="cols">
       <div class="box"><h2>Schicht &amp; Verkehr</h2>
         <div class="optRow"><span>Schicht</span><span class="seg" data-opt="shift"></span></div>
@@ -2733,6 +2733,9 @@ const LEVELS = {
   profi:  { name: 'Profi', density: 'dicht', disrupt: true, autoSwitch: false, autoSignal: false, useQueue: false },
 };
 function renderStart() {
+  const custom=$('#customStation'); custom.replaceChildren();
+  let saved=null;try{saved=JSON.parse(localStorage.getItem('stw_editor_draft_v1')||'null');}catch(e){}
+  if(saved&&saved.version===1&&Array.isArray(saved.tracks)&&saved.tracks.length){const b=document.createElement('button');b.className='stCard';b.style.width='100%';b.innerHTML='<b>🛠️ Eigener Bahnhof spielen ▶</b><span class="sub"></span>';b.querySelector('.sub').textContent=(saved.name||'Mein Bahnhof')+' · '+saved.tracks.length+' Gleise · eigener Stellwerkbetrieb';b.addEventListener('click',()=>{window.location.href='./custom-play.html';});custom.appendChild(b);}
   const cards = $('#stCards'); cards.innerHTML = '';
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
