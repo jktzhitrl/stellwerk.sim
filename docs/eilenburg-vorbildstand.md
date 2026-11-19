@@ -50,3 +50,7 @@ Die importierten Track-Referenzen umfassen unter anderem 6345, 6360, 6825 und 68
 - Anschließend Regressionstests: real mögliche und unzulässige Fahrstraßen, Zugbelegung, Weichenlage, Signalisierung, Tablet-Zoom/Rendern, Verhalten ohne Netzwerk.
 
 **Konsequenz:** Der Prototyp darf nicht als „exakt“ oder „vollständig nach OpenRailwayMap“ veröffentlicht werden. Die Quellen sind als Links angegeben; Bild-/Kartenmaterial wurde nicht in das Repository kopiert.
+
+## Vorschau im öffentlichen Spiel
+
+Auf ausdrücklichen Wunsch des Nutzers ist Eilenburg als **spielbare, deutlich als schematisch gekennzeichnete Vorschau** im Startmenü freigegeben. Der Spielmodus bleibt auf dem manuell übertragenen 145-Segment-Plan und verwendet vereinfachte Weichen-/Signalregeln. Zusätzlich ist die echte 499-Segment-OSM-Gleisprüfung über `eilenburg-review.html` verfügbar. Keine reale Fahrstraße, Signalabhängigkeit oder Weichenbezeichnung wird dadurch als bestätigt dargestellt. Der öffentliche Release ist ausdrücklich **nicht** die Freigabe eines 1:1-Stellwerks.
