@@ -8,13 +8,15 @@ on:
       - 'tools/eilenburg-import.mjs'
       - 'tools/eilenburg-osm-xml-to-json.py'
       - 'tools/tests/test_eilenburg_osm_xml.py'
+      - 'tools/eilenburg-build-preview.mjs'
+      - 'tools/eilenburg-review-template.html'
       - 'tools/tests/eilenburg-import.test.mjs'
       - 'docs/eilenburg-openrailwaymap-overpass.ql'
       - '.github/workflows/eilenburg-osm-check.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   import-and-test:
@@ -67,6 +69,22 @@ jobs:
 
       - name: Convert exact OSM nodes into review dataset
         run: node tools/eilenburg-import.mjs review-data/eilenburg-overpass.json review-data/eilenburg-osm-review.json
+
+      - name: Generate standalone map for visual OSM review
+        run: node tools/eilenburg-build-preview.mjs review-data/eilenburg-osm-review.json review-data/eilenburg-osm-preview.html
+
+      - name: Save OSM review snapshot to draft branch (never publish as playable geometry)
+        shell: bash
+        run: |
+          mkdir -p data
+          cp review-data/eilenburg-osm-review.json data/eilenburg-osm-review.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/eilenburg-osm-review.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record unverified Eilenburg OSM snapshot with attribution"
+            git push origin HEAD:chatgpt/eilenburg-db-track-layout-20261119
+          fi
 
       - name: Upload review data (not automatically published as game geometry)
         if: always()
