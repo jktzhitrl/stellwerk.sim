@@ -20,6 +20,8 @@ test('keeps exact OSM node topology, including mapped turnouts',()=>{
   assert.equal(r.osmSwitches[0].degree,3);
   assert.equal(r.signals[0].ref,'A');
   assert.equal(r.report.connectedComponents.length,2);
+  assert.equal(r.report.untaggedJunctions.length,0);
+  assert.equal(r.report.unusualSwitches.length,0);
   const ids=new Set(r.tracks.flatMap(t=>[t.a.nodeId,t.b.nodeId]));
   assert.equal(ids.has('8'),false);
   assert.equal(ids.has('9'),false);
@@ -36,6 +38,7 @@ test('same coordinates with DIFFERENT OSM IDs never get joined',()=>{
   assert.equal(r.tracks[0].b.x,r.tracks[1].a.x);
   assert.equal(r.tracks[0].b.y,r.tracks[1].a.y);
   assert.notEqual(r.tracks[0].b.nodeId,r.tracks[1].a.nodeId);
+  assert.equal(r.report.coincidentDistinctNodes.length,1);
 });
 test('rejects incomplete Overpass documents and preserves missing-geometry warnings',()=>{
   assert.throws(()=>importEilenburg({}),/elements/);
