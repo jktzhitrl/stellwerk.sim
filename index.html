@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.halle-1">
+<meta name="app-version" content="2026-11-19.ns-bau-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -545,6 +545,11 @@
       <li>Abstellen bringt +5 Punkte. Zur Bereitstellungszeit wird der Zug zum Gegenzug.</li>
       <li><b>Achtung:</b> Hole einen endenden Zug erst auf Gleis 1 bzw. 6, wenn das zugehörige Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
       <li>Fährt ein endender Zug stattdessen aus, kommt der Gegenzug als Ersatz von Osten (−10 Punkte).</li>
+    </ul>
+    <h3>🚧 Dauerbaustelle Gleis 5</h3>
+    <ul>
+      <li><b>Gleis 5</b> wird dauerhaft erneuert (orange gestrichelt). Normale Züge kommen nicht hinein – Richtung Osten bleiben <b>Gleis 4 und 6</b>, das wird eng.</li>
+      <li><b>Bauzüge</b> (gelb, „Bauz …“) bringen Schotter und Schwellen. Sie fahren auf <b>Gleis 5</b> ein (A → N5 bzw. F → P5), entladen dort 10–15 Minuten und fahren dann wie ein normaler Zug weiter.</li>
     </ul>
     </div>
     <h3>Punkte</h3>
@@ -1155,22 +1160,26 @@ const TYPES = {
   ICE:{ len: 110, vmax: 55, dwell: 0,   color: '#ff7ac0', stops: false, w: 10, base: 570 },
   RG: { len: 56,  vmax: 15, dwell: 0,   color: '#d9a35c', stops: false, w: 0,  base: 1,  name: 'Rf' },   // Rangierfahrt (Köf + Wagengruppe)
   S:  { len: 60,  vmax: 42, dwell: 50,  color: '#5ad18a', stops: true,  w: 0,  base: 37400 },   // S-Bahn Mitteldeutschland
+  BZ: { len: 85,  vmax: 22, dwell: 720, color: '#ffc83d', stops: true,  w: 0,  base: 92300, name: 'Bauz' },   // Bauzug (Dauerbaustelle Neustadt)
   RBN:{ len: 45,  vmax: 35, dwell: 60,  color: '#c3a6ff', stops: true,  w: 10, base: 34500, name: 'RB' },   // Nebenbahn
 };
 // ---------- Fahrplan-Regeln je Bahnhof ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
 // Unterschiedliche Beschleunigung und Bremsung je Zuggattung (Spiel-Einheiten/s²).
-const DYNAMICS = { ICE: [5.0, 7.0], IC: [4.2, 6.0], RE: [3.5, 5.0], RB: [3.8, 5.2], RBN: [3.2, 4.5], S: [4.0, 5.4], GC: [1.8, 3.0], RG: [1.2, 2.2], LOK: [2.5, 3.5] };
+const DYNAMICS = { ICE: [5.0, 7.0], IC: [4.2, 6.0], RE: [3.5, 5.0], RB: [3.8, 5.2], RBN: [3.2, 4.5], S: [4.0, 5.4], GC: [1.8, 3.0], RG: [1.2, 2.2], BZ: [1.4, 2.4], LOK: [2.5, 3.5] };
 const trainDynamics = tr => DYNAMICS[tr.type] || DYNAMICS.RE;
 const CFG = BF === 'neustadt' ? {
   townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
-  overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [5, 6] : [1, 2] },
+  overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [6] : [1, 2] },
   closure: true, fit: { by: 38, bh: 480 }, shunting: false,
+  // Dauerbaustelle: Gleis 5 wird erneuert – nur Bauzüge dürfen hinein
+  dauerBau: { track: 5, legs: ['G5'], name: 'Dauerbaustelle Gleis 5 (Bahnsteigerneuerung)' },
   trackFor(type, dir) {
+    if (type === 'BZ') return 5;                                                  // Bauzüge in die Baustelle
     if (type === 'IC' || type === 'ICE') return dir > 0 ? 4 : 3;                 // Hauptgleise
     if (type === 'GC') return dir > 0 ? pick([4, 6]) : pick([3, 1]);
-    return dir > 0 ? pick([4, 5, 5, 6]) : pick([3, 2, 2, 1]);                    // Ost: Gleise 4–6, West: 1–3
+    return dir > 0 ? pick([4, 4, 6]) : pick([3, 2, 2, 1]);                       // Ost: Gleise 4 und 6 (Gl 5 Baustelle), West: 1–3
   },
   gen(t, dir) {
     pickWeighted(t, [
@@ -1179,6 +1188,7 @@ const CFG = BF === 'neustadt' ? {
       [0.08, 'P', () => addTrain('ICE', dir, t)],
       [0.07, 'F', () => { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
       [0.07, 'F', () => addTrain('GC', dir, t)],
+      [0.10, 'F', () => { if (t > (S.bzBusy || 0)) addBauzug(t, dir); else addTrain('GC', dir, t); }],
       [0.09, 'P', () => addTrain('IC', dir, t)],
       [0.25, 'P', () => { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }],
       [0.30, 'P', () => { if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8'); else addTrain('RB', dir, t); }],
@@ -1510,6 +1520,8 @@ function checkRoute(r) {
   if (activeFrom(r.from)) return { msg: `Ab Signal ${r.from} ist noch eine Fahrstraße eingestellt.`, queue: true };
   const locked = lockedSecs();
   if (S.bau && S.bau.active && r.to === S.bau.exit && !S.trains.some(t => t.lz && t.endSig === r.from)) return { msg: `Strecke nach ${EXITS[r.to].town} wegen Bauarbeiten gesperrt (bis ca. ${fmt(S.bau.until)}).`, queue: true };
+  if (CFG.dauerBau && r.secs.some(dauerBauLeg) && !S.trains.some(t => t.type === 'BZ' && t.endSig === r.from))
+    return { msg: `Gleis ${CFG.dauerBau.track} ist Baustelle – nur Bauzüge dürfen hinein.`, queue: false };
   for (const sec of r.secs) {
     if (S.occSecs.has(sec) && !(r.couple && sec === 'G1') && sec !== lokwCoupleSec(r)) return { msg: `${secName(sec)} ist besetzt.`, queue: true };
     if (locked.has(sec)) return { msg: `${secName(sec)} ist durch eine andere Fahrstraße verschlossen.`, queue: true };
@@ -1776,6 +1788,16 @@ function addTurnPair(spawn, sid, type) {
   S.turnBusy[sid] = B.plan.dep + 5 * 60;   // erst danach den nächsten Wendezug für dieses Abstellgleis planen
   return A;
 }
+// Bauzug: bringt Material in die Dauerbaustelle, hält 10–15 Minuten auf dem Baugleis und fährt dann weiter
+function addBauzug(t, dir) {
+  const B = addTrain('BZ', dir, t);
+  B.bauzug = true; B.dwell = (10 + Math.floor(Math.random() * 6)) * 60;
+  B.from = dir > 0 ? 'Baustofflager Altdorf' : 'Schotterwerk Neuhafen'; B.to = dir > 0 ? 'Neuhafen' : 'Altdorf';
+  B.plan.dep = Math.ceil((B.plan.arr + B.dwell) / 60) * 60;
+  S.bzBusy = B.plan.dep + 10 * 60;
+  return B;
+}
+const dauerBauLeg = id => !!(CFG.dauerBau && CFG.dauerBau.legs.includes(id));
 const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
 // ---------- Lok umsetzen ----------
 // Lokbespannter RE aus Altdorf endet auf Gleis 1 → Lok läuft über Gleis 2 um den Zug herum → fährt zurück nach Altdorf
@@ -2667,6 +2689,10 @@ function decorNeustadt(W, txt, arrow, buffer) {
     el('rect', { x: X0 + 30, y: y0, width: X1 - X0 - 60, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
     txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, `BAHNSTEIG ${a}/${b}`, { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
   });
+  // Dauerbaustelle Gleis 5: Absperrung am Bahnsteig, Baustellenschild, Lagerplatz
+  { const y = TRACK_Y[5] + 17, x0 = X0 + 30, w = X1 - X0 - 60;
+    for (let x = x0 + 4; x < x0 + w - 8; x += 18) el('rect', { x, y: y - 1, width: 9, height: 4, fill: x % 36 < 18 ? '#ffc83d' : '#e04b3a' }, W);
+    txt((X0 + X1) / 2, TRACK_Y[5] - 9, '🚧 BAUSTELLE – nur Bauzüge', { 'text-anchor': 'middle', fill: '#ffc83d', 'font-size': 11, 'font-weight': 700, 'letter-spacing': 1 }); }
   for (let g = 1; g <= NTRACKS; g++) txt(X1 - 22, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
 
   // Abstellgleis 8 (West)
@@ -2929,8 +2955,8 @@ function render() {
   const rl = routeLegs();
   for (const id in E_.legs) {
     const pend = S.pendingDel && performance.now() - S.pendingAt < 4000 && S.routes.includes(S.pendingDel) && S.pendingDel.r.legs.some(([l]) => l === id);
-    const closed = (S.closure && S.closure.active && S.closure.leg === id) || (S.bau && S.bau.active && S.bau.legs.includes(id));
-    const c = S.occLegs.has(id) ? COL.occ : closed ? '#c0703a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
+    const closed = (S.closure && S.closure.active && S.closure.leg === id) || (S.bau && S.bau.active && S.bau.legs.includes(id)) || dauerBauLeg(id);
+    const c = S.occLegs.has(id) ? COL.occ : closed && !rl.has(id) ? '#c0703a' : pend ? (Math.floor(performance.now() / 300) % 2 ? '#ffffff' : COL.route) : rl.has(id) ? COL.route : COL.track;
     if (E_.legs[id]._d !== closed) { E_.legs[id].setAttribute('stroke-dasharray', closed ? '10 6' : 'none'); E_.legs[id]._d = closed; }
     if (E_.legs[id]._c !== c) { E_.legs[id].setAttribute('stroke', c); E_.legs[id]._c = c; }
   }
@@ -3187,6 +3213,7 @@ function renderPanel() {
   for (const id in S.swFault) al += `<div>⚠ Weiche ${id} gestört bis ${fmt(S.swFault[id])}</div>`;
   for (const id in S.sigFault) al += `<div>⚠ Signal ${id} gestört bis ${fmt(S.sigFault[id])} – Ersatzsignal</div>`;
   if (S.bau) al += `<div class="b">🚧 ${S.bau.name} ${S.bau.active ? 'gesperrt bis ' + fmt(S.bau.until) + ' – Züge enden hier' : 'gesperrt ab ' + fmt(S.bau.from)}</div>`;
+  if (CFG.dauerBau) al += `<div class="b">🚧 ${CFG.dauerBau.name} – nur Bauzüge (gelb, „Bauz“)</div>`;
   if (S.closure) al += `<div class="b">🚧 ${S.closure.name} ${S.closure.active ? 'gesperrt bis ' + fmt(S.closure.until) + ' – Einfahrt an ' + S.closure.sig : 'gesperrt ab ' + fmt(S.closure.from)}</div>`;
   if (S.queue.length) al += `<div class="q">Speicher: ${S.queue.map(rName).join(' · ')}</div>`;
   for (const tr of S.schedule) {
