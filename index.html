@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.ns-gl7-1">
+<meta name="app-version" content="2026-11-19.ns-agr-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -541,7 +541,7 @@
     <h3>Abstellgleis 7 &amp; Wendezüge</h3>
     <ul>
       <li>Manche RB und Güterzüge <b>enden in Neustadt</b> (Fahrplan: „endet → Abst. 7/8“).</li>
-      <li><b>Abstellgleis 7</b> (oben rechts) für Züge aus Altdorf: Plangleis 1, nach dem Halt <b>N1 → „Abstellgl.“</b>. Zurück mit <b>L7</b> nach Gleis 1, dann <b>P1</b> nach Westen.</li>
+      <li><b>Abstellgruppe 7 · 9 · 10</b> (oben rechts) für Züge aus Altdorf: Plangleis 1, nach dem Halt <b>N1 → „Abstellgl. 7/9/10“</b> – du darfst jedes freie Gleis der Gruppe nehmen. Zurück mit <b>L7 / L9 / L10</b> nach Gleis 1, dann <b>P1</b> nach Westen.</li>
       <li><b>Abstellgleis 8</b> (unten links) für Züge aus Neuhafen: Plangleis 6, nach dem Halt <b>P6 → „Abstellgl.“</b>. Zurück mit <b>L8</b> nach Gleis 6, dann <b>N6</b> nach Osten.</li>
       <li>Abstellen bringt +5 Punkte. Zur Bereitstellungszeit wird der Zug zum Gegenzug.</li>
       <li><b>Achtung:</b> Hole einen endenden Zug erst auf Gleis 1 bzw. 6, wenn das zugehörige Abstellgleis frei ist – sonst blockieren sich beide Züge.</li>
@@ -658,7 +658,15 @@ if (BF === 'neustadt') {
   LEGS.eK6da = { pts: [[1010,110],[1040,110]] };
   LEGS.eK6db = { pts: [[1040,110],[1100,170]] };
   LEGS.AG0   = { pts: [[1040,110],[1100,110]] };
-  LEGS.AG    = { pts: [[1100,110],[1260,110]] };
+  // Abstellgruppe Ost: Fächer aus Abstellgleis 7, 9 und 10 (je ein Rangiersignal L7 / L9 / L10)
+  LEGS.AGa   = { pts: [[1100,110],[1150,110]] };
+  LEGS.AGf   = { pts: [[1100,110],[1126,84]] };
+  LEGS.AGb   = { pts: [[1126,84],[1200,84]] };
+  LEGS.AGg   = { pts: [[1126,84],[1152,58]] };
+  LEGS.AGc   = { pts: [[1152,58],[1250,58]] };
+  LEGS.AG    = { pts: [[1150,110],[1290,110]] };
+  LEGS.AG9   = { pts: [[1200,84],[1310,84]] };
+  LEGS.AG10  = { pts: [[1250,58],[1330,58]] };
   // Abstellgleis 8: Stumpfgleis westlich von Gleis 6 (Punktspiegelung von Abstellgleis 7)
   delete LEGS.wK6d;                                     // (560,410)→(620,470)→(650,470)
   LEGS.wK6db = { pts: [[560,410],[620,470]] };
@@ -686,7 +694,9 @@ if (BF === 'neustadt') {
     SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
     SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
   }
-  SIGNALS.L7 = { x: 1100, y: 110, dir: -1, kind: 'Rangiersignal (Abstellgleis)' };
+  SIGNALS.L7 = { x: 1150, y: 110, dir: -1, kind: 'Rangiersignal (Abstellgleis 7)' };
+  SIGNALS.L9 = { x: 1200, y: 84,  dir: -1, kind: 'Rangiersignal (Abstellgleis 9)' };
+  SIGNALS.L10 = { x: 1250, y: 58, dir: -1, kind: 'Rangiersignal (Abstellgleis 10)' };
   SIGNALS.L8 = { x: 560,  y: 470, dir:  1, kind: 'Rangiersignal (Abstellgleis)' };
   // Rangiersignale für das Umsetzen der Lok (nur Rangierfahrten, weißes Licht = Sh1)
   SIGNALS.RY = { x: 1130, y: 200, dir: -1, kind: 'Rangiersignal', sh: true };
@@ -706,12 +716,16 @@ if (BF === 'neustadt') {
     OST:  { label: 'nach Neuhafen ▶', town: 'Neuhafen', node: WID + ',330', dir:  1, virt: 'XEo', box: [WID - 126, 344, 120, 28] },
   });
   Object.assign(ENDS, {   // Ziele ohne Weiterfahrt (Prellbock)
-    AG:  { label: 'Abstellgl. 7 ▶', node: '1260,110', dir:  1, box: [1274, 96, 110, 28] },
+    AG:  { label: 'Abstellgl. 7 ▶', node: '1290,110', dir:  1, box: [1304, 99, 112, 22] },
+    AG9: { label: 'Abstellgl. 9 ▶', node: '1310,84',  dir:  1, box: [1324, 73, 112, 22] },
+    AG10:{ label: 'Abstellgl. 10 ▶', node: '1330,58', dir:  1, box: [1344, 47, 120, 22] },
     AG8: { label: '◀ Abstellgl. 8', node: '400,470',  dir: -1, box: [282, 456, 110, 28] },
   });
   // Abstellgleise: über welches Bahnsteiggleis / Signal erreichbar, wie wieder heraus
   Object.assign(SIDINGS, {
-    AG:  { no: 7, name: 'Abstellgleis 7', short: 'Abst. 7', track: 1, inSig: 'N1', outSig: 'L7', outTarget: 'P1', dirIn:  1 },
+    AG:  { no: 7, name: 'Abstellgleis 7', short: 'Abst. 7', track: 1, inSig: 'N1', outSig: 'L7', outTarget: 'P1', dirIn:  1, group: 'Abstellgruppe 7/9/10' },
+    AG9: { no: 9, name: 'Abstellgleis 9', short: 'Abst. 9', track: 1, inSig: 'N1', outSig: 'L9', outTarget: 'P1', dirIn:  1, group: 'Abstellgruppe 7/9/10' },
+    AG10:{ no: 10, name: 'Abstellgleis 10', short: 'Abst. 10', track: 1, inSig: 'N1', outSig: 'L10', outTarget: 'P1', dirIn:  1, group: 'Abstellgruppe 7/9/10' },
     AG8: { no: 8, name: 'Abstellgleis 8', short: 'Abst. 8', track: 6, inSig: 'P6', outSig: 'L8', outTarget: 'N6', dirIn: -1 },
   });
   Object.assign(SHUNT_TGT, {   // Ziele von Rangierfahrten
@@ -1199,13 +1213,13 @@ const CFG = BF === 'neustadt' ? {
       [0.12, 'P', () => addBranch(t, dir)],
       [0.09, 'X', () => addOvertake(t, dir)],     // X = neutral (GC + ICE)
       [0.08, 'P', () => addTrain('ICE', dir, t)],
-      [0.07, 'F', () => { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
+      [0.07, 'F', () => { const sid = dir > 0 ? groupFree(t) : 'AG8'; if (sid && Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
       [0.07, 'F', () => addTrain('GC', dir, t)],
       [0.12, 'P', () => { if (dir < 0 && t > (S.kopfBusy || 0)) addKopfWende(t); else addTrain('RB', dir, t); }],
       [0.10, 'F', () => { if (t > (S.bzBusy || 0)) addBauzug(t, dir); else addTrain('GC', dir, t); }],
       [0.09, 'P', () => addTrain('IC', dir, t)],
       [0.25, 'P', () => { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }],
-      [0.30, 'P', () => { if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8'); else addTrain('RB', dir, t); }],
+      [0.30, 'P', () => { const sid = dir > 0 ? groupFree(t) : 'AG8'; if (sid && sidingFree(sid, t) && Math.random() < 0.65) addTurnPair(t, sid); else addTrain('RB', dir, t); }],
     ]);
   },
 } : BF === 'teutschenthal' ? {
@@ -1592,6 +1606,8 @@ function secName(sec) {
     return 'Weichenbereich ' + (sec[0] === 'n' ? 'Nord' : 'Süd') + ' (' + sec + ')';
   }
   if (/^AG(39|40)$/.test(sec)) return 'Abstellgleis ' + sec.slice(2);
+  if (/^AG(9|10)$/.test(sec)) return 'Abstellgleis ' + sec.slice(2);
+  if (/^AG[afbgc]$/.test(sec)) return 'Weichen Abstellgruppe';
   if (/^AZW/.test(sec)) return 'Ausziehgleis West';
   if (/^AZO/.test(sec)) return 'Ausziehgleis Ost';
   if (/^AG8/.test(sec)) return 'Abstellgleis 8';
@@ -1822,6 +1838,10 @@ function addKopfWende(t) {
   return R;
 }
 const dauerBauLeg = id => !!(CFG.dauerBau && CFG.dauerBau.legs.includes(id));
+// freies Gleis der Abstellgruppe Ost (Neustadt), nicht während eines Lokumsetzens auf Gleis 1
+const groupFree = t => t > (S.turnBusy.RUN || 0) ? ['AG', 'AG9', 'AG10'].find(k => SIDINGS[k] && sidingFree(k, t)) || null : null;
+// Anzeige: bei einer Abstellgruppe darf jedes freie Gleis der Gruppe genommen werden
+const sidShort = sid => SIDINGS[sid].group && !S.schedule.some(x => x.siding === sid && x.parked) ? SIDINGS[sid].group.replace('Abstellgruppe', 'Abst.') : SIDINGS[sid].short;
 const sidingFree = (sid, t) => t > (S.turnBusy[sid] || 0);
 // ---------- Lok umsetzen ----------
 // Lokbespannter RE aus Altdorf endet auf Gleis 1 → Lok läuft über Gleis 2 um den Zug herum → fährt zurück nach Altdorf
@@ -1832,7 +1852,7 @@ function addRunaround(t) {
   B.fromRunaround = true; B.hasLoco = true; B.from = ST.short; B.to = A.from; B.plan.track = 1;
   B.plan.arr = null; B.plan.dep = B.plan.spawn;
   A.link = B; B.link = A;
-  S.turnBusy.AG = B.plan.dep + 5 * 60;       // Gleis 1 / Ostkopf in der Zeit nicht für weitere Wendezüge verplanen
+  S.turnBusy.AG = S.turnBusy.RUN = B.plan.dep + 5 * 60;       // Gleis 1 / Ostkopf in der Zeit nicht für weitere Wendezüge verplanen
 }
 // Lokzug nicht auf Gleis 1 → Umsetzen unmöglich: Zug fährt weiter, Gegenzug kommt als Ersatz von Osten
 function abortRunaround(A) {
@@ -2463,7 +2483,7 @@ function assignRoutes() {
           break;
         }
       }
-      if (ENDS[ar.r.to] && !(tr.turn && tr.siding === ar.r.to) && !(tr.shunter && tr.task.goal === ar.r.to)) {
+      if (ENDS[ar.r.to] && !(tr.turn && (tr.siding === ar.r.to || (SIDINGS[ar.r.to] && SIDINGS[ar.r.to].group && SIDINGS[ar.r.to].group === SIDINGS[tr.siding].group))) && !(tr.shunter && tr.task.goal === ar.r.to)) {
         if (!tr.agWarn) { tr.agWarn = true; log(`${tr.num} fährt weiter nach ${tr.to} und darf nicht abgestellt werden!`, 'bad'); toast(`${tr.num} endet nicht hier – nicht ins Abstellgleis!`, true); }
         break;
       }
@@ -2564,6 +2584,9 @@ function trainEvents(tr) {
   // Im Abstellgleis angekommen
   if (ENDS[tr.endSig] && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
     tr.parked = true; S.score += 5;
+    if (tr.turn && SIDINGS[tr.endSig] && tr.siding !== tr.endSig) {   // anderes Gleis der Abstellgruppe gewählt
+      tr.siding = tr.endSig; if (tr.link) { tr.link.siding = tr.endSig; S.turnBusy[tr.endSig] = Math.max(S.turnBusy[tr.endSig] || 0, tr.link.plan.dep + 5 * 60); }
+    }
     log(`${tr.num} im ${SIDINGS[tr.endSig].name} abgestellt (+5 Punkte).`, 'good');
     for (const ar of S.routes) if (ar.train === tr && ar.segRefs) {
       for (const sg of ar.segRefs) { const sec = LEGS[sg.leg].sec; if (sec && sg.a <= tr.s) ar.released.add(sec); }
@@ -2732,10 +2755,12 @@ function decorNeustadt(W, txt, arrow, buffer) {
   el('line', { x1: 398, y1: 464, x2: 392, y2: 464, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   el('line', { x1: 398, y1: 476, x2: 392, y2: 476, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   // Abstellgleis: Beschriftung und Prellbock
-  txt(1185, 131, 'Abstellgleis 7', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
-  el('line', { x1: 1262, y1: 100, x2: 1262, y2: 120, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
-  el('line', { x1: 1262, y1: 104, x2: 1268, y2: 104, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
-  el('line', { x1: 1262, y1: 116, x2: 1268, y2: 116, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+  txt(1230, 131, 'Abstellgruppe 7 · 9 · 10', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
+  [[1292, 110], [1312, 84], [1332, 58]].forEach(([x, y]) => {
+    el('line', { x1: x, y1: y - 9, x2: x, y2: y + 9, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
+    el('line', { x1: x, y1: y - 5, x2: x + 6, y2: y - 5, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+    el('line', { x1: x, y1: y + 5, x2: x + 6, y2: y + 5, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
+  });
 }
 function decorTeutschenthal(W, txt, arrow, buffer) {
   el('rect', { x: -14, y: 40, width: WID + 28, height: 540, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
@@ -3191,7 +3216,7 @@ function trainStatus(tr) {
   }
   if (tr.parked) return { txt: `abgestellt (${SIDINGS[tr.siding].short}, wendet ${fmt(tr.link.plan.spawn)})`, cls: 'stop' };
   if (tr.turn && (tr.served || !tr.stops) && tr.v < 0.5 && tr.endSig === SIDINGS[tr.siding].inSig && !isGo(tr.endSig))
-    return { txt: `endet – abstellen: ${tr.endSig} → ${SIDINGS[tr.siding].short}`, cls: 'act' };
+    return { txt: `endet – abstellen: ${tr.endSig} → ${sidShort(tr.siding)}`, cls: 'act' };
   if (tr.gbfStart && !tr.spawned) return S.t < tr.plan.spawn ? { txt: 'geplant', cls: '' } : { txt: `wartet: Gl ${tr.plan.track} belegt`, cls: 'warn' };
   if (!tr.spawned) {
     const actualSpawn = tr.plan.spawn + (tr.inboundDelay || 0);
@@ -3235,7 +3260,7 @@ function renderPanel() {
     h += `<tr class="${priority ? priority.level : st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
       <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">${tr.takt ? '⏱ 60-Minuten-Takt · ' : ''}${tr.service && !tr.takt ? tr.service + ' · ' : ''}von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' && !tr.stops ? ' · Durchfahrt' : ''}${tr.wende && !tr.bauTurned ? ' · endet, wendet nach ' + tr.wende.to : ''}</div></td>
-      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${SIDINGS[tr.siding].short}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : tr.cancelled ? '<span class="sub">fällt aus</span>' : tr.bauEnd ? '<span class="sub">endet (Bau)</span>' : tr.wende && !tr.bauTurned ? '<span class="sub">wendet</span> ' + fmt(tr.wende.dep) : tr.lokw && !tr.lokwDone ? '<span class="sub">Lokwechsel</span> ' + fmt(tr.plan.dep) : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
+      <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${sidShort(tr.siding)}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : tr.cancelled ? '<span class="sub">fällt aus</span>' : tr.bauEnd ? '<span class="sub">endet (Bau)</span>' : tr.wende && !tr.bauTurned ? '<span class="sub">wendet</span> ' + fmt(tr.wende.dep) : tr.lokw && !tr.lokwDone ? '<span class="sub">Lokwechsel</span> ' + fmt(tr.plan.dep) : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
   }
