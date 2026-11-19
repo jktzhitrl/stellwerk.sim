@@ -7614,22 +7614,6 @@
       }
     },
     {
-      "osmNodeId": "3452881927",
-      "x": 11.304,
-      "y": 1506.819,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:direction": "forward",
-        "railway:signal:position": "right",
-        "railway:signal:speed_limit": "DE-ESO:lf7",
-        "railway:signal:speed_limit:form": "sign",
-        "railway:signal:speed_limit:height": "normal",
-        "railway:signal:speed_limit:speed": "100"
-      }
-    },
-    {
       "osmNodeId": "3452881954",
       "x": 617.785,
       "y": 1173.079,
@@ -7644,55 +7628,6 @@
         "railway:signal:electricity:turn_direction": "right",
         "railway:signal:electricity:type": "end_of_catenary",
         "railway:signal:position": "left"
-      }
-    },
-    {
-      "osmNodeId": "3880532614",
-      "x": 2578.047,
-      "y": -116.337,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:direction": "forward",
-        "railway:signal:position": "right",
-        "railway:signal:stop": "DE-ESO:ne5",
-        "railway:signal:stop:form": "sign",
-        "railway:signal:stop:height": "normal"
-      }
-    },
-    {
-      "osmNodeId": "3880532620",
-      "x": 2773.182,
-      "y": -235.497,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:distant": "DE-ESO:db:ne2",
-        "railway:signal:distant:form": "sign",
-        "railway:signal:distant:shortened": "no",
-        "railway:signal:position": "right"
-      }
-    },
-    {
-      "osmNodeId": "3880532624",
-      "x": 2844.726,
-      "y": -281.774,
-      "ref": "A",
-      "type": "DE-ESO:hl",
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:direction": "forward",
-        "railway:signal:main": "DE-ESO:hl",
-        "railway:signal:main:form": "light",
-        "railway:signal:main:function": "block",
-        "railway:signal:main:height": "normal",
-        "railway:signal:main:states": "DE-ESO:hl1;DE-ESO:hp0",
-        "railway:signal:main:substitute_signal": "DE-ESO:dr:zs1",
-        "railway:signal:position": "right",
-        "ref": "A"
       }
     },
     {
@@ -8122,81 +8057,6 @@
       }
     },
     {
-      "osmNodeId": "3883424727",
-      "x": 532.193,
-      "y": 1209.902,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "derail",
-        "railway:derail": "wedge",
-        "railway:local_operated": "no",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "semaphore",
-        "railway:signal:minor:height": "dwarf"
-      }
-    },
-    {
-      "osmNodeId": "3883424733",
-      "x": 667.748,
-      "y": 1155.435,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "derail",
-        "railway:derail": "wedge",
-        "railway:local_operated": "no",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "semaphore",
-        "railway:signal:minor:height": "dwarf"
-      }
-    },
-    {
-      "osmNodeId": "3883424734",
-      "x": 667.389,
-      "y": 1154.798,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "derail",
-        "railway:derail": "wedge",
-        "railway:local_operated": "no",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "semaphore",
-        "railway:signal:minor:height": "dwarf"
-      }
-    },
-    {
-      "osmNodeId": "3883424735",
-      "x": 704.658,
-      "y": 1131.308,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "derail",
-        "railway:derail": "wedge",
-        "railway:local_operated": "no",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "semaphore",
-        "railway:signal:minor:height": "dwarf"
-      }
-    },
-    {
-      "osmNodeId": "3883424736",
-      "x": 702.602,
-      "y": 1128.597,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "derail",
-        "railway:derail": "wedge",
-        "railway:local_operated": "no",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "semaphore",
-        "railway:signal:minor:height": "dwarf"
-      }
-    },
-    {
       "osmNodeId": "3883424737",
       "x": 694.497,
       "y": 1124.313,
@@ -8234,39 +8094,6 @@
         "railway:signal:minor": "DE-ESO:sh1",
         "railway:signal:minor:form": "light",
         "railway:signal:position": "left"
-      }
-    },
-    {
-      "osmNodeId": "8515492297",
-      "x": 2767.009,
-      "y": -236.51,
-      "ref": "B",
-      "type": null,
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:combined": "DE-ESO:hl",
-        "railway:signal:combined:form": "light",
-        "railway:signal:combined:function": "block",
-        "railway:signal:combined:height": "normal",
-        "railway:signal:combined:states": "DE-ESO:hp0;DE-ESO:hl1;DE-ESO:hl4;DE-ESO:hl10",
-        "railway:signal:direction": "backward",
-        "railway:signal:position": "left",
-        "ref": "B"
-      }
-    },
-    {
-      "osmNodeId": "9884768860",
-      "x": 2435.773,
-      "y": -25.664,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:position": "left",
-        "railway:signal:stop": "DE-ESO:ne5",
-        "railway:signal:stop:form": "sign",
-        "railway:signal:stop:height": "normal"
       }
     },
     {
@@ -8752,14 +8579,6 @@
       "ref": null,
       "type": "double_slip",
       "degree": 4
-    },
-    {
-      "osmNodeId": "2585317874",
-      "x": 2266.465,
-      "y": 77.54,
-      "ref": "1",
-      "type": null,
-      "degree": 1
     }
   ],
   "osmEndpoints": [
@@ -8910,8 +8729,8 @@
     "ways": 81,
     "segments": 499,
     "nodes": 486,
-    "switches": 45,
-    "signals": 53,
+    "switches": 44,
+    "signals": 42,
     "connectedComponents": [
       486
     ],
@@ -8949,14 +8768,6 @@
         "ref": null,
         "type": "double_slip",
         "degree": 4
-      },
-      {
-        "osmNodeId": "2585317874",
-        "x": 2266.465,
-        "y": 77.54,
-        "ref": "1",
-        "type": null,
-        "degree": 1
       }
     ],
     "coincidentDistinctNodes": [],
