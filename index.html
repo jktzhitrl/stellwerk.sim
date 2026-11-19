@@ -2792,6 +2792,7 @@ function renderStart() {
   let saved=null;try{saved=JSON.parse(localStorage.getItem('stw_editor_draft_v1')||'null');}catch(e){}
   if(saved&&saved.version===1&&Array.isArray(saved.tracks)&&saved.tracks.length){const b=document.createElement('button');b.className='stCard';b.style.width='100%';b.innerHTML='<b>🛠️ Eigener Bahnhof spielen ▶</b><span class="sub"></span>';b.querySelector('.sub').textContent=(saved.name||'Mein Bahnhof')+' · '+saved.tracks.length+' Gleise · eigener Stellwerkbetrieb';b.addEventListener('click',()=>{window.location.href='./custom-play.html';});custom.appendChild(b);}
   const cards = $('#stCards'); cards.innerHTML = '';
+  {const e=document.createElement('button');e.className='stCard';e.innerHTML='<b>🚦 Bf Eilenburg (Plannachbau in Arbeit)</b><span class="sub">Gleisgruppen nach DB-InfraGO-Plan vom 05.05.2026. Noch nicht signal- und fahrstraßentechnisch 1:1 geprüft.</span><span class="tags"><span>4 Personengleise</span><span>Güterbahnhof</span><span>Jesewitz</span><span>Eilenburg Ost</span><span>Lüptitz</span></span>';e.addEventListener('click',()=>{window.location.href='./custom-play.html?bf=eilenburg';});cards.appendChild(e);}
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
     b.className = 'stCard' + (id === pickBF ? ' on' : '');
