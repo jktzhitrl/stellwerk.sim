@@ -27,6 +27,8 @@ In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt e
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 
+Im Startfenster wird je Bahnhof dein **Bestwert** (Punkte, Pünktlichkeit) gespeichert und als 🏆 auf der Bahnhofskarte angezeigt – gespeichert im Browser (localStorage), nicht geräteübergreifend.
+
 ## Als App installieren
 Die Seite ist eine installierbare Web-App (PWA) und läuft danach auch offline:
 - **Android / Chrome:** ☰ Menü → „📲 Als App installieren“ (oder Browsermenü ⋮ → „App installieren“).

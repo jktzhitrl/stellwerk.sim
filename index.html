@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.tt-re-durch-1">
+<meta name="app-version" content="2026-11-19.bestenliste-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -260,6 +260,7 @@
   .stCard b { font-size: 17px; display: block; margin-bottom: 3px; }
   .stCard .sub { font-size: 13px; line-height: 1.35; display: block; }
   .stCard .tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .stCard .best { margin-top: 6px; display: block; font-size: 12px; color: #e3c05a; }
   .stCard .tags span { font-size: 11px; background: #33393f; border-radius: 4px; padding: 2px 6px; }
   .stCard.on { border-color: var(--accent); background: #1b3442; box-shadow: 0 0 0 1px var(--accent) inset; }
   .modeChoices { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
@@ -617,6 +618,18 @@ const SHIFTS = { frueh: { t: 6 * 3600, name: 'Früh 06:00' }, spaet: { t: 14 * 3
 const PREF_DEF = { shift: 'frueh', density: 'normal', disrupt: true, autoSwitch: true, autoSignal: true, useQueue: true };
 const P = (() => { let p = {}; try { p = JSON.parse(localStorage.getItem('stw_prefs') || '{}') || {}; } catch (e) {} return { ...PREF_DEF, ...p }; })();
 function savePrefs() { try { localStorage.setItem('stw_prefs', JSON.stringify(P)); } catch (e) {} }
+// ---------- Bestenliste (pro Bahnhof, im Browser gespeichert) ----------
+const BEST_KEY = 'stw_best_v1';
+function readBest() { try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function recordBest() {
+  if (!S || !S.departed) return;
+  const all = readBest(), cur = all[BF];
+  if (!cur || S.score > cur.score) {
+    all[BF] = { score: S.score, ontime: S.ontime, departed: S.departed, shift: P.shift, date: Date.now() };
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(all)); } catch (e) {}
+    if (cur) toast(`🏆 Neuer Bestwert für ${ST.short}: ${S.score} Punkte!`);
+  }
+}
 
 // ---------- Gleistopologie (je Bahnhof) ----------
 let WID, X0, X1, TRACK_Y, NTRACKS, MAIN_Y, THROUGH;
@@ -2625,6 +2638,7 @@ function trainEvents(tr) {
     tr.delay = Math.max(0, Math.round((S.t - tr.plan.dep + (tr.extraDelay || 0)) / 60));
     const pts = tr.delay <= 1 ? 10 : Math.max(-10, 10 - 2 * (tr.delay - 1));
     S.score += pts; S.departed++; if (tr.delay <= 1) S.ontime++;
+    recordBest();
     resolveConnections();
     log(`${tr.num} ${tr.stops ? 'abgefahren' : 'durchgefahren'}${tr.delay ? ' mit +' + tr.delay + ' Min.' : ' pünktlich'} → ${pts >= 0 ? '+' : ''}${pts} Punkte.`, pts > 0 ? 'good' : 'bad');
     if (tr.type === 'ICE' && !tr.halted) { S.score += 5; log(`${tr.num}: Durchfahrt ohne Halt (+5 Punkte).`, 'good'); }
@@ -3510,6 +3524,7 @@ function renderStart() {
   let saved=null;try{saved=JSON.parse(localStorage.getItem('stw_editor_draft_v1')||'null');}catch(e){}
   if(saved&&saved.version===1&&Array.isArray(saved.tracks)&&saved.tracks.length){const b=document.createElement('button');b.className='stCard';b.style.width='100%';b.innerHTML='<b>🛠️ Eigener Bahnhof spielen ▶</b><span class="sub"></span>';b.querySelector('.sub').textContent=(saved.name||'Mein Bahnhof')+' · '+saved.tracks.length+' Gleise · eigener Stellwerkbetrieb';b.addEventListener('click',()=>{window.location.href='./custom-play.html';});custom.appendChild(b);}
   const cards = $('#stCards'); cards.innerHTML = '';
+  const bestAll = readBest();
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
     if (st.locked) {   // Bahnhof noch in Arbeit: sichtbar, aber nicht wählbar
@@ -3518,7 +3533,9 @@ function renderStart() {
       cards.appendChild(b); continue;
     }
     b.className = 'stCard' + (id === pickBF ? ' on' : '');
-    b.innerHTML = `<b>${id === pickBF ? '✓ ' : ''}${st.name}</b><span class="sub">${st.info}</span><span class="tags">${(st.tags || []).map(t => `<span>${t}</span>`).join('')}</span>`;
+    const bestRec = bestAll[id];
+    const bestLine = bestRec ? `<span class="best">🏆 Bestwert ${bestRec.score} Punkte · pünktlich ${bestRec.ontime}/${bestRec.departed}</span>` : '';
+    b.innerHTML = `<b>${id === pickBF ? '✓ ' : ''}${st.name}</b><span class="sub">${st.info}</span><span class="tags">${(st.tags || []).map(t => `<span>${t}</span>`).join('')}</span>${bestLine}`;
     b.addEventListener('click', () => { pickBF = id; renderStart(); });
     cards.appendChild(b);
   }
@@ -3551,6 +3568,7 @@ function renderStart() {
     : 'Deine Auswahl wird gespeichert. Alles lässt sich später über ☰ Menü → 🏠 Startmenü ändern.';
 }
 function showStart() {
+  recordBest();
   if (S && S.speed > 0) homeSpeed = S.speed;
   if (S) setSpeed(0);
   pickBF = BF; renderStart(); $('#start').classList.remove('hidden');
