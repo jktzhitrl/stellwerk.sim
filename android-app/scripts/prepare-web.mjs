@@ -14,6 +14,8 @@ const files = [
   'index.html',
   'editor.html',
   'custom-play.html',
+  'tycoon.html',
+  'tycoon-engine.js',
   'eilenburg-plan.js',
   'eilenburg-review.html',
   'data/eilenburg-osm-review.json',
@@ -43,8 +45,8 @@ if (!html.includes(registrationGuard)) {
 html = html.replace(registrationGuard, "if (false) { // Native app bundles local files; do not register a PWA service worker");
 await writeFile(indexFile, html, 'utf8');
 
-// A native build must never depend on the removed Tycoon navigation.
-if (html.includes("window.location.href = './tycoon.html'")) {
-  throw new Error('Unexpected Tycoon navigation in Android bundle.');
+// The Tycoon mode is bundled locally, so its navigation target must exist.
+if (html.includes("'./tycoon.html'") && !files.includes('tycoon.html')) {
+  throw new Error('Tycoon navigation present but tycoon.html is not bundled.');
 }
 console.log('Stellwerk.sim: ' + files.length + ' local files prepared in android-app/www');
