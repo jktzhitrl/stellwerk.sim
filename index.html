@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.ra12-1">
+<meta name="app-version" content="2026-11-19.citytunnel-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -235,8 +235,8 @@
   #help h1 { margin: 0 0 6px; font-size: 22px; }
   #help h3 { margin: 14px 0 4px; font-size: 15px; color: var(--accent); }
   #help ul { margin: 4px 0; padding-left: 20px; }
-  .only-neustadt, .only-teutschenthal, .only-burgstadt, .only-eilenburg, .only-halle { display: none; }
-  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt, body[data-bf="eilenburg"] .only-eilenburg, body[data-bf="halle"] .only-halle { display: revert; }
+  .only-neustadt, .only-teutschenthal, .only-burgstadt, .only-eilenburg, .only-halle, .only-citytunnel { display: none; }
+  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt, body[data-bf="eilenburg"] .only-eilenburg, body[data-bf="halle"] .only-halle, body[data-bf="citytunnel"] .only-citytunnel { display: revert; }
   .stationPick { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .stationPick .btn { margin: 4px 4px 0 0; }
   #help li { margin: 3px 0; }
@@ -458,6 +458,13 @@
         <li>Güterzüge warten auf <b>Gleis 5/8</b> manchmal, bis ein ICE durch ist (Überholung).</li>
       </ul></div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>7 Bahnsteiggleisen</b> (Gleis 5 Baustelle, Gleis 7 Stumpfgleis). Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <div class="only-citytunnel">Du bist Fahrdienstleiter im <b>Leipziger Citytunnel</b>, genauer am <b>Nordkopf von Leipzig Hbf (tief)</b> – nur dort gibt es echte Weichen. Die Tunnelstrecke selbst (weiter nach Markt, Wilhelm-Leuschner-Platz und MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Strecke ohne Weichen, hier nur als Fahrtziel „weiter durch Citytunnel“ dargestellt.
+      <ul>
+        <li><b>Gleis 1</b> (unten) Richtung Süden/Citytunnel, <b>Gleis 2</b> (oben) Richtung Norden. Züge von Halle (Saale) kommen an <b>Signal A</b> auf Gleis 1, Züge aus dem Citytunnel an <b>Signal F</b> auf Gleis 2.</li>
+        <li><b>Abzweig Bitterfeld</b> (S2, eingleisig) zweigt an <b>Signal C</b> von Gleis 2 ab. Ausfahrt dorthin: <b>P1/P2 → „◀ nach Bitterfeld“</b>.</li>
+        <li>Nur <b>S-Bahn und RE/RB</b> – kein Güterverkehr, kein Rangieren.</li>
+      </ul>
+    </div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. (Am Haltepunkt Teutschenthal gibt es keine Anschlüsse.) Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
     <p><b>Streckennetz:</b> Neustadt und Teutschenthal sind über eine zweigleisige freie Strecke verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert.</p>
     <h3>Richtungen</h3>
@@ -607,6 +614,9 @@ const STATIONS = {
   halle: { locked: true, name: 'Halle (Saale) Hbf', short: 'Halle', stw: 'Stw Halle (Saale) Hbf',
     info: 'Großer Knoten nach realem Vorbild (schematisch): 13 Bahnsteiggleise, 8 zweigleisige Strecken, ICE Berlin – München, S-Bahn Mitteldeutschland, Gütergleise zur Zugbildungsanlage',
     tags: ['reales Vorbild (schematisch)', '13 Bahnsteiggleise', '8 Strecken', 'ICE-Halt', 'S-Bahn & Wendezüge', 'Gütergleise ZBA', 'sehr groß'] },
+  citytunnel: { name: 'Leipzig Hbf (tief)', short: 'City-Tunnel', stw: 'Stw Leipzig Hbf (tief)',
+    info: 'Nach realem Vorbild (vereinfacht): Citytunnel-Nordkopf mit 2 Bahnsteiggleisen, Strecke Halle (Saale) und Abzweig Bitterfeld (S2); nur S-Bahn und RE/RB, kein Güterverkehr',
+    tags: ['reales Vorbild (schematisch)', '2 Bahnsteiggleise', 'S-Bahn & RE', 'Abzweig Bitterfeld', 'ohne Güterverkehr'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] && !STATIONS[b].locked ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -1013,6 +1023,63 @@ if (BF === 'neustadt') {
     MB:   { label: 'Merseburg ▶',             town: 'Merseburg',     node: WID + ',620', dir: 1, virt: 'XS620', box: [WID - 176, 634, 170, 26] },
     KS:   { label: 'Angersdorf / Kassel ▶',   town: 'Kassel',        node: WID + ',830', dir: 1, virt: 'XS830', box: [WID - 176, 844, 170, 26] },
   });
+} else if (BF === 'citytunnel') {
+  // Leipzig Hbf (tief) / Citytunnel-Nordkopf (schematisch, aus dem Gedächtnis): Der eigentliche Citytunnel
+  // (weiter nach Markt, Wilhelm-Leuschner-Platz, MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Tunnelstrecke
+  // ohne Weichen – nur hier am Nordkopf gibt es eine echte Weichenstraße (Hauptstrecke Halle (Saale), Abzweig
+  // Bitterfeld/S2). Kein Güterverkehr, kein Rangieren.
+  WID = 1660; X0 = 650; X1 = 1010;
+  TRACK_Y = { 1: 330, 2: 250 };   // Gl 1 Richtung Süden (Citytunnel), Gl 2 Richtung Norden (Halle/Bitterfeld)
+  NTRACKS = 2; MAIN_Y = [250, 330]; THROUGH = ['G1', 'G2'];
+  const WEST_LEGS = {
+    L0: [[0,330],[130,330]], L1: [[130,330],[200,330]], L2: [[200,330],[420,330]], L3: [[420,330],[480,330]], L4: [[480,330],[650,330]],
+    U0: [[0,250],[130,250]], U1a: [[130,250],[210,250]], U1b: [[210,250],[280,250]], U2: [[280,250],[340,250]], U3: [[340,250],[470,250]], U4: [[470,250],[650,250]],
+    XA: [[200,330],[280,250]], XB: [[340,250],[420,330]],   // Gleiswechsel zwischen den beiden Streckengleisen
+  };
+  for (const k in WEST_LEGS) LEGS['w' + k] = { pts: WEST_LEGS[k] };
+  for (let g = 1; g <= NTRACKS; g++) LEGS['G' + g] = { pts: [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]] };
+  // Südkopf: reine Tunnelstrecke ohne Weichenstraße (echtes Vorbild) – weiter nach Markt, Wilhelm-Leuschner-Platz, MDR.
+  // Ein einzelner Gleiswechsel kurz hinter den Bahnsteigen verhindert eine Sackgasse, falls ein Zug auf dem
+  // 'falschen' Gleis steht (z. B. Gl 2 bei einer Einfahrt von Bitterfeld über den Weichenbereich Nord).
+  LEGS.eL0a = { pts: [[X1,330],[1130,330]] };
+  LEGS.eL0  = { pts: [[1130,330],[WID,330]] };
+  LEGS.eU1  = { pts: [[X1,250],[1050,250]] };
+  LEGS.eX1  = { pts: [[1050,250],[1130,330]] };
+  LEGS.eU1b = { pts: [[1050,250],[WID - 130,250]] };   // Bahnsteigbereich bis Signal F
+  LEGS.eU0  = { pts: [[WID - 130,250],[WID,250]] };    // Signal F bis zur virtuellen Einfahrt (Vorsignal VF)
+  const VIRTUAL = {
+    XWi: [[-300,330],[0,330]], XWo: [[-300,250],[0,250]],
+    XEi: [[WID,250],[WID+300,250]], XEo: [[WID,330],[WID+300,330]],
+  };
+  for (const k in VIRTUAL) LEGS[k] = { pts: VIRTUAL[k], virtual: true };
+  // Abzweig Bitterfeld (S2, eingleisig) – flache Einmündung ins Streckengleis Richtung Norden
+  LEGS.BR0 = { pts: [[0,170],[130,170]] };
+  LEGS.BRd = { pts: [[130,170],[210,250]] };
+  LEGS.XB = { pts: [[-300,170],[0,170]], virtual: true };
+  Object.assign(SIGNALS, {
+    A: { x: 130,       y: 330, dir:  1, kind: 'Einfahrsignal' },           // von Halle (Saale)
+    F: { x: WID - 130, y: 250, dir: -1, kind: 'Einfahrsignal' },          // aus dem Citytunnel (Süden)
+    C: { x: 130,       y: 170, dir:  1, kind: 'Einfahrsignal' },          // von der Strecke Bitterfeld (S2)
+  });
+  for (let g = 1; g <= NTRACKS; g++) {
+    SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
+    SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
+  }
+  Object.assign(DISTANT, {
+    VA: { x: 40,       y: 330, dir:  1, main: 'A' },
+    VF: { x: WID - 40, y: 250, dir: -1, main: 'F' },
+    VC: { x: 40,       y: 170, dir:  1, main: 'C' },
+  });
+  Object.assign(EXITS, {
+    WEST: { label: '◀ nach Halle (Saale)',      town: 'Halle (Saale)',        node: '0,250',      dir: -1, virt: 'XWo', box: [6, 212, 150, 28] },
+    BITT: { label: '◀ nach Bitterfeld',         town: 'Bitterfeld',           node: '0,170',      dir: -1, virt: 'XB',  box: [6, 124, 140, 26] },
+    OST:  { label: 'weiter durch Citytunnel ▶', town: 'Bayerischer Bahnhof',  node: WID + ',330', dir:  1, virt: 'XEo', box: [WID - 190, 344, 184, 28] },
+  });
+  Object.assign(ENTRY, {
+    '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0', d:  1 }], sec: 'wL0', sig: 'A' },
+    '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0', d: -1 }], sec: 'eU0', sig: 'F' },
+    'C':  { segs: [{ leg: 'XB',  d:  1 }, { leg: 'BR0', d:  1 }], sec: 'BR0', sig: 'C' },
+  });
 } else {
   // Bf Teutschenthal (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden zweigleisig mit Haltepunkt,
   // Strecke 6840 eingleisig (Gleis 3), Güterbahnhof Gleis 5–10/12, Anschlussgleis, Stellwerk B1 im Osten.
@@ -1395,7 +1462,20 @@ const CFG = BF === 'neustadt' ? {
       ]);
     },
   };
-})() : {
+})() : BF === 'citytunnel' ? {
+  townsW: ['Halle (Saale)', 'Bitterfeld'], townsE: ['Bayerischer Bahnhof', 'Gaschwitz', 'Plagwitz', 'Markkleeberg'],
+  branch: { inDir: 1, town: 'Bitterfeld', type: 'S', exitE: 'OST', exitW: 'BITT', tracks: dir => [dir > 0 ? 1 : 2] },
+  closure: false, fit: { by: 30, bh: 420 }, shunting: false,
+  trackFor(type, dir) { return dir > 0 ? 1 : 2; },
+  gen(t, dir) {
+    pickWeighted(t, [
+      [0.15, 'P', () => addBranch(t, dir)],       // Abzweig Bitterfeld (S2)
+      [0.50, 'P', () => { const tr = addTrain('S', dir, t); tr.service = pick(['S 1', 'S 3', 'S 3X', 'S 4', 'S 5', 'S 5X', 'S 6']); }],
+      [0.25, 'P', () => addTrain('RB', dir, t)],
+      [0.10, 'P', () => addTrain('RE', dir, t)],
+    ]);
+  },
+} : {
   townsW: ['Altheim', 'Kreuzfeld'], townsE: ['Hafenau', 'Seehausen', 'Marienhof'],
   // Strecke Westerburg ↔ Abzweig Talburg (je zweigleisig): Gruppe Nord, Gl 1/2 Richtung West, Gl 3/4 Richtung Ost
   branch: { inDir: -1, town: 'Talburg', entry: 'T', exitE: 'TAL', exitW: 'WB', townOut: 'Westerburg', entryOut: 'B',
@@ -2341,7 +2421,7 @@ function transferTrain(tr) {
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
-  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle') return;
+  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel') return;
   for (const transfer of queue) {
     // Nur bereits eingetroffene Züge für dieses Stellwerk übernehmen.
     if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
@@ -2375,12 +2455,12 @@ function renderNetwork() {
     }).join('');
     return '<div class="blockrow"><span class="blockcap">' + caption + '</span>' + cells + '</div>';
   };
-  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle'
+  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel'
     ? '<div class="netline"><span>' + ST.name + ' · eigener Streckenast in Planung</span></div>'
     : blockLine('R1','▶ Neustadt → Teutschenthal') + blockLine('R2','◀ Teutschenthal → Neustadt');
   $('#network').innerHTML = '<span class="netactive">🚦 Streckenbetrieb · ' + ST.short + '</span> · ' +
     waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
-    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
+    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id, st]) => id !== BF && !st.locked).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
@@ -2811,6 +2891,24 @@ function decorNeustadt(W, txt, arrow, buffer) {
     el('line', { x1: x, y1: y + 5, x2: x + 6, y2: y + 5, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   });
 }
+function decorCitytunnel(W, txt, arrow, buffer) {
+  el('rect', { x: -14, y: 40, width: WID + 28, height: 380, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  txt(WID / 2, 66, 'LEIPZIG HBF (TIEF)', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
+  txt(WID / 2, 83, 'Citytunnel Nordkopf · Stellwerk', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
+  txt(8, 60, '◀ NORDEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(8, 76, 'Halle (Saale)', { 'font-size': 11 });
+  txt(WID - 8, 60, 'SÜDEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(WID - 8, 76, 'Markt · Wilhelm-Leuschner-Platz · MDR', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(6, 374, '▶ von Halle (Einfahrt an A)', { fill: '#c9ced3' });
+  txt(138, 141, '⇄ Strecke Bitterfeld (S2, eingleisig)', { 'font-size': 11, fill: '#c9ced3' });
+  txt(WID - 6, 206, '◀ aus dem Citytunnel (Einfahrt an F)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  [[75, 330, 1], [100, 330, 1], [75, 250, -1], [100, 250, -1], [WID - 75, 250, -1], [WID - 100, 250, -1], [WID - 75, 330, 1], [WID - 100, 330, 1], [72, 170, 1], [102, 170, -1]].forEach(a => arrow(...a));
+  const y0 = TRACK_Y[2] + 17, y1 = TRACK_Y[1] - 17;
+  el('rect', { x: X0 + 30, y: y0, width: X1 - X0 - 60, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
+  txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, 'BAHNSTEIG 1/2', { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
+  for (let g = 1; g <= NTRACKS; g++) txt(X1 - 22, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
+  txt(WID / 2, 400, 'Der Citytunnel selbst (Markt, Wilhelm-Leuschner-Platz, MDR) ist eine reine Tunnelstrecke ohne Weichen.', { 'text-anchor': 'middle', 'font-size': 10, fill: '#7a8188' });
+}
 function decorTeutschenthal(W, txt, arrow, buffer) {
   el('rect', { x: -14, y: 40, width: WID + 28, height: 540, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
   txt(985, 60, 'Bf TEUTSCHENTHAL', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
@@ -2934,7 +3032,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : BF === 'halle' ? 900 : 600 }, cp);
+  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : BF === 'halle' ? 900 : BF === 'citytunnel' ? 420 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -2943,7 +3041,7 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, halle: decorHalle })[BF](W, txt, arrow, buffer);
+  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, halle: decorHalle, citytunnel: decorCitytunnel })[BF](W, txt, arrow, buffer);
 
   // Gleise
   E_.legs = {};

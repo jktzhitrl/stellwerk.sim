@@ -1,4 +1,4 @@
-# Stellwerk-Simulator (Neustadt, Teutschenthal, Burgstadt Hbf, Eilenburg, Halle (Saale) Hbf)
+# Stellwerk-Simulator (Neustadt, Teutschenthal, Burgstadt Hbf, Eilenburg, Halle (Saale) Hbf, Leipzig Hbf (tief))
 
 Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnhof mit 6 Gleisen, zwei Abstellgleisen, Nebenbahn-Abzweig und zweigleisiger Strecke; ICE-Durchfahrten, Überholungen, Störungen und Fahrstraßenspeicher – in einer einzigen Datei: `index.html`.
 
@@ -22,6 +22,8 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 - **Bf Eilenburg** (vereinfacht nach OSM-Gleisdaten und DB-InfraGO-Plan): Gleise 1–4, Güterbahnhof Gl 5–9 durchgehend und 10–13 als Stumpfgleise, Strecken 6345 Halle – Torgau (zweigleisig), 6360 Leipzig (eigenes Einfahrgleis), 6831 Eilenburg Ost, 6825 Lüptitz; Abstellgleise 39/40 mit Rangiersignalen L39/L40 für Wendezüge; S 4, RE 10, RB und Güterverkehr; **Lokwechsel** E-Lok → Diesellok für Güterzüge nach Lüptitz; zeitweise **Baustelle Eilenburg – Torgau**, bei der Züge in Eilenburg enden und wenden. `index.html?bf=eilenburg`
 
 - **Halle (Saale) Hbf** (noch gesperrt – in Arbeit; schematisch nach dem realen Knoten, ohne Gleisdaten nachgebaut): 13 Bahnsteiggleise in drei Gruppen, Gütergleise 14/15, je Kopf vier zweigleisige Strecken (Norden: Delitzsch/Eilenburg, Bitterfeld/Berlin, Köthen/Magdeburg, Zugbildungsanlage; Süden: Leipzig über Schkeuditz, Flughafen/Erfurt (NBS), Merseburg, Angersdorf/Kassel); ICE-Halt, S-Bahn Mitteldeutschland und viele **Wendezüge**, die am Bahnsteig die Richtung wechseln. `index.html?bf=halle`
+
+- **Leipzig Hbf (tief)** (schematisch nach dem realen Citytunnel-Nordkopf): 2 Bahnsteiggleise, Hauptstrecke Halle (Saale) und Abzweig Bitterfeld (S2, eingleisig); der Citytunnel selbst (weiter nach Markt, Wilhelm-Leuschner-Platz, MDR/Bayerischer Bahnhof) ist eine reine Tunnelstrecke ohne Weichen und daher nur als Fahrtziel „weiter durch Citytunnel“ dargestellt. Nur S-Bahn (S1/S3/S3X/S4/S5/S5X/S6) und RE/RB, kein Güterverkehr, kein Rangieren. `index.html?bf=citytunnel`
 
 In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg und Halle gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen, Weichen-/Signalstörungen und zeitweise **Langsamfahrstellen** 🐌 (angekündigte Tempobeschränkung auf einem Streckenabschnitt, gelb gepunktet) gibt es in jedem Bahnhof.
 
