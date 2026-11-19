@@ -49,7 +49,7 @@ const isEilenburg=new URLSearchParams(location.search).get('bf')==='eilenburg';
 const doc=isEilenburg ? window.EILENBURG_PLAN : (()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null');}catch{return null}})();
 const valid=p=>p&&p.version===1&&Array.isArray(p.tracks)&&p.tracks.length>0&&p.tracks.length<=3000&&Array.isArray(p.signals)&&Array.isArray(p.platforms)&&p.tracks.every(t=>t&&t.a&&t.b&&[t.a.x,t.a.y,t.b.x,t.b.y].every(Number.isFinite));
 const el=(tag,attrs,parent)=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);parent.appendChild(n);return n};
-const key=p=>p.x+','+p.y;const nodes=new Map(),edges=[],terminals=[],switches=new Map();
+const key=p=>p.nodeId!=null?'osm:'+p.nodeId:p.x+','+p.y;const nodes=new Map(),edges=[],terminals=[],switches=new Map();
 const pairKey=(a,b)=>[a,b].sort((x,y)=>x-y).join(':');
 function feasiblePairs(nodeId) {
   const links=nodes.get(nodeId).adj;
