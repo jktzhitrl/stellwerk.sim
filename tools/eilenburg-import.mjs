@@ -79,13 +79,28 @@ export function importEilenburg(osm){
       ref:tags.ref||null,type:tags['railway:signal:main']||tags['railway:signal:shunting']||null,
       railwayTags:tags};
   });
+  // Audit inconsistencies rather than silently guessing turnout geometry.
+  const untaggedJunctions=[...adj.entries()].filter(([id,connections])=>connections.size>=3&&!switchNodes.has(id)).map(([id,connections])=>{
+    const p=nodes.get(id);return{osmNodeId:id,...project(p.lon,p.lat),degree:connections.size};
+  });
+  const unusualSwitches=switches.filter(sw=>sw.degree!==3);
+  // Identical coordinates do not establish connectivity; keep the evidence.
+  const coordinateGroups=new Map();
+  for(const [id,n] of nodes){
+    if(!adj.has(id))continue;
+    const pos=n.lat.toFixed(7)+','+n.lon.toFixed(7);
+    if(!coordinateGroups.has(pos))coordinateGroups.set(pos,[]);
+    coordinateGroups.get(pos).push(id);
+  }
+  const coincidentDistinctNodes=[...coordinateGroups].filter(([,ids])=>ids.length>1).map(([coordinates,ids])=>({coordinates,nodeIds:ids}));
   const endpoints=[...adj.entries()].filter(([,n])=>n.size===1).map(([id])=>{
     const p=nodes.get(id);return{osmNodeId:id,...project(p.lon,p.lat),label:'Ungeprüfter Gleisendpunkt'};
   });
   const report={importedAt:null,source:'OpenStreetMap / OpenRailwayMap (Overpass JSON)',licence:'ODbL 1.0',attribution:'© OpenStreetMap contributors',bbox:BOUNDS,
     ways:ways.length,segments:segments.length,nodes:adj.size,switches:switches.length,signals:signals.length,
     connectedComponents:components.sort((a,b)=>b-a),endpoints:endpoints.length,
-    warnings,reviewRequired:['Signaltyp und Fahrtrichtung prüfen','Weichennummern und tatsächliche Weichenlage prüfen',
+    untaggedJunctions,unusualSwitches,coincidentDistinctNodes,
+    warnings,reviewRequired:['Signaltyp und Fahrtrichtung prüfen','Weichennummern und tatsächliche Weichenlage prüfen','Ungetaggte Abzweige und komplexe Kreuzungen manuell gegenprüfen',
       'Bauzustand 2026 (Ostkopf) prüfen','Schnittstellen zum Streckennetz manuell festlegen',
       'Keine echten Fahrstraßen ohne Stellwerks-/Verschlussunterlagen ableiten']};
   return{version:2,name:'Eilenburg – OSM-Daten zur fachlichen Prüfung',dataStatus:'UNVERIFIED_OSM_IMPORT',
