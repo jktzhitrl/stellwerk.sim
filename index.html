@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.trains-routes-1">
+<meta name="app-version" content="2026-11-19.loco-coupling-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1843,6 +1843,7 @@ function appendRoute(tr, ar) {
     const g = added.find(sg => sg.leg === 'G1');
     const xTail = pointAt(tr.cars, tr.cars.s - tr.cars.len)[0];
     tr.coupleAt = g.a + (xTail - X0) - 1;
+    tr.vmax = Math.min(tr.vmax, 12); // vorsichtiges Heranfahren an den Wagenzug
   }   // Fahrt auf Sicht bis zum Ende der Fahrstraße
 }
 function assignRoutes() {
@@ -1887,6 +1888,11 @@ function followingLimit(tr) {
   let limit = Infinity;
   for (const other of S.trains) {
     if (other === tr || other.done || !other.segs || !other.segs.length) continue;
+    // Beim gezielten Ankuppeln darf die Lok bis unmittelbar vor ihren
+    // eigenen Wagenzug fahren. Dessen normale 12-px-Zugfolge-Sperre
+    // würde sonst den Kuppelpunkt unerreichbar machen.
+    // Andere Züge bleiben unverändert durch den Abstandsschutz gesichert.
+    if (tr.isLoco && tr.cars === other && Number.isFinite(tr.coupleAt)) continue;
     const ahead = segAt(other, other.s);
     if (!ahead || ahead.leg !== here.leg || ahead.d !== here.d) continue;
     const otherPos = ahead.d > 0 ? other.s - ahead.a : ahead.b - other.s;
@@ -1951,7 +1957,7 @@ function trainEvents(tr) {
   // Lok am Umsetzhalt → Fahrtrichtung wechseln / an den Wagen → kuppeln
   if (tr.shunter && tr.v === 0 && tr.endSig === tr.task.goal && tr.s >= tr.total - 8.5) { finishShunt(tr); return; }
   if ((tr.isLoco || tr.shunter) && SHUNT_TGT[tr.endSig] && SHUNT_TGT[tr.endSig].rev && tr.v === 0 && tr.s >= tr.total - 8.5) { reverseLoco(tr); return; }
-  if (tr.isLoco && tr.coupleAt != null && tr.v === 0 && tr.s >= tr.coupleAt - 0.5) { couple(tr); return; }
+  if (tr.isLoco && tr.cars && tr.cars.frozen && Number.isFinite(tr.coupleAt) && tr.v <= 0.1 && tr.s >= tr.coupleAt - 0.5) { couple(tr); return; }
   // Im Abstellgleis angekommen
   if (ENDS[tr.endSig] && tr.v === 0 && tr.s >= tr.total - 8.5 && !tr.parked) {
     tr.parked = true; S.score += 5;
