@@ -16,12 +16,12 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 5. Ein Finger verschieben, zwei Finger zoomen.
 
 ## Bahnhöfe
-- **Bf Neustadt** (fiktiv): 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen, Güterbahnhof Ost (Gl 9–11) über Gleis 6.
+- **Bf Neustadt** (fiktiv): 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen.
 - **Bf Teutschenthal** (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis.
 - **Burgstadt Hbf** (fiktiv, groß): 10 Bahnsteiggleise, Güterbahnhof mit 6 Gleisen, Richtungsbetrieb mit vier zweigleisigen Strecken (Altheim, Westerburg, Hafenau, Abzweig Talburg), Güter-Einfahrgleise West und Ost.
 - **Bf Eilenburg** (vereinfacht nach OSM-Gleisdaten und DB-InfraGO-Plan): Gleise 1–4, Güterbahnhof Gl 5–9 durchgehend und 10–13 als Stumpfgleise, Strecken 6345 Halle – Torgau (zweigleisig), 6360 Leipzig (eigenes Einfahrgleis), 6831 Eilenburg Ost, 6825 Lüptitz; Abstellgleise 39/40 mit Rangiersignalen L39/L40 für Wendezüge; S 4, RE 10, RB und Güterverkehr. `index.html?bf=eilenburg`
 
-In **allen Bahnhöfen** gibt es **Rangieraufträge** (Köf mit Wagen über die Ausziehgleise und Rangiersignale RO/RW) sowie **Anschlüsse und Verspätungen**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“.
+In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt und Eilenburg gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen gibt es überall.
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 

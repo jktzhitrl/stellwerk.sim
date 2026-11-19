@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.rangieren-1">
+<meta name="app-version" content="2026-11-19.rangieren-2">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -443,10 +443,8 @@
         <li>Güterzüge fahren durch die Gleise 5–9, enden im Gbf oder beginnen dort. Von Torgau erreichst du den Gbf und Gleis 4 über den Gleiswechsel und die Verbindung am Gleis 4.</li>
         <li><b>Rangieraufträge</b> (Rf, braun = Köf mit Wagen) im Gbf. Über <b>Ost</b> (nur Gleis 5–9): N… → „Rangierhalt ▶“ (Ausziehgleis an der Lüptitzer Ausfahrt), dann Rangiersignal <b>RO</b> → P… im Zielgleis. Über <b>West</b> (Gleis 5–13): P… → „◀ Rangierhalt“, dann <b>RW</b> → N… im Zielgleis. Der Fahrplan zeigt Auftrag, Frist und nächsten Schritt. +8 Punkte (verspätet +3), 10 Minuten nach der Frist wird abgebrochen (−5).</li>
       </ul></div>
-    <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.
-      <ul><li><b>Güterbahnhof Ost (Gleise 9–11)</b>: erreichbar über <b>Gleis 6 Ost</b> (N6 → N9–N11). Manche Güterzüge von Westen enden dort, andere beginnen dort und fahren über P9–P11 → P6 nach Westen.</li>
-      <li><b>Rangieraufträge</b> (Rf, braun = Köf mit Wagen): N9–N11 → „Rangierhalt ▶“ (Ausziehgleis), dann Rangiersignal <b>RO</b> → P… im Zielgleis. Der Fahrplan zeigt Auftrag, Frist und nächsten Schritt. +8 Punkte (verspätet +3), 10 Minuten nach der Frist wird abgebrochen (−5).</li></ul></div>
-    <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
+    <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>6 Bahnsteiggleisen</b>. Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
+    <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. (Am Haltepunkt Teutschenthal gibt es keine Anschlüsse.) Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
     <p><b>Streckennetz:</b> Neustadt und Teutschenthal sind über eine zweigleisige freie Strecke verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert.</p>
     <h3>Richtungen</h3>
     <ul>
@@ -570,7 +568,7 @@ const DENSITY = { ruhig: 260, normal: 170, dicht: 115 };  // mittlerer Zugabstan
 const STATIONS = {
   neustadt: { name: 'Bf Neustadt', short: 'Neustadt', stw: 'Stw Neustadt',
     info: 'Fiktiver Knotenbahnhof: 6 Bahnsteiggleise, zweigleisige Strecke, Nebenbahn, Abstellgleise, Lok umsetzen',
-    tags: ['viel Reiseverkehr', 'ICE-Durchfahrten', 'Nebenbahn', 'Lok umsetzen', 'Gbf & Rangieren'] },
+    tags: ['viel Reiseverkehr', 'ICE-Durchfahrten', 'Nebenbahn', 'Lok umsetzen'] },
   teutschenthal: { name: 'Bf Teutschenthal', short: 'Teutschenthal', stw: 'Stw Teutschenthal B1',
     info: 'Nach realem Vorbild (vereinfacht): Strecke 6343 Halle – Hann. Münden mit Haltepunkt, Strecke 6840, Güterbahnhof, Anschlussgleis',
     tags: ['viel Güterverkehr', 'Rangieraufträge', 'Anschluss Glaswerk', 'reales Vorbild'] },
@@ -697,23 +695,6 @@ if (BF === 'neustadt') {
     'F2': { segs: [{ leg: 'XEo', d: -1 }, { leg: 'eU0', d: -1 }], sec: 'eU0', sig: 'F2' },   // Gegengleis Ost
   });
   SHUNT_LIST = [['N1', 'RX'], ['RY', 'RA'], ['RB', 'KUP']];
-  // Güterbahnhof Ost (Ladegleise 9–11): angebunden über Gleis 6 Ost, Ausziehgleis mit Rangiersignal RO
-  TRACK_Y[9] = 470; TRACK_Y[10] = 525; TRACK_Y[11] = 580;
-  { const q = LEGS.eK4d.pts; delete LEGS.eK4d; LEGS.eK4da = { pts: [q[0], q[1]] }; LEGS.eK4db = { pts: [q[1], q[2]] }; }   // (1010,470)→(1050,470)→(1110,410)
-  Object.assign(LEGS, {
-    gb0: { pts: [[1050,470],[1100,470]] }, g9a: { pts: [[1100,470],[1140,470]] }, gd1: { pts: [[1100,470],[1155,525]] }, gd2: { pts: [[1155,525],[1210,580]] },
-    g10a: { pts: [[1155,525],[1195,525]] },
-    G9: { pts: [[1140,470],[1380,470]] }, G10: { pts: [[1195,525],[1370,525]] }, G11: { pts: [[1210,580],[1340,580]] },
-    g10e: { pts: [[1370,525],[1420,525]] }, ge3: { pts: [[1340,580],[1365,580],[1420,525]] }, ge2: { pts: [[1420,525],[1475,470]] }, ge9: { pts: [[1380,470],[1475,470]] },
-    AZO0: { pts: [[1475,470],[1515,470]] }, AZO: { pts: [[1515,470],[1640,470]] },
-  });
-  for (const [g, xw, xe] of [[9, 1140, 1380], [10, 1195, 1370], [11, 1210, 1340]]) {
-    SIGNALS['N' + g] = { x: xe, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal (Gbf)' };
-    SIGNALS['P' + g] = { x: xw, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal (Gbf)' };
-  }
-  SIGNALS.RO = { x: 1515, y: 470, dir: -1, kind: 'Rangiersignal', sh: true };
-  SHUNT_TGT.ROH = { label: 'Rangierhalt ▶', node: '1640,470', dir: 1, box: [1536, 486, 104, 22], rev: 'RO' };
-  for (const g of [9, 10, 11]) SHUNT_LIST.push(['N' + g, 'ROH'], ['RO', 'P' + g]);
 } else if (BF === 'burgstadt') {
   // Burgstadt Hbf (fiktiv): 10 Bahnsteiggleise, Güterbahnhof Gl 11–16. Richtungsbetrieb mit zwei zweigleisigen Strecken je Seite:
   //   Westen: Westerburg (oben, y 150/200) und Altheim (unten, y 350/450); Osten: Talburg (oben) und Hafenau (unten).
@@ -1108,8 +1089,7 @@ const CFG = BF === 'neustadt' ? {
   townsW: ['Altdorf', 'Bergheim', 'Lindenau'], townsE: ['Neuhafen', 'Seestadt', 'Ostkirchen'],
   branch: { inDir: 1, town: 'Waldheim', type: 'RBN', exitE: 'OST', exitW: 'WALD', tracks: () => [1, 2] },
   overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [5, 6] : [1, 2] },
-  closure: true, fit: { by: 38, bh: 610 }, shunting: true,
-  gbf: [9, 10, 11], gbfVia: 6, gbfTracks: () => [9, 10, 11], shunt: { O: [9, 10, 11], W: [] },
+  closure: true, fit: { by: 38, bh: 480 }, shunting: false,
   trackFor(type, dir) {
     if (type === 'IC' || type === 'ICE') return dir > 0 ? 4 : 3;                 // Hauptgleise
     if (type === 'GC') return dir > 0 ? pick([4, 6]) : pick([3, 1]);
@@ -1122,7 +1102,6 @@ const CFG = BF === 'neustadt' ? {
       [0.08, 'P', () => addTrain('ICE', dir, t)],
       [0.07, 'F', () => { const sid = dir > 0 ? 'AG' : 'AG8'; if (Math.random() < 0.3 && sidingFree(sid, t)) addTurnPair(t, sid, 'GC'); else addTrain('GC', dir, t); }],
       [0.07, 'F', () => addTrain('GC', dir, t)],
-      [0.06, 'F', () => dir > 0 ? addGbfEnd(t, dir) : addGbfStart(t, dir)],   // Güterbahnhof Ost: nur über Gleis 6 erreichbar
       [0.09, 'P', () => addTrain('IC', dir, t)],
       [0.25, 'P', () => { if (dir > 0 && sidingFree('AG', t) && Math.random() < 0.3) addRunaround(t); else addTrain('RE', dir, t); }],
       [0.30, 'P', () => { if (sidingFree(dir > 0 ? 'AG' : 'AG8', t) && Math.random() < 0.55) addTurnPair(t, dir > 0 ? 'AG' : 'AG8'); else addTrain('RB', dir, t); }],
@@ -1132,7 +1111,7 @@ const CFG = BF === 'neustadt' ? {
   townsW: ['Röblingen am See', 'Eisleben', 'Sangerhausen'], townsE: ['Halle (Saale)', 'Angersdorf'],
   branch: { inDir: -1, town: 'Strecke 6840', type: 'GC', exitE: 'B6840', exitW: 'WEST', tracks: dir => dir < 0 ? [3, 5, 6, 7, 8, 9, 10, 12] : [3, 5, 6, 7] },
   overtake: { fast: 'RE', tracks: dir => dir > 0 ? [3, 5, 6] : [3] },
-  closure: false, fit: { by: 38, bh: 548 }, shunting: true, shunt: { O: [3, 5, 6, 7, 8, 9, 10, 12], W: [3, 5, 6, 7, 8, 9, 10, 12], an: true },
+  closure: false, fit: { by: 38, bh: 548 }, shunting: true, shunt: { O: [3, 5, 6, 7, 8, 9, 10, 12], W: [3, 5, 6, 7, 8, 9, 10, 12], an: true }, noConnections: true,   // Haltepunkt: kein Umsteigeknoten
   trackFor(type, dir) {
     if (type === 'GC') return dir > 0 ? pick([1, 3]) : pick([2, 3]);
     return dir > 0 ? 1 : 2;                                                       // Haltepunkt: Gleis 1 Richtung Halle, Gleis 2 Richtung Röblingen
@@ -1599,7 +1578,7 @@ function genNext() {
   S.lastDir[dir] = t;
   CFG.gen(t, dir);
   const receiver = S.schedule.filter(x => x.stops && !x.turn && !x.runaround && !x.fromSiding && !x.fromRunaround && !x.overtake && !x.overtakes && !x.connectionIn && x.plan.spawn >= S.t + 9 * 60 && ['RE', 'RB', 'S', 'IC'].includes(x.type)).slice(-1)[0];
-  if (receiver && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.20) {
+  if (receiver && !CFG.noConnections && S.connections.filter(c => !c.resolved).length < 2 && Math.random() < 0.20) {
     const feederSpawn = receiver.plan.dep - 3 * 60 - 300;
     if (feederSpawn >= S.t + 90 && !S.schedule.some(tr => tr.dir === -receiver.dir && Math.abs(tr.plan.spawn - feederSpawn) < 480)) {
       const feeder = addTrain('RB', -receiver.dir, feederSpawn);
@@ -2085,7 +2064,7 @@ function appendRoute(tr, ar) {
   tr.waitLogged = false;
   if (EXITS[ar.r.to]) tr.exitOff = added[added.length - 1].a;
   if (tr.stops && tr.stopAt == null && !tr.served) {
-    const g = added.find(s => /^G\d+$/.test(s.leg) && !(tr.endsGbf && +s.leg.slice(1) === CFG.gbfVia));   // Neustadt: Gbf-Züge fahren über Gleis 6 durch
+    const g = added.find(s => /^G\d+$/.test(s.leg));
     if (g) { tr.stopAt = Math.min(g.a + (g.b - g.a) / 2 + tr.len / 2, g.b - 14); tr.stopTrack = +g.leg.slice(1); }   // Zugmitte = Bahnsteigmitte
   }
   if (EXITS[ar.r.to]) tr.depOff = tr.stops && tr.stopAt != null && tr.stopAt < ar.sigOff ? tr.stopAt + 1 : ar.sigOff;   // Abfahrt = Losfahren vom Bahnsteig
@@ -2344,7 +2323,7 @@ const trainDrawings = new Map(); // Zugobjekt -> dauerhaftes SVG
 // ---------- Bahnhofsgestaltung (Beschriftung, Bahnsteige, Pfeile) ----------
 function decorNeustadt(W, txt, arrow, buffer) {
   // Rahmen / Beschriftung
-  el('rect', { x: -14, y: 40, width: WID + 28, height: 604, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  el('rect', { x: -14, y: 40, width: WID + 28, height: 474, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
   txt(WID / 2, 66, 'Bf NEUSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
   txt(WID / 2, 83, 'Gleisbildstellwerk Ns · Fahrdienstleiter', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
   txt(8, 60, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
@@ -2375,11 +2354,6 @@ function decorNeustadt(W, txt, arrow, buffer) {
   el('line', { x1: 1262, y1: 100, x2: 1262, y2: 120, stroke: '#d0d4d8', 'stroke-width': 4 }, W);
   el('line', { x1: 1262, y1: 104, x2: 1268, y2: 104, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   el('line', { x1: 1262, y1: 116, x2: 1268, y2: 116, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
-  // Güterbahnhof Ost (Ladegleise 9–11) mit Ausziehgleis
-  for (const g of [9, 10, 11]) txt(1290, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'middle', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
-  txt(1120, 585, 'GÜTERBAHNHOF · über Gleis 6 Ost', { 'text-anchor': 'end', fill: '#8b9298', 'font-size': 11, 'letter-spacing': 1 });
-  txt(1605, 462, 'Ausziehgleis', { 'text-anchor': 'middle', 'font-size': 11, fill: '#9aa1a8' });
-  buffer(1648, 470, 1);
 }
 function decorTeutschenthal(W, txt, arrow, buffer) {
   el('rect', { x: -14, y: 40, width: WID + 28, height: 540, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
@@ -2485,7 +2459,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : BF === 'neustadt' ? 660 : 600 }, cp);
+  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -3113,7 +3087,7 @@ function renderStart() {
   }
   $('#shiftInfo').textContent = { frueh: 'Beginnt mit dem Berufsverkehr (viele Reisezüge bis 9 Uhr), danach Tagesverkehr.',
     spaet: 'Tagesverkehr, ab 15 Uhr Berufsverkehr, abends ruhiger, ab 22 Uhr Nachtverkehr.',
-    nacht: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' + ' und Rangieraufträge' + '. Ab 5 Uhr wird es wieder lebhafter.' }[P.shift];
+    nacht: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' + (pickBF !== 'neustadt' ? ' und Rangieraufträge' : '') + '. Ab 5 Uhr wird es wieder lebhafter.' }[P.shift];
   const resume = played && pickBF === BF;
   $('#stResume').style.display = resume ? '' : 'none';
   $('#stGo').textContent = played ? 'Neues Spiel beginnen ▶' : 'Dienst beginnen ▶';
