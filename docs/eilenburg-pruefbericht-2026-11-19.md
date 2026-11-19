@@ -34,6 +34,11 @@
 
 `53` ist die Zahl aller signalbezogenen OSM-Objekte, inklusive Signaltafeln, Geschwindigkeits-, Schutz- und Vorsignal-Tags sowie **drei Prellböcke mit Sh2-Angaben**. **Nur 18 Objekte besitzen Hauptsignal-Tags.** Haupt-, Vorsignal- und Rangierfunktion und reale Richtung sind vor Stellwerksbetrieb im Einzelnen zu verifizieren. `railway:signal:main` ist keine vollständige Fahrstraßen- oder Verschlussunterlage.
 
+
+### Zusätzliche Bedienungsprüfung
+
+Die korrigierte Prüfkarte wurde im Chromium-Browser auch mit Viewports **1280×800, 768×1024 und 412×915** geprüft. Gleise werden gezeichnet, es traten keine JS-Laufzeitfehler auf. Auf Tablet-/Handy-Breite ist die Kartenansicht nun über der Objektliste angeordnet statt in einer zu engen Seitenspalte. Die Berührungsauswahl nimmt auch Klicks bis 25 Bildschirm-Pixel neben der Weichen- oder Signalmarkierung an; die Objektkennungen erschienen in den Tests. Die Tasten **„Bahnhof zentrieren“** und **„Alle OSM-Gleise“** wechseln zwischen nutzbarer Bahnhofssicht und vollständigem (größerem) OSM-Wege-Ausschnitt. Diese Browseremulation ersetzt keinen Hardwaretest auf einem Android-Tablet.
+
 ## Ergebnis und Freigabegrenze
 
 Der Datensatz ist **technisch plausibel und reproduzierbar importiert**. Das Gleisbild eignet sich zur manuellen Vorbildprüfung, **noch nicht zur originalgetreuen Betriebs-/Fahrstraßensimulation**.
