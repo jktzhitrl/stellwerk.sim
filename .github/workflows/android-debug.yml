@@ -52,7 +52,7 @@ jobs:
           npx cap add android
           npx cap sync android
 
-      - name: Build unsigned debug APK
+      - name: Build debug APK (signed with Android's debug key)
         run: |
           chmod +x android/gradlew
           cd android
