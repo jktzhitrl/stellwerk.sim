@@ -7,6 +7,7 @@ on:
     paths:
       - 'tools/eilenburg-import.mjs'
       - 'tools/eilenburg-osm-xml-to-json.py'
+      - 'tools/tests/test_eilenburg_osm_xml.py'
       - 'tools/tests/eilenburg-import.test.mjs'
       - 'docs/eilenburg-openrailwaymap-overpass.ql'
       - '.github/workflows/eilenburg-osm-check.yml'
@@ -28,6 +29,9 @@ jobs:
 
       - name: Regression tests for OSM node identity and turnouts
         run: node --test tools/tests/eilenburg-import.test.mjs
+
+      - name: Regression tests for OSM XML API fallback
+        run: python3 -m unittest discover -s tools/tests -p 'test_eilenburg_osm_xml.py' -v
 
       - name: Retrieve Eilenburg OSM data (Overpass or primary OSM API)
         shell: bash
