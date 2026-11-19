@@ -1,0 +1,98 @@
+name: Eilenburg OSM topology data check
+
+on:
+  push:
+    branches:
+      - chatgpt/eilenburg-db-track-layout-20261119
+    paths:
+      - 'tools/eilenburg-import.mjs'
+      - 'tools/eilenburg-osm-xml-to-json.py'
+      - 'tools/tests/test_eilenburg_osm_xml.py'
+      - 'tools/eilenburg-build-preview.mjs'
+      - 'tools/eilenburg-review-template.html'
+      - 'tools/tests/eilenburg-import.test.mjs'
+      - 'docs/eilenburg-openrailwaymap-overpass.ql'
+      - '.github/workflows/eilenburg-osm-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout draft branch
+        uses: actions/checkout@v4
+
+      - name: Node.js version
+        run: node --version
+
+      - name: Regression tests for OSM node identity and turnouts
+        run: node --test tools/tests/eilenburg-import.test.mjs
+
+      - name: Regression tests for OSM XML API fallback
+        run: python3 -m unittest discover -s tools/tests -p 'test_eilenburg_osm_xml.py' -v
+
+      - name: Retrieve Eilenburg OSM data (Overpass or primary OSM API)
+        shell: bash
+        run: |
+          mkdir -p review-data
+          success=0
+          for host in 'https://overpass.private.coffee/api/interpreter' 'https://overpass-api.de/api/interpreter'; do
+            echo "Requesting OSM railway data from $host"
+            if curl --fail --show-error --silent --location \
+                --connect-timeout 12 --max-time 55 \
+                --user-agent 'Stellwerk.sim Eilenburg mapping review (Github draft)' \
+                --request POST \
+                --data-urlencode 'data@docs/eilenburg-openrailwaymap-overpass.ql' \
+                "$host" --output review-data/eilenburg-overpass.json; then
+              if node -e "const o=require('./review-data/eilenburg-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements')"; then
+                success=1
+                break
+              fi
+            fi
+            echo "Overpass did not respond with usable data; trying alternative."
+          done
+          if [ "$success" != 1 ]; then
+            echo "Using OpenStreetMap primary /api/0.6/map XML endpoint as fallback"
+            curl --fail --show-error --silent --location \
+              --connect-timeout 12 --max-time 100 \
+              --user-agent 'Stellwerk.sim Eilenburg mapping review (Github draft)' \
+              'https://api.openstreetmap.org/api/0.6/map?bbox=12.625,51.445,12.672,51.462' \
+              --output review-data/eilenburg-map.osm
+            python3 tools/eilenburg-osm-xml-to-json.py \
+              review-data/eilenburg-map.osm review-data/eilenburg-overpass.json
+            node -e "const o=require('./review-data/eilenburg-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements via OSM API')"
+          fi
+
+      - name: Convert exact OSM nodes into review dataset
+        run: node tools/eilenburg-import.mjs review-data/eilenburg-overpass.json review-data/eilenburg-osm-review.json
+
+      - name: Generate standalone map for visual OSM review
+        run: node tools/eilenburg-build-preview.mjs review-data/eilenburg-osm-review.json review-data/eilenburg-osm-preview.html
+
+      - name: Save OSM review snapshot to draft branch (never publish as playable geometry)
+        shell: bash
+        run: |
+          git fetch origin chatgpt/eilenburg-db-track-layout-20261119
+          git rebase origin/chatgpt/eilenburg-db-track-layout-20261119
+          mkdir -p data
+          cp review-data/eilenburg-osm-review.json data/eilenburg-osm-review.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/eilenburg-osm-review.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record unverified Eilenburg OSM snapshot with attribution"
+            git push origin HEAD:chatgpt/eilenburg-db-track-layout-20261119
+          fi
+
+      - name: Upload review data (not automatically published as game geometry)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eilenburg-osm-raw-and-review
+          path: review-data/
+          if-no-files-found: warn
+          retention-days: 14
