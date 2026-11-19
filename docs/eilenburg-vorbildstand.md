@@ -16,6 +16,21 @@
 - `index.html`: zusätzliche Eilenburg-Karte mit deutlicher Kennzeichnung *Plannachbau in Arbeit*.
 - Das Web-/Android-Paket kann die Daten lokal mitführen.
 
+
+## Datenabgleich und Planänderungen (Stand 19.11.2026)
+
+Die Vorlage ist ausdrücklich **zeitbezogen**: Ein öffentlicher Vergabe-/Ausschreibungstext von 2026 beschreibt für den Eilenburger Ostkopf die Erneuerung der Weichen **99, 101 und 105** sowie den vorgesehenen Rückbau der Weichen **70–73, 51, 54, 106 und 109**, außerdem DKW 48, EKW 56 und zugehörige Gleisreste. **Eine Ausschreibung beweist nicht, dass die Arbeiten bereits ausgeführt sind.** Deshalb darf die Spielgeometrie nicht stillschweigend als Bauzustand nach der Maßnahme gelten. Quelle: [EU-Vergabeplattform, Spurplananpassung Eilenburg Ostkopf 2026](https://op.europa.eu/de/web/public-procurement/procurement-details/-/procurement/47b97c2c-f5c5-4442-8f6e-2b041e31316b).
+
+Der offene, reproduzierbare Abfrageentwurf für die echten OSM-Eisenbahndaten liegt jetzt unter [eilenburg-openrailwaymap-overpass.ql](./eilenburg-openrailwaymap-overpass.ql). Er kann in [Overpass Turbo](https://overpass-turbo.eu/) ausgeführt werden. **Die Abfrage wurde hier nicht live ausgeführt**, da OpenStreetMap/Overpass-Rohdaten aus dieser Umgebung nicht zuverlässig abrufbar waren. Vor Import sind ODbL-Quellenangabe, Datenzeitpunkt, Railway-Kennzeichnungen, tatsächliche Knotenidentität, Weichen- und Signalschlüssel zu prüfen. Geografische Kreuzungen dürfen nie automatisch zu Weichen werden.
+
+### Technische Verbesserungen im Entwurfsbranch
+
+- Kürzeste Fahrwege werden nach Segmentlängen und nicht mehr nach Segmentanzahl gesucht.
+- Bei einfachen Dreiweg-Knoten wird die verbotene direkte Fahrt von einem abzweigenden Schenkel zum anderen ausgeschlossen. Diese Entscheidung beruht auf **schematischer Geometrie** und ersetzt keine verifizierte Weichenlage.
+- An **komplexen Knoten mit mehr als drei Kanten** sind die möglichen Übergänge weiterhin unbestätigt; sie müssen vor dem realitätsgetreuen Release manuell anhand der echten Weichenlage modelliert werden.
+- Die statischen Gleise werden im Spiel nicht mehr bei jedem Animationsbild neu aufgebaut.
+- Die fünf Außenanschlüsse werden im Zugfahrplan mit Herkunfts- und Zielnamen statt nur E1–E5 angezeigt.
+
 ## Voraussetzungen für einen exakten Nachbau
 
 - Vollständige **OSM-XML-/PBF-/GeoJSON-Geometrie** aus dem OpenRailwayMap-Einzugsgebiet mit track nodes, Abzweigpunkten, railway=switch, railway=signal, ggf. railway:signal:* und railway:track_ref.
