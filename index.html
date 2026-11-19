@@ -2843,16 +2843,25 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 window.addEventListener('online', () => checkForUpdate(true));
 setInterval(() => checkForUpdate(true), 5 * 60 * 1000);
 
-buildStatic();
-startGame();
-setSpeed(0);
+renderStart(); // Populate station and options before simulation startup.
+try {
+  buildStatic();
+  startGame();
+  setSpeed(0);
+} catch (error) {
+  console.error('Stellwerk startup error', error);
+  const hint = $('#stHint');
+  if (hint) hint.textContent = 'Simulationsstart fehlgeschlagen: ' + (error && error.message || error);
+}
 $('#help').classList.add('hidden');
 let autoStart = false; try { autoStart = sessionStorage.getItem('stw_autostart') === '1'; sessionStorage.removeItem('stw_autostart'); } catch (e) {}
-if (autoStart) { hideStart(); played = true; setSpeed(1); } else showStart();
+if (autoStart && S) { hideStart(); played = true; setSpeed(1); } else showStart();
 if (narrow.matches) $('#side').classList.remove('open');
-fit();
-setInterval(renderPanel, 500);
-requestAnimationFrame(frame);
+if (S) {
+  fit();
+  setInterval(renderPanel, 500);
+  requestAnimationFrame(frame);
+}
 window.game = { get S() { return S; }, onTap, update, ROUTES };   // für Tests / Konsole
 </script>
 </body>
