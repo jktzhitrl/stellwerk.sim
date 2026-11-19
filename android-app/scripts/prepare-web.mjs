@@ -14,6 +14,7 @@ const files = [
   'index.html',
   'editor.html',
   'custom-play.html',
+  'eilenburg-plan.js',
   'manifest.webmanifest',
   'icons/icon-192.png',
   'icons/icon-512.png',
