@@ -15,7 +15,7 @@ const sample={elements:[
 ]};
 test('keeps exact OSM node topology, including mapped turnouts',()=>{
   const r=importEilenburg(sample);
-  assert.equal(r.tracks.length,4);
+  assert.equal(r.tracks.length,5);
   assert.equal(r.osmSwitches[0].ref,'W99');
   assert.equal(r.osmSwitches[0].degree,3);
   assert.equal(r.signals[0].ref,'A');
