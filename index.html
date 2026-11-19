@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.tt-dichte-1">
+<meta name="app-version" content="2026-11-19.tt-re-durch-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1235,8 +1235,8 @@ const CFG = BF === 'neustadt' ? {
   clockLines: [
     { type: 'RB', dir:  1, minute: 22, line: 'RB Sangerhausen – Halle',  from: 'Sangerhausen', to: 'Halle (Saale)', pause: [0, 4] },
     { type: 'RB', dir: -1, minute: 37, line: 'RB Halle – Sangerhausen',  from: 'Sangerhausen', to: 'Halle (Saale)', pause: [0, 4] },
-    { type: 'RE', dir:  1, minute: 51, line: 'RE Kassel – Halle', every: 7200, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
-    { type: 'RE', dir: -1, minute:  6, line: 'RE Halle – Kassel', every: 7200, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
+    { type: 'RE', dir:  1, minute: 51, line: 'RE Kassel – Halle', through: true, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
+    { type: 'RE', dir: -1, minute:  6, line: 'RE Halle – Kassel', through: true, from: 'Kassel-Wilhelmshöhe', to: 'Halle (Saale)', pause: [23, 24] },
   ],
   shuntGap: { night: [6, 5], day: [9, 7] },    // Rangieraufträge etwas seltener
   gen(t, dir) {
@@ -2266,6 +2266,10 @@ function ensureClockface(horizon) {
       tr.inboundDelay = Math.random() < 0.15 ? 60 * (1 + Math.floor(Math.random() * 3)) : 0;
       if (def.from) tr.from = def.dir > 0 ? def.from : def.to;
       if (def.to) tr.to = def.dir > 0 ? def.to : def.from;
+      if (def.through) {   // Durchfahrt ohne Halt (wie ICE): kein Halt, keine Ankunftszeit, frueher Durchfahrtzeitpunkt
+        tr.stops = false; tr.dwell = 0; tr.plan.arr = null;
+        tr.plan.dep = Math.ceil((tr.plan.spawn + 300) / 60) * 60;
+      }
       if (CFG.clockHook) CFG.clockHook(tr, def);
       S.clockNext[key] += def.every || 3600;
     }
@@ -3273,7 +3277,7 @@ function renderPanel() {
     const gl = tr.stopTrack && tr.stopTrack !== tr.plan.track ? `<span class="late">${tr.stopTrack}</span><div class="sub">plan ${tr.plan.track}</div>` : tr.plan.track;
     h += `<tr class="${priority ? priority.level : st.cls}">
       <td><span class="znum" style="color:${tr.color}">${tr.dir > 0 ? '▸' : '◂'} ${tr.num}</span>${priority ? `<div><span class="priority-tag ${priority.level === 'urgent' ? 'urgent' : ''}" title="${priority.hint}">${priority.label}</span></div>` : ''}</td>
-      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">${tr.takt ? '⏱ 60-Minuten-Takt · ' : ''}${tr.service && !tr.takt ? tr.service + ' · ' : ''}von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${tr.type === 'ICE' && !tr.stops ? ' · Durchfahrt' : ''}${tr.wende && !tr.bauTurned ? ' · endet, wendet nach ' + tr.wende.to : ''}</div></td>
+      <td><b>${tr.shunter ? 'Rangieren: ' + tr.from + ' → ' + tr.to : (tr.dir > 0 ? '▶ nach ' : '◀ nach ') + tr.to}</b><div class="sub">${tr.takt ? '⏱ 60-Minuten-Takt · ' : ''}${tr.service && !tr.takt ? tr.service + ' · ' : ''}von ${tr.from} · ${entryText(tr)}${tr.branch ? ' · ' + (CFG.branchLabel || 'Nebenbahn') : ''}${tr.overtake ? ' · Überholung: ' + tr.link.num + ' vorlassen' : ''}${tr.overtakes ? ' · Vorrang vor ' + tr.overtakes.num : ''}${(tr.type === 'ICE' || tr.type === 'RE') && !tr.stops ? ' · Durchfahrt' : ''}${tr.wende && !tr.bauTurned ? ' · endet, wendet nach ' + tr.wende.to : ''}</div></td>
       <td class="mono"><div class="nw">${tr.plan.arr != null ? 'an ' + fmt(tr.plan.arr) : ''}</div><div class="nw">${tr.shunter ? `<span class="sub">bis</span> ${fmt(tr.plan.dep)}` : tr.endsGbf ? '<span class="sub">endet im Gbf</span>' : tr.turn ? `<span class="sub">endet → ${sidShort(tr.siding)}</span>` : tr.runaround ? '<span class="sub">endet → Lok umsetzen</span>' : tr.cancelled ? '<span class="sub">fällt aus</span>' : tr.bauEnd ? '<span class="sub">endet (Bau)</span>' : tr.wende && !tr.bauTurned ? '<span class="sub">wendet</span> ' + fmt(tr.wende.dep) : tr.lokw && !tr.lokwDone ? '<span class="sub">Lokwechsel</span> ' + fmt(tr.plan.dep) : (tr.stops ? 'ab ' : '<span class="sub">durch </span>') + fmt(tr.plan.dep) + ' ' + del}</div></td>
       <td class="mono">${gl}</td>
       <td class="st">${st.txt}</td></tr>`;
