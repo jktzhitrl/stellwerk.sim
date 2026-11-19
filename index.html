@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.netz-te-1">
+<meta name="app-version" content="2026-11-19.langsamfahrstelle-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -459,7 +459,7 @@
       </ul></div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>7 Bahnsteiggleisen</b> (Gleis 5 Baustelle, Gleis 7 Stumpfgleis). Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <p><b>Anschlussmanagement:</b> Im Fahrplan erscheinen verknüpfte Regionalzüge. „Warten“ hält den Anschlusszug maximal vier Spielminuten über Plan zurück, bis der Zubringer angekommen ist und 90 Sekunden Umsteigezeit vergangen sind. „Freigeben“ hebt die Wartebindung auf. Erreichte Anschlüsse: +12 Punkte, verpasste: −8 Punkte. (Am Haltepunkt Teutschenthal gibt es keine Anschlüsse.) Neue Anschlüsse und <b>Verspätungsmeldungen</b> (z. B. Signalstörung vor dem Bahnhof) erscheinen im Protokoll – ist ein Anschluss gefährdet, gibt es zusätzlich einen Hinweis. Verlängerte Haltezeiten durch Fahrgastwechsel zählen nicht als deine Verspätung.</p>
-    <p><b>Streckennetz:</b> Neustadt ↔ Teutschenthal und Teutschenthal ↔ Eilenburg sind je über eine zweigleisige freie Strecke verbunden (Burgstadt und Halle haben noch keine Netzverbindung). Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert.</p>
+    <p><b>Streckennetz:</b> Neustadt und Teutschenthal sind über eine zweigleisige freie Strecke verbunden. Nach der Ausfahrt wird eine Zugmeldung für den Zielbahnhof gespeichert. Über die Netzschaltflächen kannst du das Stellwerk wechseln. Die Übergabe wird beim Beginn der nächsten Schicht im Zielbahnhof übernommen; es wird immer nur ein Stellwerk gleichzeitig simuliert.</p>
     <h3>Richtungen</h3>
     <ul>
       <li>Links ist <b>Westen</b>, rechts <b>Osten</b> – die Orte stehen in den Ecken des Gleisbilds. Züge mit <b>▶</b> fahren nach Osten, mit <b>◀</b> nach Westen – die weiße Pfeilspitze sitzt vorne am Zug, das Ziel steht im Zugschild.</li>
@@ -2306,26 +2306,14 @@ function readNetwork() {
 function writeNetwork(a) { try { localStorage.setItem(NETWORK_KEY, JSON.stringify(a.slice(-80))); } catch(e) {} }
 // Die beiden Richtungsgleise sind voneinander unabhängig (kein eingleisiger Gegenverkehr).
 const NETWORK_TRAVEL_MS = 90000;
-// Fiktive Kopplungen zwischen Bahnhöfen über die "freie Strecke" (wie die bestehende
-// Überleitstelle Heidekreuz): je Eintrag [Bahnhof A, Bahnhof B, Gleis A→B, Gleis B→A].
-// Die Fahrtrichtung bleibt beim Übergang erhalten (dir>0 bei A → dir>0 am ankommenden
-// Bahnhof usw.) – unabhängig vom Namen der real angezeigten Ausfahrt.
-const NETWORK_LINKS = [
-  { a: 'neustadt', b: 'teutschenthal', trackAB: 'R1', trackBA: 'R2' },
-  { a: 'teutschenthal', b: 'eilenburg', trackAB: 'R3', trackBA: 'R4' },
-];
 function networkTrack(from, to) {
-  for (const L of NETWORK_LINKS) {
-    if (L.a === from && L.b === to) return L.trackAB;
-    if (L.b === from && L.a === to) return L.trackBA;
-  }
+  if (from === 'neustadt' && to === 'teutschenthal') return 'R1';
+  if (from === 'teutschenthal' && to === 'neustadt') return 'R2';
   return null;
 }
 function networkDest(tr) {
-  for (const L of NETWORK_LINKS) {
-    if (BF === L.a && tr.dir > 0) return L.b;
-    if (BF === L.b && tr.dir < 0) return L.a;
-  }
+  if (BF === 'neustadt' && tr.dir > 0) return 'teutschenthal';
+  if (BF === 'teutschenthal' && tr.dir < 0) return 'neustadt';
   return null;
 }
 function transferTrain(tr) {
@@ -2346,18 +2334,18 @@ function transferTrain(tr) {
     .reduce((m,x) => Math.max(m, Number(x.entered) || 0), 0);
   const occupiedUntil = crossover ? queue.reduce((m,x) => Math.max(m, Number(x.ready) || 0), 0) : 0;
   const entered = Math.max(now, last + 45000, occupiedUntil);
-  queue.push({ from:BF, to:dest, track, crossover, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num, dir:tr.dir,
+  queue.push({ from:BF, to:dest, track, crossover, type:TYPES[tr.type] ? tr.type : 'RE', num:tr.num,
     entered, ready:entered + NETWORK_TRAVEL_MS, delay:tr.delay || 0 });
   writeNetwork(queue);
   log(tr.num + ' über freie Strecke nach ' + STATIONS[dest].short + ' übergeben.', 'info');
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
-  if (!NETWORK_LINKS.some(L => L.a === BF || L.b === BF)) return;
+  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle') return;
   for (const transfer of queue) {
     // Nur bereits eingetroffene Züge für dieses Stellwerk übernehmen.
     if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
-    const dir = transfer.dir === 1 || transfer.dir === -1 ? transfer.dir : (BF === 'neustadt' ? -1 : 1);   // Fahrtrichtung bleibt beim Übergang erhalten
+    const dir = BF === 'neustadt' ? -1 : 1;
     const tr = addTrain(transfer.type, dir, S.t + 150);
     tr.num = transfer.num;
     tr.from = STATIONS[transfer.from]?.short || transfer.from;
@@ -2387,14 +2375,12 @@ function renderNetwork() {
     }).join('');
     return '<div class="blockrow"><span class="blockcap">' + caption + '</span>' + cells + '</div>';
   };
-  const myLinks = NETWORK_LINKS.filter(L => L.a === BF || L.b === BF);
-  const netLines = myLinks.length
-    ? myLinks.map(L => blockLine(L.trackAB, '▶ ' + STATIONS[L.a].short + ' → ' + STATIONS[L.b].short) +
-                        blockLine(L.trackBA, '◀ ' + STATIONS[L.b].short + ' → ' + STATIONS[L.a].short)).join('')
-    : '<div class="netline"><span>' + ST.name + ' · eigener Streckenast in Planung</span></div>';
+  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle'
+    ? '<div class="netline"><span>' + ST.name + ' · eigener Streckenast in Planung</span></div>'
+    : blockLine('R1','▶ Neustadt → Teutschenthal') + blockLine('R2','◀ Teutschenthal → Neustadt');
   $('#network').innerHTML = '<span class="netactive">🚦 Streckenbetrieb · ' + ST.short + '</span> · ' +
     waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
-    '<div class="netcaption">' + (myLinks.length ? 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s' : 'Noch keine durchgehende Netzverbindung.') + '</div>' +
+    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id, st]) => id !== BF && !st.locked).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';

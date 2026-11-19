@@ -25,8 +25,6 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 
 In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg und Halle gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen, Weichen-/Signalstörungen und zeitweise **Langsamfahrstellen** 🐌 (angekündigte Tempobeschränkung auf einem Streckenabschnitt, gelb gepunktet) gibt es in jedem Bahnhof.
 
-**Streckennetz:** Neustadt ↔ Teutschenthal und Teutschenthal ↔ Eilenburg sind je über eine fiktive zweigleisige freie Strecke gekoppelt (Browser-übergreifend über `localStorage`): Ein Zug, der im einen Bahnhof ausfährt, kommt zeitversetzt im anderen an. Es läuft dabei immer nur ein Stellwerk aktiv – zum Spielen beide Bahnhöfe in getrennten Tabs öffnen. Burgstadt und Halle haben noch keine Netzverbindung.
-
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 
 Im Startfenster wird je Bahnhof dein **Bestwert** (Punkte, Pünktlichkeit) gespeichert und als 🏆 auf der Bahnhofskarte angezeigt – gespeichert im Browser (localStorage), nicht geräteübergreifend.
