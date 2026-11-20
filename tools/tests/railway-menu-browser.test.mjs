@@ -21,10 +21,15 @@ try{
    assert.equal(await page.locator('#modeTycoon').count(),0);
    assert.equal(await page.locator('#stGo').isVisible(),true);
    assert.equal(await page.locator('#stCards .stCard').count()>=4,true);
-   const horizontalOverflow=await page.evaluate(()=>{
-     const e=document.getElementById('start');return e.scrollWidth>e.clientWidth+5;
+   const overflowInfo=await page.evaluate(()=>{
+     const e=document.getElementById('start'),bounds=e.getBoundingClientRect();
+     const offenders=[...e.querySelectorAll('*')].map(el=>({tag:el.tagName,cls:el.className?.baseVal??el.className,
+       id:el.id,right:Math.round(el.getBoundingClientRect().right),left:Math.round(el.getBoundingClientRect().left),
+       scroll:el.scrollWidth,client:el.clientWidth}))
+       .filter(o=>o.right>bounds.right+5||o.left<bounds.left-5).slice(0,18);
+     return {has:e.scrollWidth>e.clientWidth+5,width:e.clientWidth,scroll:e.scrollWidth,offenders};
    });
-   assert.equal(horizontalOverflow,false,'Menu has horizontal overflow at '+viewport.width);
+   assert.equal(overflowInfo.has,false,'Menu has horizontal overflow at '+viewport.width+': '+JSON.stringify(overflowInfo));
    assert.equal(await page.locator('#start .dispatchTrackDiagram').isVisible(),true);
    if(viewport.width===390)assert.equal(await page.locator('#start .modeChoice').first().evaluate(e=>Math.round(e.getBoundingClientRect().width)>300),true);
    await page.screenshot({path:'menu-'+viewport.width+'.png',fullPage:false});
