@@ -1,0 +1,98 @@
+name: Halle (Saale) Hbf OSM topology data check
+
+on:
+  push:
+    branches:
+      - chatgpt/halle-hbf-osm-original-20261120
+    paths:
+      - 'tools/halle-hbf-import.mjs'
+      - 'tools/halle-hbf-osm-xml-to-json.py'
+      - 'tools/tests/test_halle-hbf_osm_xml.py'
+      - 'tools/halle-hbf-build-preview.mjs'
+      - 'tools/halle-hbf-review-template.html'
+      - 'tools/tests/halle-hbf-import.test.mjs'
+      - 'docs/halle-hbf-openrailwaymap-overpass.ql'
+      - '.github/workflows/halle-hbf-osm-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout draft branch
+        uses: actions/checkout@v4
+
+      - name: Node.js version
+        run: node --version
+
+      - name: Regression tests for OSM node identity and turnouts
+        run: node --test tools/tests/halle-hbf-import.test.mjs
+
+      - name: Regression tests for OSM XML API fallback
+        run: python3 -m unittest discover -s tools/tests -p 'test_halle-hbf_osm_xml.py' -v
+
+      - name: Retrieve Halle (Saale) Hbf OSM data (Overpass or primary OSM API)
+        shell: bash
+        run: |
+          mkdir -p review-data
+          success=0
+          for host in 'https://overpass.private.coffee/api/interpreter' 'https://overpass-api.de/api/interpreter'; do
+            echo "Requesting OSM railway data from $host"
+            if curl --fail --show-error --silent --location \
+                --connect-timeout 12 --max-time 55 \
+                --user-agent 'Stellwerk.sim Halle (Saale) Hbf mapping review (Github draft)' \
+                --request POST \
+                --data-urlencode 'data@docs/halle-hbf-openrailwaymap-overpass.ql' \
+                "$host" --output review-data/halle-hbf-overpass.json; then
+              if node -e "const o=require('./review-data/halle-hbf-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements')"; then
+                success=1
+                break
+              fi
+            fi
+            echo "Overpass did not respond with usable data; trying alternative."
+          done
+          if [ "$success" != 1 ]; then
+            echo "Using OpenStreetMap primary /api/0.6/map XML endpoint as fallback"
+            curl --fail --show-error --silent --location \
+              --connect-timeout 12 --max-time 100 \
+              --user-agent 'Stellwerk.sim Halle (Saale) Hbf mapping review (Github draft)' \
+              'https://api.openstreetmap.org/api/0.6/map?bbox=11.971,51.467,12.014,51.490' \
+              --output review-data/halle-hbf-map.osm
+            python3 tools/halle-hbf-osm-xml-to-json.py \
+              review-data/halle-hbf-map.osm review-data/halle-hbf-overpass.json
+            node -e "const o=require('./review-data/halle-hbf-overpass.json');if(!Array.isArray(o.elements)||o.elements.length<10)process.exit(1);console.log('Received '+o.elements.length+' OSM elements via OSM API')"
+          fi
+
+      - name: Convert exact OSM nodes into review dataset
+        run: node tools/halle-hbf-import.mjs review-data/halle-hbf-overpass.json review-data/halle-hbf-osm-review.json
+
+      - name: Generate standalone map for visual OSM review
+        run: node tools/halle-hbf-build-preview.mjs review-data/halle-hbf-osm-review.json review-data/halle-hbf-osm-preview.html
+
+      - name: Save OSM review snapshot to draft branch (never publish as playable geometry)
+        shell: bash
+        run: |
+          git fetch origin chatgpt/halle-hbf-osm-original-20261120
+          git rebase origin/chatgpt/halle-hbf-osm-original-20261120
+          mkdir -p data
+          cp review-data/halle-hbf-osm-review.json data/halle-hbf-osm-review.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/halle-hbf-osm-review.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record unverified Halle (Saale) Hbf OSM snapshot with attribution"
+            git push origin HEAD:chatgpt/halle-hbf-osm-original-20261120
+          fi
+
+      - name: Upload review data (not automatically published as game geometry)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halle-hbf-osm-raw-and-review
+          path: review-data/
+          if-no-files-found: warn
+          retention-days: 14
