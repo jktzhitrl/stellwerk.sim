@@ -14,6 +14,14 @@ try{
  await page.waitForURL('**/halle-hbf-play.html*',{timeout:12000});
  await page.locator('#departures button[data-service]').first().waitFor({timeout:22000});
  assert.equal(await page.locator('#departures button[data-service]').count(),33);
+ assert.equal(await page.locator('#schematicWorld').getAttribute('display'),'inline','Player view must be a dedicated schematic, not rotated OSM');
+ assert.equal(await page.locator('#schematicWorld #schemaLabels [data-track-ref]').count(),17,'13 platform and 4 stabling indicator rows');
+ assert.equal(await page.locator('#schematicWorld #schemaRails line.schemaRail').count(),1253,'Every OSM edge drawn exactly once on Gleisbild');
+ assert.equal(await page.locator('#schematicWorld #schemaHits [data-edge]').count(),1253,'All schematic rails remain touch selectable');
+ const y1=Number(await page.locator('#schemaLabels [data-track-ref="1"] circle').getAttribute('cy'));
+ const y2=Number(await page.locator('#schemaLabels [data-track-ref="2"] circle').getAttribute('cy'));
+ assert.ok(y2-y1>=55,'Gleisbild tracks need real horizontal spacing, not a rotated narrow map');
+ await page.screenshot({path:'halle-gleisbild-west.png',fullPage:false});
  const zoomBefore=await page.locator('#board').getAttribute('viewBox');
  await page.locator('#zoomIn').click();
  const zoomAfter=await page.locator('#board').getAttribute('viewBox');
@@ -29,6 +37,7 @@ try{
  assert.match(signal,/Hp0/,'Signal should start at stop');
  assert.equal(await page.locator('#clearRoute').isEnabled(),true,'First scheduled train needs playable test route');
  await page.locator('#clearRoute').click();
+ assert.equal(await page.locator('#schemaLabels [data-track-ref="1"] circle').getAttribute('fill'),'#4cea9b','Schematic virtual departure signal lamp must change to proceed');
  assert.match(await page.locator('#virtualAspect').innerText(),/Ks1/,'Signal should be cleared');
  assert.equal(await page.locator('#go').isEnabled(),true,'05:00 train must be dispatchable at 05:00');
  await page.locator('#go').click();
@@ -47,6 +56,7 @@ try{
  assert.match(await page.locator('.mapHud').innerText(),/SCHEMATISCHES/,'Schematic should be default');
  const originalView=await page.locator('#board').getAttribute('viewBox');
  await page.locator('[data-sector="ost"]').click();
+ await page.screenshot({path:'halle-gleisbild-ost.png',fullPage:false});
  assert.equal(await page.locator('[data-sector="ost"]').getAttribute('aria-pressed'),'true');
  assert.notEqual(await page.locator('#board').getAttribute('viewBox'),originalView,'Other desk should frame different tracks');
  await page.locator('#sectorViewMode').click();
@@ -54,6 +64,7 @@ try{
  await page.locator('#sectorViewMode').click();
  assert.match(await page.locator('.mapHud').innerText(),/SCHEMATISCHES/);
  await page.locator('[data-sector="ww"]').click();
+ await page.screenshot({path:'halle-gleisbild-weichenwaerter.png',fullPage:false});
  assert.equal(await page.locator('#wwDesk').isVisible(),true,'Weichenwaerter needs a working dedicated desk');
  assert.equal(await page.locator('.dispatchDesk').first().isVisible(),false,'Dispatch desk should be hidden during stabling');
  await page.locator('#shunt136').click();
