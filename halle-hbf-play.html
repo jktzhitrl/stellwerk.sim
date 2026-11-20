@@ -64,27 +64,31 @@ const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('l
 const symW=el('g',{},items),symS=el('g',{display:'none'},items),platformMarkers=el('g',{},items);
 for(const w of data.osmSwitches||[])el('circle',{cx:w.x,cy:w.y,r:7,fill:'#ffb45e',stroke:'#141922','stroke-width':2},symW);
 for(const w of data.signals||[])el('circle',{cx:w.x,cy:w.y,r:5,fill:w.railwayTags?.['railway:signal:main']?'#55caed':'#a99df4'},symS);
-function focusCandidate(candidate){
+function focusCandidate(candidate,label=''){
  if(!candidate)return;
  view={x:candidate.x-view.w/2,y:candidate.y-view.h/2,w:view.w,h:view.h};showView();
+ platformMarkers.replaceChildren();
+ el('circle',{cx:candidate.x,cy:candidate.y,r:20,fill:'none',stroke:'#bdf7de','stroke-width':5},platformMarkers);
+ const name=el('text',{x:candidate.x+24,y:candidate.y-26,class:'mapRefLabel'},platformMarkers);
+ name.textContent=label||'OSM-Ref '+candidate.ref+'?';
 }
 for(const {ref,osmCandidate} of referenceAudit.platforms){
  const btn=document.createElement('button');btn.type='button';btn.textContent=ref;btn.title='OSM-Referenz '+ref+' anzeigen (Bahnsteigzuordnung ungeprüft)';
  btn.disabled=!osmCandidate;
  btn.addEventListener('click',()=>{
   if(!osmCandidate)return;
-  trackSelect.value=ref;focusCandidate(osmCandidate);
+  trackSelect.value=ref;focusCandidate(osmCandidate,'OSM '+ref+'?');
   $('platformRefs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));
   status('OSM-Gleisreferenz '+ref+' gewählt. Punkt ist ein Kandidat, keine geprüfte Bahnsteigzuordnung. Für Fahrt „Als Start“/„Als Ziel“ wählen.');
  });
  $('platformRefs').append(btn);
- if(osmCandidate){const txt=el('text',{x:osmCandidate.x,y:osmCandidate.y-14,'text-anchor':'middle',class:'mapRefLabel'},platformMarkers);txt.textContent=ref+'?';}
+ // Candidate is highlighted only after selection to avoid 13 overlapping labels.
 }
 for(const {ref,label,via,osmCandidate} of referenceAudit.lines){
  const btn=document.createElement('button');btn.type='button';btn.textContent='Strecke '+ref+' · Richtung '+label+(osmCandidate?' · OSM-Gleis zeigen':' · im Ausschnitt kein OSM-Ref');
  btn.title='DB LH: Richtung '+label+' über '+via+'; keine bestätigte Fahrstraßenverbindung';
  btn.disabled=!osmCandidate;
- btn.addEventListener('click',()=>{focusCandidate(osmCandidate);status('DB LH: Strecke '+ref+' Richtung '+label+' über '+via+'. Angezeigt wird nur ein OSM-Referenzkandidat, keine freigegebene Fahrstraße.');});
+ btn.addEventListener('click',()=>{focusCandidate(osmCandidate,'Strecke '+ref+'?');status('DB LH: Strecke '+ref+' Richtung '+label+' über '+via+'. Angezeigt wird nur ein OSM-Referenzkandidat, keine freigegebene Fahrstraße.');});
  $('lineRefs').append(btn);
 }
 $('switches').onchange=ev=>symW.setAttribute('display',ev.target.checked?'inline':'none');
@@ -103,7 +107,8 @@ function choose(id){if(run)return;if(!start||end){start=id;end=null;points=null;
 function pickRef(forced){
  const selected=trackSelect.value,indices=refs.get(selected);
  if(!indices?.length){status('Bitte erst eine kartierte OSM-Gleisreferenz auswählen.');return;}
- const id=representativeTrackNode(edges,indices);
+ const candidate=referenceAudit.platforms.find(p=>p.ref===selected)?.osmCandidate;
+ const id=candidate?.nodeId||representativeTrackNode(edges,indices);
  if(!id||!graph.has(id)){status('Diese Gleisreferenz hat keinen nutzbaren OSM-Knoten.');return;}
  if(run){status('Zug fährt. Bitte neue Fahrt starten.');return;}
  if(forced==='start'){start=null;end=null;points=null;choose(id);}
