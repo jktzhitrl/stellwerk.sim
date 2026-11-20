@@ -1,47 +1,23 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#121e27"><title>Stellwerk Tycoon · Eisenbahnimperium</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#192a34">
+<meta http-equiv="refresh" content="0;url=./index.html">
+<title>Stellwerk.sim · Fahrdienst übernehmen</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e9f3f8;background:#101820;color-scheme:dark;--bg:#111e27;--panel:#192b36;--panel2:#203743;--border:#385766;--muted:#afc7d2;--accent:#62c8ef;--green:#70d5a5;--amber:#deb174}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% 0,#233c4a 0,#101820 62%)}button,input,select{font:inherit}button{background:#2c4758;border:1px solid #648192;color:#f3f9fc;border-radius:8px;padding:9px 13px;min-height:42px;cursor:pointer;transition:background .13s}button:hover{background:#3b6479}button:disabled{opacity:.43;cursor:not-allowed}
-button.primary{background:#136e86;border-color:#64cce7;font-weight:750}button.primary:hover{background:#1a829e}button.danger{background:#593a3d;border-color:#9a666e}a{color:#a1e3fa}h1{font-size:21px;margin:0;letter-spacing:.01em}h2{font-size:18px;margin:0 0 10px}h3{font-size:15px;margin:12px 0;color:#cee9f4}p{line-height:1.5}small,.sub{color:var(--muted);font-size:12px}b,strong{font-weight:750}
-header{border-bottom:1px solid #436273;background:#1c303d;position:sticky;top:0;z-index:10;box-shadow:0 4px 20px #070e16aa}header .head{max-width:1460px;margin:auto;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-header .head .brand{display:flex;align-items:center;gap:13px}header .logo{width:47px;height:47px;border-radius:12px;background:linear-gradient(135deg,#2b8c9f,#173a61);display:grid;place-items:center;font-size:24px;border:1px solid #78d2eb}header .links{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px}
-main{max-width:1460px;margin:auto;padding:14px 18px 40px}.statistics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:8px 0 14px}
-.metric{background:#1c3341;border:1px solid #3b6073;padding:11px 13px;border-radius:10px;min-width:0}.metric strong{display:block;font-size:clamp(15px,1.6vw,23px);letter-spacing:-.03em;overflow-wrap:anywhere;margin-top:5px}.statlabel{font-size:12px;color:#acc9d7;font-weight:650}
-.commandbar{display:flex;align-items:center;justify-content:space-between;gap:11px;flex-wrap:wrap;background:#1b2e39;border:1px solid #466577;border-radius:11px;padding:10px 13px;margin-bottom:12px}
-.commandbar .actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.clock{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#91f3bc;font-size:18px;font-weight:800}.notice{color:#f2d394;font-size:12px;line-height:1.4;min-height:16px;margin:4px 0}
-nav{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:3px;scrollbar-width:thin}nav button{white-space:nowrap;background:#1b2d39;min-width:145px;font-weight:750;border-radius:9px}nav button.active{border-color:#70dcfa;background:#1b5772;box-shadow:inset 0 -3px 0 #64cde9}
-#viewRoot{min-height:440px}.layout{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(270px,1fr);gap:13px}.worldblock,.inspector,.pane,.vehicle,.block{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px}.worldblock{min-width:0}.inspector{min-width:0;align-self:start}.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.maphead h2{margin-bottom:2px}#world{display:block;width:100%;height:auto;aspect-ratio:1180/680;border:1px solid #456373;border-radius:10px;background:#10222c;margin:10px 0;touch-action:none;user-select:none;cursor:grab}#world:active{cursor:grabbing}#world .stationNode,#world .linkgroup{cursor:pointer}#world .stationNode:hover,#world .linkgroup:hover{filter:drop-shadow(0 0 4px #73d4fa)}
-.stationDiagram{display:block;width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid #476674}.stationDiagram path{stroke-linecap:round}.legend{display:flex;align-items:center;gap:13px;flex-wrap:wrap;font-size:12px;color:#c4d9e4}.dot{display:inline-block;width:10px;height:10px;border-radius:100%;margin-right:5px;background:#617987}.dot.green{background:#64d2a1}.dot.amber{background:#d6a45e}.dot.gray{background:#6d8799}.dot.cyan{background:#6bd9ed}
-.sectionhead{background:#1c3543;padding:17px;border:1px solid #416276;border-radius:12px;margin-bottom:13px}.sectionhead h2{font-size:21px}.sectionhead p{margin:4px 0;color:#bad1dd;font-size:13px}
-.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.pane{min-width:0}.block{background:#152733;margin:10px 0;border-color:#3f5967}.blockhead{display:flex;align-items:start;justify-content:space-between;gap:8px}.blockhead strong{font-size:14px}.blockhead small{display:block;margin-top:4px}.block p{color:#b9cbd6;font-size:13px;margin:8px 0}.tag{font-size:11px;border-radius:6px;padding:5px 7px;background:#3b4651;color:#d4e2ea;white-space:nowrap}.tag.green{background:#1e5b4b;color:#b6ffdb}.pills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pills span{font-size:11px;border:1px solid #4b697a;border-radius:7px;padding:5px 7px;color:#c3d6df}
-.actionbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0}.actionbar button{font-size:12px;min-height:37px;padding:6px 10px}
-.tinyline{padding:9px;border-bottom:1px solid #385261;font-size:13px;cursor:pointer}.tinyline:hover{background:#27495b}
-.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.formgrid label{font-size:12px;color:#c6dce6;display:flex;flex-direction:column;gap:5px}.formgrid input,.formgrid select{background:#101f28;border:1px solid #607c8b;color:#f0f8fc;border-radius:8px;padding:10px;min-width:0;max-width:100%}.formgrid button{grid-column:span 2}
-.vehiclegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:15px}.vehicle{min-width:0}.vehicle h3{font-size:14px}.vehicle p{font-size:12px;color:#bacdd7}.vehicleicon{font-size:29px;min-height:45px}.vehicle button{font-size:12px}.meter{background:#101d26;border-radius:20px;height:7px;overflow:hidden}.meter span{display:block;background:linear-gradient(90deg,#d1ab64,#6dd6b1);height:100%}
-.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}td,th{text-align:right;padding:9px 5px;border-bottom:1px solid #375261}td:first-child,th:first-child{text-align:left}.positive{color:#8ae9b7}.negative{color:#ffb1a4}
-.financeChart{width:100%;height:auto;background:#132833;border:1px solid #3a5766;border-radius:8px}.history{max-height:280px;overflow:auto;font-size:12px}.history p{border-bottom:1px solid #344c5a;margin:0;padding:8px 0}
-.footer{padding:18px;color:#9ab7c6;font-size:12px;line-height:1.6;max-width:1460px;margin:auto}
-@media(max-width:970px){.statistics{grid-template-columns:repeat(3,minmax(0,1fr))}.layout{grid-template-columns:1fr}.twocol{grid-template-columns:1fr}}
-@media(max-width:600px){main{padding:8px 9px 20px}header .head{padding:9px 10px}.statistics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.metric{padding:9px}.metric strong{font-size:18px}nav button{min-width:128px;padding:9px}.worldblock,.inspector,.pane{padding:10px}#world{min-height:240px}.formgrid{grid-template-columns:1fr}.formgrid button{grid-column:span 1}}
-</style></head>
-<body>
-<header><div class="head"><div class="brand"><div class="logo">🚆</div><div><h1>Stellwerk Tycoon</h1><div class="sub">Dein eigenes Eisenbahninfrastruktur- und Verkehrsunternehmen</div></div></div><div class="links"><a href="./index.html">🚦 Stellwerk</a><a href="./editor.html">🛠️ Baumodus</a></div></div></header>
-<main>
-<section class="statistics" id="stats" aria-label="Unternehmenskennzahlen"></section>
-<section class="commandbar"><div class="actions"><button class="primary" id="day">Betriebstag abschließen ▶</button><button id="speed">⏩ 4× Vorschau</button><strong class="clock" id="clock">06:30</strong></div><div class="actions"><button id="save">💾 Speichern</button><button id="reset" class="danger">Neues Unternehmen</button></div><div id="notice" class="notice" role="status" aria-live="polite" hidden></div></section>
-<nav aria-label="Tycoon-Bereiche">
-<button data-view="world" aria-pressed="true" class="active">🗺️ Eisenbahnwelt</button>
-<button data-view="build" aria-pressed="false">🛤️ Streckenbau</button>
-<button data-view="lines" aria-pressed="false">📅 Linien & Fahrplan</button>
-<button data-view="fleet" aria-pressed="false">🚄 Zugkatalog</button>
-<button data-view="finance" aria-pressed="false">💶 Finanzen & Ziele</button>
-</nav>
-<section id="viewRoot" aria-live="polite"></section>
-</main>
-<footer class="footer">Tycoon 2.1 · Eigenständiger Spielstand und eigener Zugverkehr. Die Karte zeigt ein fiktives schematisches Netz mit interaktiven Strecken und Bahnhofsknoten. Die wirtschaftlichen Fahrten werden täglich abgerechnet; sichtbare Züge stellen die eingestellten Linien grafisch dar. Die Fahrstraßensteuerung der bestehenden Stellwerke und der freie Gleiseditor sind noch nicht mit dem Tycoon gekoppelt.</footer>
-<script src="./tycoon-engine.js?v=2.1"></script>
-</body></html>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0d2029;color:#dcecf4}
+body{min-height:100dvh;margin:0;display:grid;place-content:center;padding:24px}
+main{max-width:450px;border:1px solid #506d7c;background:#213641;border-top:4px solid #e3c06c;padding:24px;border-radius:9px}
+h1{margin:0 0 12px;font-size:23px}
+p{line-height:1.5}
+a{color:#e9d18b}
+</style>
+<script>location.replace('./index.html');</script>
+</head>
+<body><main><h1>🚦 Stellwerk.sim</h1>
+<p>Der frühere Tycoon-Modus ist nicht mehr Bestandteil des Spiels. Du wirst zur Bahnhofsauswahl und zum Stellwerksdienst weitergeleitet.</p>
+<p><a href="./index.html">Zur Bahnhofsauswahl</a></p>
+</main></body>
+</html>
