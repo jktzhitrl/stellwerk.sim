@@ -391,7 +391,8 @@
     #start .box {padding:12px;}
     #start .actions .big {width:100%;min-height:54px;font-size:16px;}
     #start .actions {justify-content:center;}
-    #start .actions .btn:not(.big) {flex:1;}
+    #start .actions > span[style*="flex:1"] {display:none;}
+    #start .actions .btn:not(.big) {flex:1 1 145px;min-width:0;white-space:normal;line-height:1.25;font-size:13px;overflow-wrap:break-word;}
   }
 
   /* SVG-Animationen */
