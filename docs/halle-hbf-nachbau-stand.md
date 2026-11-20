@@ -45,3 +45,11 @@ Die GitHub-Actions-Rohdatenprüfung für den vollständigen vorläufigen Kartena
 Die OSM-Wegreferenzen **1 bis 13** treten im Datensatz auf, sind aber noch **nicht** gegen den amtlichen LH-Plan zu den einzelnen Bahnsteiggleisen abgeglichen. Die Oberfläche bezeichnet sie deshalb ausdrücklich als OSM-Gleisreferenzen. Die ausgewählte Referenz zoomt auf einen dazugehörigen erfassten Gleisabschnitt; ein möglicherweise gleichnamiges Gleis außerhalb des Hauptbahnhofs muss später abgegrenzt werden.
 
 **Automatischer Test:** [Halle Routing #44698657191](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44698657191) erfolgreich; fünf Routentests einschließlich Sperrung ungesicherter DKWs und Trennung gleicher Koordinaten mit verschiedenen OSM-Knoten.
+
+## Originalreferenzen und Streckenrichtungen – weiterer Ausbau am 20.11.2026
+
+Der öffentliche OSM-Snapshot für Halle enthält numerische Referenzen **1–13**. Diese werden nun in der Halle-Vorschau als schnelle Auswahlfelder mit dem nächstgelegenen OSM-Kandidaten im Bereich des Hbf gezeigt. **Alle 13 Kandidaten sind vorhanden, aber ihre genaue Übereinstimmung mit den offiziellen DB-Bahnsteiggleisen ist noch ungeprüft.** Deshalb tragen die sichtbaren Markierungen ein Fragezeichen, und die Fahrt verwendet lediglich den damit verbundenen OSM-Knoten.
+
+Der DB-Gleisplan LH (30.09.2026) nennt die Strecken **6343 Richtung Sangerhausen**, **6340 Richtung Merseburg**, **6053 Richtung Gröbers**, **6403 Richtung Leipzig** und **6050 Richtung Halle-Trotha/Halle Gbf**. Von diesen sind **6340, 6053, 6403, 6050** als OSM-Gleisreferenzen im importierten Ausschnitt vorhanden. **6343 fehlt im Ausschnitt als OSM-Referenz** und wird deshalb ausdrücklich als nicht automatisch zugeordnet angezeigt. Auch bei vorhandener Referenz gelten keine einzelnen Verbindungen zum Bahnsteig als betriebsseitig bewiesen.
+
+Neue Dateien: `halle-hbf-references.mjs` (belegte Richtungen, Quellendaten, unverifizierte OSM-Kandidaten) und `tools/tests/halle-hbf-references.test.mjs` (echte Datensatzprüfung). Die UI in `halle-hbf-play.html` kann nummerierte Kandidaten direkt anzeigen und auf die Karte zentrieren. Ein Button für eine Streckenrichtung zeigt ausschließlich die nächste kartierte Wegreferenz; **keine Fahrstraße wird dadurch freigegeben**.
