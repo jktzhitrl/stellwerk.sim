@@ -3777,272 +3777,6 @@
     },
     {
       "a": {
-        "x": 1529.415,
-        "y": 1422.839,
-        "nodeId": "1259244060"
-      },
-      "b": {
-        "x": 1535.371,
-        "y": 1427.067,
-        "nodeId": "8359192058"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1535.371,
-        "y": 1427.067,
-        "nodeId": "8359192058"
-      },
-      "b": {
-        "x": 1541.406,
-        "y": 1431.602,
-        "nodeId": "4692616559"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1541.406,
-        "y": 1431.602,
-        "nodeId": "4692616559"
-      },
-      "b": {
-        "x": 1559.671,
-        "y": 1446.448,
-        "nodeId": "8892364438"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1559.671,
-        "y": 1446.448,
-        "nodeId": "8892364438"
-      },
-      "b": {
-        "x": 1560.702,
-        "y": 1447.282,
-        "nodeId": "1705488705"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1560.702,
-        "y": 1447.282,
-        "nodeId": "1705488705"
-      },
-      "b": {
-        "x": 1592.081,
-        "y": 1473.173,
-        "nodeId": "1259244335"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1592.081,
-        "y": 1473.173,
-        "nodeId": "1259244335"
-      },
-      "b": {
-        "x": 1601.033,
-        "y": 1480.795,
-        "nodeId": "4692616574"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1601.033,
-        "y": 1480.795,
-        "nodeId": "4692616574"
-      },
-      "b": {
-        "x": 1626.365,
-        "y": 1502.729,
-        "nodeId": "1705488655"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1626.365,
-        "y": 1502.729,
-        "nodeId": "1705488655"
-      },
-      "b": {
-        "x": 1640.265,
-        "y": 1515.029,
-        "nodeId": "1259244079"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1640.265,
-        "y": 1515.029,
-        "nodeId": "1259244079"
-      },
-      "b": {
-        "x": 1665.492,
-        "y": 1538.423,
-        "nodeId": "1705488625"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1665.492,
-        "y": 1538.423,
-        "nodeId": "1705488625"
-      },
-      "b": {
-        "x": 1681.277,
-        "y": 1553.654,
-        "nodeId": "1705488607"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1681.277,
-        "y": 1553.654,
-        "nodeId": "1705488607"
-      },
-      "b": {
-        "x": 1694.692,
-        "y": 1566.753,
-        "nodeId": "1259244248"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1694.692,
-        "y": 1566.753,
-        "nodeId": "1259244248"
-      },
-      "b": {
-        "x": 1703.213,
-        "y": 1574.846,
-        "nodeId": "1705488556"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1703.213,
-        "y": 1574.846,
-        "nodeId": "1705488556"
-      },
-      "b": {
-        "x": 1711.195,
-        "y": 1581.662,
-        "nodeId": "1259244420"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1711.195,
-        "y": 1581.662,
-        "nodeId": "1259244420"
-      },
-      "b": {
-        "x": 1725.457,
-        "y": 1592.829,
-        "nodeId": "1259244375"
-      },
-      "osmWayId": "110198997",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
         "x": 1248.243,
         "y": 1122.776,
         "nodeId": "5586825962"
@@ -4306,329 +4040,6 @@
       "originalTrackRef": "11",
       "lineRef": "6344",
       "originalWayName": "6344"
-    },
-    {
-      "a": {
-        "x": 1531.711,
-        "y": 1421.242,
-        "nodeId": "1259244191"
-      },
-      "b": {
-        "x": 1545.311,
-        "y": 1429.228,
-        "nodeId": "4692616560"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1545.311,
-        "y": 1429.228,
-        "nodeId": "4692616560"
-      },
-      "b": {
-        "x": 1556.374,
-        "y": 1436.259,
-        "nodeId": "1705488714"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1556.374,
-        "y": 1436.259,
-        "nodeId": "1705488714"
-      },
-      "b": {
-        "x": 1565.129,
-        "y": 1441.942,
-        "nodeId": "8892364436"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1565.129,
-        "y": 1441.942,
-        "nodeId": "8892364436"
-      },
-      "b": {
-        "x": 1566.369,
-        "y": 1442.747,
-        "nodeId": "1259244265"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1566.369,
-        "y": 1442.747,
-        "nodeId": "1259244265"
-      },
-      "b": {
-        "x": 1571.238,
-        "y": 1446.056,
-        "nodeId": "4692616563"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1571.238,
-        "y": 1446.056,
-        "nodeId": "4692616563"
-      },
-      "b": {
-        "x": 1578.673,
-        "y": 1451.425,
-        "nodeId": "8359192057"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1578.673,
-        "y": 1451.425,
-        "nodeId": "8359192057"
-      },
-      "b": {
-        "x": 1585.77,
-        "y": 1457.094,
-        "nodeId": "1259244425"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1585.77,
-        "y": 1457.094,
-        "nodeId": "1259244425"
-      },
-      "b": {
-        "x": 1607.529,
-        "y": 1475.341,
-        "nodeId": "1705488675"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1607.529,
-        "y": 1475.341,
-        "nodeId": "1705488675"
-      },
-      "b": {
-        "x": 1629.729,
-        "y": 1494.557,
-        "nodeId": "1259244188"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1629.729,
-        "y": 1494.557,
-        "nodeId": "1259244188"
-      },
-      "b": {
-        "x": 1657.437,
-        "y": 1519.264,
-        "nodeId": "1705488636"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1657.437,
-        "y": 1519.264,
-        "nodeId": "1705488636"
-      },
-      "b": {
-        "x": 1675.665,
-        "y": 1536.299,
-        "nodeId": "1705488627"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1675.665,
-        "y": 1536.299,
-        "nodeId": "1705488627"
-      },
-      "b": {
-        "x": 1691.898,
-        "y": 1551.765,
-        "nodeId": "1259244348"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1691.898,
-        "y": 1551.765,
-        "nodeId": "1259244348"
-      },
-      "b": {
-        "x": 1709.684,
-        "y": 1569.091,
-        "nodeId": "1259244467"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1709.684,
-        "y": 1569.091,
-        "nodeId": "1259244467"
-      },
-      "b": {
-        "x": 1715.591,
-        "y": 1575.159,
-        "nodeId": "8359192056"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1715.591,
-        "y": 1575.159,
-        "nodeId": "8359192056"
-      },
-      "b": {
-        "x": 1720.631,
-        "y": 1580.707,
-        "nodeId": "4692616583"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1720.631,
-        "y": 1580.707,
-        "nodeId": "4692616583"
-      },
-      "b": {
-        "x": 1725.567,
-        "y": 1586.582,
-        "nodeId": "8359192054"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1725.567,
-        "y": 1586.582,
-        "nodeId": "8359192054"
-      },
-      "b": {
-        "x": 1730.559,
-        "y": 1593.078,
-        "nodeId": "1259244153"
-      },
-      "osmWayId": "110199030",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
     },
     {
       "a": {
@@ -4952,177 +4363,6 @@
       "originalTrackRef": "6",
       "lineRef": "6340",
       "originalWayName": "Thüringer Bahn"
-    },
-    {
-      "a": {
-        "x": 1529.415,
-        "y": 1422.839,
-        "nodeId": "1259244060"
-      },
-      "b": {
-        "x": 1547.926,
-        "y": 1434.761,
-        "nodeId": "1705488711"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1547.926,
-        "y": 1434.761,
-        "nodeId": "1705488711"
-      },
-      "b": {
-        "x": 1558.179,
-        "y": 1441.385,
-        "nodeId": "4692616562"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1558.179,
-        "y": 1441.385,
-        "nodeId": "4692616562"
-      },
-      "b": {
-        "x": 1562.495,
-        "y": 1444.38,
-        "nodeId": "8892364437"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1562.495,
-        "y": 1444.38,
-        "nodeId": "8892364437"
-      },
-      "b": {
-        "x": 1563.68,
-        "y": 1445.2,
-        "nodeId": "1259244211"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1563.68,
-        "y": 1445.2,
-        "nodeId": "1259244211"
-      },
-      "b": {
-        "x": 1573,
-        "y": 1452.11,
-        "nodeId": "4692616564"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1573,
-        "y": 1452.11,
-        "nodeId": "4692616564"
-      },
-      "b": {
-        "x": 1580.441,
-        "y": 1458.113,
-        "nodeId": "1705488694"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1580.441,
-        "y": 1458.113,
-        "nodeId": "1705488694"
-      },
-      "b": {
-        "x": 1592.56,
-        "y": 1468.281,
-        "nodeId": "1259244369"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1592.56,
-        "y": 1468.281,
-        "nodeId": "1259244369"
-      },
-      "b": {
-        "x": 1616.216,
-        "y": 1488.418,
-        "nodeId": "2581666271"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1616.216,
-        "y": 1488.418,
-        "nodeId": "2581666271"
-      },
-      "b": {
-        "x": 1620.79,
-        "y": 1492.411,
-        "nodeId": "8359192059"
-      },
-      "osmWayId": "110199042",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
     },
     {
       "a": {
@@ -5921,348 +5161,6 @@
       "originalTrackRef": null,
       "lineRef": null,
       "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1531.711,
-        "y": 1421.242,
-        "nodeId": "1259244191"
-      },
-      "b": {
-        "x": 1563.527,
-        "y": 1437.457,
-        "nodeId": "4692616561"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1563.527,
-        "y": 1437.457,
-        "nodeId": "4692616561"
-      },
-      "b": {
-        "x": 1567.536,
-        "y": 1439.646,
-        "nodeId": "8892364435"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1567.536,
-        "y": 1439.646,
-        "nodeId": "8892364435"
-      },
-      "b": {
-        "x": 1568.745,
-        "y": 1440.302,
-        "nodeId": "1259244352"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1568.745,
-        "y": 1440.302,
-        "nodeId": "1259244352"
-      },
-      "b": {
-        "x": 1573.54,
-        "y": 1443.296,
-        "nodeId": "8359192050"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1573.54,
-        "y": 1443.296,
-        "nodeId": "8359192050"
-      },
-      "b": {
-        "x": 1578.255,
-        "y": 1446.355,
-        "nodeId": "1705488706"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1578.255,
-        "y": 1446.355,
-        "nodeId": "1705488706"
-      },
-      "b": {
-        "x": 1584.186,
-        "y": 1450.462,
-        "nodeId": "8359192051"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1584.186,
-        "y": 1450.462,
-        "nodeId": "8359192051"
-      },
-      "b": {
-        "x": 1591.253,
-        "y": 1455.882,
-        "nodeId": "1259244096"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1591.253,
-        "y": 1455.882,
-        "nodeId": "1259244096"
-      },
-      "b": {
-        "x": 1610.832,
-        "y": 1472.574,
-        "nodeId": "1705488679"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1610.832,
-        "y": 1472.574,
-        "nodeId": "1705488679"
-      },
-      "b": {
-        "x": 1632.676,
-        "y": 1491.612,
-        "nodeId": "1259244098"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1632.676,
-        "y": 1491.612,
-        "nodeId": "1259244098"
-      },
-      "b": {
-        "x": 1655.89,
-        "y": 1512.027,
-        "nodeId": "1705488647"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1655.89,
-        "y": 1512.027,
-        "nodeId": "1705488647"
-      },
-      "b": {
-        "x": 1677.489,
-        "y": 1532.249,
-        "nodeId": "1259244273"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1677.489,
-        "y": 1532.249,
-        "nodeId": "1259244273"
-      },
-      "b": {
-        "x": 1692.371,
-        "y": 1546.017,
-        "nodeId": "1705488615"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1692.371,
-        "y": 1546.017,
-        "nodeId": "1705488615"
-      },
-      "b": {
-        "x": 1703.95,
-        "y": 1557.462,
-        "nodeId": "1259244430"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1703.95,
-        "y": 1557.462,
-        "nodeId": "1259244430"
-      },
-      "b": {
-        "x": 1708.1,
-        "y": 1562.097,
-        "nodeId": "8359192052"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1708.1,
-        "y": 1562.097,
-        "nodeId": "8359192052"
-      },
-      "b": {
-        "x": 1711.772,
-        "y": 1566.567,
-        "nodeId": "4692616584"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1711.772,
-        "y": 1566.567,
-        "nodeId": "4692616584"
-      },
-      "b": {
-        "x": 1717.346,
-        "y": 1573.833,
-        "nodeId": "1705488572"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1717.346,
-        "y": 1573.833,
-        "nodeId": "1705488572"
-      },
-      "b": {
-        "x": 1721.755,
-        "y": 1580.386,
-        "nodeId": "4692616582"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
-    },
-    {
-      "a": {
-        "x": 1721.755,
-        "y": 1580.386,
-        "nodeId": "4692616582"
-      },
-      "b": {
-        "x": 1730.559,
-        "y": 1593.078,
-        "nodeId": "1259244153"
-      },
-      "osmWayId": "132573724",
-      "railwayTrackRef": "183",
-      "service": "yard",
-      "kind": "weitere-gruppe",
-      "originalTrackRef": "183",
-      "lineRef": null,
-      "originalWayName": "Neue Gruppe"
     },
     {
       "a": {
@@ -20231,6 +19129,386 @@
     },
     {
       "a": {
+        "x": 945.048,
+        "y": 631.61,
+        "nodeId": "7008210444"
+      },
+      "b": {
+        "x": 944.747,
+        "y": 624.074,
+        "nodeId": "8377155095"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 944.747,
+        "y": 624.074,
+        "nodeId": "8377155095"
+      },
+      "b": {
+        "x": 944.938,
+        "y": 616.722,
+        "nodeId": "8377155094"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 944.938,
+        "y": 616.722,
+        "nodeId": "8377155094"
+      },
+      "b": {
+        "x": 945.73,
+        "y": 601.007,
+        "nodeId": "13278105729"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.73,
+        "y": 601.007,
+        "nodeId": "13278105729"
+      },
+      "b": {
+        "x": 945.809,
+        "y": 599.395,
+        "nodeId": "8193897853"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.809,
+        "y": 599.395,
+        "nodeId": "8193897853"
+      },
+      "b": {
+        "x": 945.865,
+        "y": 598.069,
+        "nodeId": "7008210442"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.865,
+        "y": 598.069,
+        "nodeId": "7008210442"
+      },
+      "b": {
+        "x": 945.938,
+        "y": 588.4,
+        "nodeId": "7087148892"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.938,
+        "y": 588.4,
+        "nodeId": "7087148892"
+      },
+      "b": {
+        "x": 945.73,
+        "y": 581.469,
+        "nodeId": "7087148885"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.73,
+        "y": 581.469,
+        "nodeId": "7087148885"
+      },
+      "b": {
+        "x": 944.993,
+        "y": 563.301,
+        "nodeId": "7087148886"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 944.993,
+        "y": 563.301,
+        "nodeId": "7087148886"
+      },
+      "b": {
+        "x": 944.784,
+        "y": 551.935,
+        "nodeId": "7087148888"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 944.784,
+        "y": 551.935,
+        "nodeId": "7087148888"
+      },
+      "b": {
+        "x": 945.011,
+        "y": 541.239,
+        "nodeId": "8377155096"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.011,
+        "y": 541.239,
+        "nodeId": "8377155096"
+      },
+      "b": {
+        "x": 945.693,
+        "y": 530.843,
+        "nodeId": "7087148887"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 945.693,
+        "y": 530.843,
+        "nodeId": "7087148887"
+      },
+      "b": {
+        "x": 946.62,
+        "y": 522.215,
+        "nodeId": "8377155097"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 946.62,
+        "y": 522.215,
+        "nodeId": "8377155097"
+      },
+      "b": {
+        "x": 947.915,
+        "y": 513.851,
+        "nodeId": "7087148891"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 947.915,
+        "y": 513.851,
+        "nodeId": "7087148891"
+      },
+      "b": {
+        "x": 949.727,
+        "y": 504.903,
+        "nodeId": "8377155098"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 949.727,
+        "y": 504.903,
+        "nodeId": "8377155098"
+      },
+      "b": {
+        "x": 951.851,
+        "y": 496.439,
+        "nodeId": "8377155099"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 951.851,
+        "y": 496.439,
+        "nodeId": "8377155099"
+      },
+      "b": {
+        "x": 954.503,
+        "y": 487.376,
+        "nodeId": "7087148890"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 954.503,
+        "y": 487.376,
+        "nodeId": "7087148890"
+      },
+      "b": {
+        "x": 957.739,
+        "y": 477.736,
+        "nodeId": "8377155100"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 957.739,
+        "y": 477.736,
+        "nodeId": "8377155100"
+      },
+      "b": {
+        "x": 967.47,
+        "y": 452.301,
+        "nodeId": "7087148889"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 967.47,
+        "y": 452.301,
+        "nodeId": "7087148889"
+      },
+      "b": {
+        "x": 985.145,
+        "y": 408.884,
+        "nodeId": "7008210443"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
+        "x": 985.145,
+        "y": 408.884,
+        "nodeId": "7008210443"
+      },
+      "b": {
+        "x": 986.736,
+        "y": 404.962,
+        "nodeId": "7087117584"
+      },
+      "osmWayId": "749425495",
+      "railwayTrackRef": "136",
+      "service": "yard",
+      "kind": "abstellung",
+      "originalTrackRef": "136",
+      "lineRef": null,
+      "originalWayName": null
+    },
+    {
+      "a": {
         "x": 963.025,
         "y": 795.411,
         "nodeId": "6577781663"
@@ -24259,120 +23537,6 @@
     },
     {
       "a": {
-        "x": 1489.478,
-        "y": 1397.59,
-        "nodeId": "250096833"
-      },
-      "b": {
-        "x": 1502.493,
-        "y": 1405.655,
-        "nodeId": "1259244492"
-      },
-      "osmWayId": "1104738781",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1502.493,
-        "y": 1405.655,
-        "nodeId": "1259244492"
-      },
-      "b": {
-        "x": 1509.756,
-        "y": 1409.876,
-        "nodeId": "8359192061"
-      },
-      "osmWayId": "1104738781",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1509.756,
-        "y": 1409.876,
-        "nodeId": "8359192061"
-      },
-      "b": {
-        "x": 1517.185,
-        "y": 1413.805,
-        "nodeId": "8359192060"
-      },
-      "osmWayId": "1104738781",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1517.185,
-        "y": 1413.805,
-        "nodeId": "8359192060"
-      },
-      "b": {
-        "x": 1531.711,
-        "y": 1421.242,
-        "nodeId": "1259244191"
-      },
-      "osmWayId": "1104738781",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1502.493,
-        "y": 1405.655,
-        "nodeId": "1259244492"
-      },
-      "b": {
-        "x": 1521.354,
-        "y": 1417.677,
-        "nodeId": "1705488724"
-      },
-      "osmWayId": "1104738782",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
-        "x": 1521.354,
-        "y": 1417.677,
-        "nodeId": "1705488724"
-      },
-      "b": {
-        "x": 1529.415,
-        "y": 1422.839,
-        "nodeId": "1259244060"
-      },
-      "osmWayId": "1104738782",
-      "railwayTrackRef": null,
-      "service": "yard",
-      "kind": "verbindung",
-      "originalTrackRef": null,
-      "lineRef": null,
-      "originalWayName": null
-    },
-    {
-      "a": {
         "x": 1064.806,
         "y": 1067.772,
         "nodeId": "1259244081"
@@ -24968,20 +24132,6 @@
       }
     },
     {
-      "osmNodeId": "1259244375",
-      "x": 1725.457,
-      "y": 1592.829,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "buffer_stop",
-        "railway:signal:direction": "forward",
-        "railway:signal:minor": "DE-ESO:sh2",
-        "railway:signal:minor:form": "sign",
-        "railway:signal:position": "in_track"
-      }
-    },
-    {
       "osmNodeId": "1259327693",
       "x": 922.639,
       "y": 539.214,
@@ -25438,20 +24588,6 @@
         "railway:signal:distant:states": "DE-ESO:ks1;DE-ESO:ks2;DE-ESO:kennlicht",
         "railway:signal:position": "right",
         "video": "https://youtu.be/Tzy-31Ux7bk?t=130"
-      }
-    },
-    {
-      "osmNodeId": "2581666271",
-      "x": 1616.216,
-      "y": 1488.418,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "railway": "buffer_stop",
-        "railway:signal:direction": "forward",
-        "railway:signal:minor": "DE-ESO:sh2",
-        "railway:signal:minor:form": "sign",
-        "railway:signal:position": "in_track"
       }
     },
     {
@@ -26580,6 +25716,22 @@
         "railway:signal:minor:form": "sign",
         "railway:signal:position": "in_track",
         "source": "estimate; extrapolate; survey"
+      }
+    },
+    {
+      "osmNodeId": "7008210443",
+      "x": 985.145,
+      "y": 408.884,
+      "ref": null,
+      "type": null,
+      "railwayTags": {
+        "fixme": "ref fehlt noch",
+        "railway": "buffer_stop",
+        "railway:signal:direction": "forward",
+        "railway:signal:minor": "DE-ESO:sh2",
+        "railway:signal:minor:form": "sign",
+        "railway:signal:position": "in_track",
+        "video": "https://youtu.be/_3mCzQCDRyM?t=72"
       }
     },
     {
@@ -28046,6 +27198,24 @@
       }
     },
     {
+      "osmNodeId": "8193897853",
+      "x": 945.809,
+      "y": 599.395,
+      "ref": null,
+      "type": null,
+      "railwayTags": {
+        "description": "Sperrsignal",
+        "operator": "DB InfraGO",
+        "railway": "signal",
+        "railway:signal:direction": "backward",
+        "railway:signal:minor": "DE-ESO:sh",
+        "railway:signal:minor:form": "light",
+        "railway:signal:minor:height": "dwarf",
+        "railway:signal:minor:states": "DE-ESO:hp0;DE-ESO:sh1",
+        "railway:signal:position": "left"
+      }
+    },
+    {
       "osmNodeId": "8193897854",
       "x": 941.708,
       "y": 599.16,
@@ -28266,78 +27436,6 @@
         "railway:signal:traversable": "DE-ESO:mastschild_rot-weiss",
         "railway:signal:traversable:type": "written_default_speed;dictated_default_speed",
         "ref": "92 ZS 205"
-      }
-    },
-    {
-      "osmNodeId": "8892364435",
-      "x": 1567.536,
-      "y": 1439.646,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "description": "Zwergsignal in Richtung Norden",
-        "operator": "DB InfraGO",
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "light",
-        "railway:signal:minor:height": "dwarf",
-        "railway:signal:minor:states": "DE-ESO:hp0;DE-ESO:sh1",
-        "railway:signal:position": "left"
-      }
-    },
-    {
-      "osmNodeId": "8892364436",
-      "x": 1565.129,
-      "y": 1441.942,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "description": "Zwergsignal in Richtung Norden",
-        "operator": "DB InfraGO",
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "light",
-        "railway:signal:minor:height": "dwarf",
-        "railway:signal:minor:states": "DE-ESO:hp0;DE-ESO:sh1",
-        "railway:signal:position": "left"
-      }
-    },
-    {
-      "osmNodeId": "8892364437",
-      "x": 1562.495,
-      "y": 1444.38,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "description": "Zwergsignal in Richtung Norden",
-        "operator": "DB InfraGO",
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "light",
-        "railway:signal:minor:height": "dwarf",
-        "railway:signal:minor:states": "DE-ESO:hp0;DE-ESO:sh1",
-        "railway:signal:position": "left"
-      }
-    },
-    {
-      "osmNodeId": "8892364438",
-      "x": 1559.671,
-      "y": 1446.448,
-      "ref": null,
-      "type": null,
-      "railwayTags": {
-        "description": "Zwergsignal in Richtung Norden",
-        "operator": "DB InfraGO",
-        "railway": "signal",
-        "railway:signal:direction": "backward",
-        "railway:signal:minor": "DE-ESO:sh",
-        "railway:signal:minor:form": "light",
-        "railway:signal:minor:height": "dwarf",
-        "railway:signal:minor:states": "DE-ESO:hp0;DE-ESO:sh1",
-        "railway:signal:position": "left"
       }
     },
     {
@@ -29161,43 +28259,11 @@
       "degree": 3
     },
     {
-      "osmNodeId": "1259244060",
-      "x": 1529.415,
-      "y": 1422.839,
-      "ref": null,
-      "type": null,
-      "degree": 3
-    },
-    {
       "osmNodeId": "1259244081",
       "x": 1064.806,
       "y": 1067.772,
       "ref": "92240",
       "type": "default",
-      "degree": 3
-    },
-    {
-      "osmNodeId": "1259244096",
-      "x": 1591.253,
-      "y": 1455.882,
-      "ref": "952",
-      "type": "default",
-      "degree": 3
-    },
-    {
-      "osmNodeId": "1259244153",
-      "x": 1730.559,
-      "y": 1593.078,
-      "ref": null,
-      "type": null,
-      "degree": 3
-    },
-    {
-      "osmNodeId": "1259244191",
-      "x": 1531.711,
-      "y": 1421.242,
-      "ref": null,
-      "type": null,
       "degree": 3
     },
     {
@@ -29222,14 +28288,6 @@
       "y": 1239.73,
       "ref": "92W271",
       "type": "default",
-      "degree": 3
-    },
-    {
-      "osmNodeId": "1259244492",
-      "x": 1502.493,
-      "y": 1405.655,
-      "ref": "86W370",
-      "type": null,
       "degree": 3
     },
     {
@@ -29756,28 +28814,28 @@
   "report": {
     "source": "DB InfraGO LH (30.09.2026), OpenStreetMap/OpenRailwayMap",
     "originalSegments": 4825,
-    "retainedSegments": 1297,
-    "removedSegments": 3528,
+    "retainedSegments": 1253,
+    "removedSegments": 3572,
     "kinds": {
       "personenbahn": 1202,
-      "abstellung": 25,
-      "weitere-gruppe": 58,
-      "verbindung": 12
+      "abstellung": 45,
+      "verbindung": 6
     },
-    "railNodes": 1279,
+    "railNodes": 1236,
     "components": [
-      1279
+      1236
     ],
     "connectedComponents": [
-      1279
+      1236
     ],
-    "signals": 204,
-    "switches": 95,
+    "signals": 200,
+    "switches": 90,
     "excludedFreightWays": 100,
     "warnings": [
       "Halle Gbf/ZBA und nicht zugeordnete Rangiergleise aus der SPIELANSICHT ausgeschlossen",
       "Kasseler Gruppe als Personen-Zugabstellung belegt; einzelne Gleise und betriebliche Nutzung noch überprüfen",
-      "Neue Gruppe nur als weitere Gleisgruppe, nicht als bestätigte Personenabstellung gekennzeichnet",
+      "Neue Gruppe und nicht zugeordnete Betriebsgruppen bleiben aus dem Spiel ausgeschlossen",
+      "Gleis 136 ist bei DB InfraGO 2026 als Halle Hbf Abstellung ausgewiesen",
       "Streckenanschlüsse, Signalrichtungen und Originalfahrstraßen weiterhin fachlich prüfen"
     ]
   }
