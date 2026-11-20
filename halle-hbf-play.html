@@ -107,7 +107,7 @@ body.sector-ww #schemaHits [data-area]:not([data-area="ww"]){pointer-events:none
 <button id="sectorViewMode" type="button" aria-pressed="true" title="Schematische Spielansicht oder unveränderte OSM-Geometrie">Schemaplan ✓</button>
 <div id="sectorStatus" role="status">Spielbereich West · virtuelle Grenze</div>
 </nav>
-<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
+<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Gleisbildstellwerk Halle Hbf – schematisches Bedienbild und OSM-Prüfkarte"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
 <p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><h2 style="font-size:15px">Original-Abfahrtsfahrplan · 20.11.2026 (Fr)</h2>
@@ -196,7 +196,7 @@ const game=new HalleGameSession(HALLE_ORIGINAL_DEPARTURES);
 const areas=createHalleAreas(edges);
 const gleisbild=createHalleSchematic(edges,areas);
 let currentSector='west',schematicMode=true;
-const world=document.createElementNS(NS,'g');world.id='schematicWorld';
+const world=document.createElementNS(NS,'g');world.id='osmWorld';
 while(svg.firstElementChild)world.append(svg.firstElementChild);
 svg.append(world);
 const schematicWorld=el('g',{id:'schematicWorld','aria-label':'Schematisches Gleisbild Halle Hbf'},svg);
