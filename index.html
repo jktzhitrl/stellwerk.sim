@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-20.halle-pbf-abstellung-1">
+<meta name="app-version" content="2026-11-20.halle-signale-originalfahrplan-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3527,7 +3527,7 @@ function renderStart() {
   const bestAll = readBest();
   // Halle Hbf: echte OSM-Gleise, aber noch keine bestätigten Stellwerksfahrstraßen.
   {const b=document.createElement('button');b.className='stCard';
-   b.innerHTML='<b>🚦 Halle Hbf · Personenbahnhof + Abstellung (Vorschau)</b><span class="sub">Personengleise 1–13, Kasseler Abstellung und verbundene Original-OSM-Gleise. Ohne Güterbahnhof und ZBA. Fahrstraßen noch ungeprüft.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Kasseler Abstellung</span><span>Ohne Güterbahnhof</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
+   b.innerHTML='<b>🚦 Halle Hbf · Personenbahnhof + Abstellung (Vorschau)</b><span class="sub">Personengleise 1–13, Kasseler Abstellung, virtuelle Signale und belegter DB-Abfahrtsfahrplan (20.11.2026). Keine echten Verschlussabhängigkeiten; ohne Güterbahnhof.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Kasseler Abstellung</span><span>Ohne Güterbahnhof</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
    b.addEventListener('click',()=>{window.location.href='./halle-hbf-play.html';});cards.appendChild(b);
   }
   for (const id in STATIONS) {
