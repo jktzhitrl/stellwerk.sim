@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-20.halle-signale-originalfahrplan-1">
+<meta name="app-version" content="2026-11-20.halle-start-repair-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -603,9 +603,7 @@ const STATIONS = {
   eilenburg: { name: 'Bf Eilenburg', short: 'Eilenburg', stw: 'Stw Eilenburg (LEG)',
     info: 'Nach realem Vorbild (vereinfacht nach OSM und DB-Gleisplan): Gleise 1–4, Güterbahnhof Gl 5–13, Strecken 6345 Halle – Torgau, 6360 Leipzig, 6831 Eilenburg Ost, 6825 Lüptitz',
     tags: ['reales Vorbild', '5 Strecken', 'S-Bahn & RE', 'Gbf Gl 5–13 & Rangieren', 'Lokwechsel', 'Baustellen', 'Leipzig · Halle · Torgau'] },
-  halle: { locked: true, name: 'Halle (Saale) Hbf', short: 'Halle', stw: 'Stw Halle (Saale) Hbf',
-    info: 'Großer Knoten nach realem Vorbild (schematisch): 13 Bahnsteiggleise, 8 zweigleisige Strecken, ICE Berlin – München, S-Bahn Mitteldeutschland, Gütergleise zur Zugbildungsanlage',
-    tags: ['reales Vorbild (schematisch)', '13 Bahnsteiggleise', '8 Strecken', 'ICE-Halt', 'S-Bahn & Wendezüge', 'Gütergleise ZBA', 'sehr groß'] },
+
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] && !STATIONS[b].locked ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -3528,7 +3526,7 @@ function renderStart() {
   // Halle Hbf: echte OSM-Gleise, aber noch keine bestätigten Stellwerksfahrstraßen.
   {const b=document.createElement('button');b.className='stCard';
    b.innerHTML='<b>🚦 Halle Hbf · Personenbahnhof + Abstellung (Vorschau)</b><span class="sub">Personengleise 1–13, Kasseler Abstellung, virtuelle Signale und belegter DB-Abfahrtsfahrplan (20.11.2026). Keine echten Verschlussabhängigkeiten; ohne Güterbahnhof.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Kasseler Abstellung</span><span>Ohne Güterbahnhof</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
-   b.addEventListener('click',()=>{window.location.href='./halle-hbf-play.html';});cards.appendChild(b);
+   b.addEventListener('click',()=>{window.location.href='./halle-hbf-play.html?v=20261120-startrepair1';});cards.appendChild(b);
   }
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
