@@ -24,6 +24,26 @@
 - Eine vorläufige Overpass-Abfrage für Gleise, Weichen und signalbezogene Objekte liegt unter [halle-hbf-openrailwaymap-overpass.ql](./halle-hbf-openrailwaymap-overpass.ql). **Noch nicht ausgeführt und nicht auf Vollständigkeit geprüft**. Vor Import geografisches Fenster und betriebliche Grenzen verifizieren.
 - OSM-Rohdaten benötigen Datenstand und Attribution **© OpenStreetMap contributors, ODbL 1.0**.
 
+## Dokumentierte Streckenanschlüsse und betriebliche Gleisgruppen (Planstand 30.09.2026)
+
+Aus dem **exakten Text des DB-InfraGO-LH-Plans** belegbar:
+
+| Strecke | Angabe am Originalplan | Status |
+| --- | --- | --- |
+| 6343 | Ri. Halle Abzw Ac (Sangerhausen) | Im Plan beschriftet |
+| 6340 | Ri. Halle Abzw At (Merseburg) | Im Plan beschriftet |
+| 6053 | Ri. Halle Abzw Al (Gröbers) | Im Plan beschriftet |
+| 6403 | Ri. Halle Abzw Al (Leipzig) | Im Plan beschriftet |
+| 6050 | Ri. Halle Trotha; daneben Halle Gbf, ZBA Halle Richtungs-/Ausfahrgruppe | Im Plan beschriftet; konkrete betriebliche Abgrenzung noch zu prüfen |
+
+Weitere im LH-Plan erkennbare Gleisgruppen/Anlagen: **Halle West, Halle Ost, Neue Gruppe, Magdeburger Prellbock, Thüringer Prellbock, Kasseler Gruppe, Anschluss Nahverkehrswerkstatt DB Regio AG**, außerdem Vorstell-/Bereitstellungs- und betriebliche Nebengleise.
+
+**Diese Liste ist noch keine vollständige Gleis- und Weicheninventur.** Der offizielle PDF-Plan zeigt viele einzelne Bezeichnungen, darunter Weichen und Signale (z. B. IDs mit Präfixen 92W und 96W). Eine genaue Zuordnung von OSM-Way/Node, Gleisbezeichnung, Weichentyp, Weichenlage, Signal, zulässiger Richtung und Fahrstraße wurde bislang **nicht** durchgeführt. Die genannten Richtungen sind **Strecken-Zielangaben**, keine bewiesenen einzelnen Fahrstraßen zu jedem Gleis. Die OSM-/OpenRailwayMap-Rohdaten wurden für Halle noch nicht importiert.
+
+Für den Originalnachbau ist je Gleisabschnitt die folgende Datenerfassung vorgesehen: OSM-Gleisweg und echte Knoten-ID; Ril-100-Streckennummer und Gleisnummer (falls zugeordnet); durchgehender Anschluss zu anderen Gleisen; Weichennummer und mögliche Stellungen; Signalstandort/-bezeichnung/-richtung; Bahnsteig- oder Betriebsfunktion; Quellennachweis und Unsicherheitsstatus. Danach Gegenprüfung jeder erlaubten Fahrstraße gegen zuverlässige Stellwerksunterlagen.
+
+**Quelle:** [DB InfraGO Betriebsstellenplan LH, 30.09.2026](https://trassenfinder.de/apn/LH), insbesondere die am unteren Rand beschrifteten Streckenrichtungen, die Werkstatt und Gleisgruppen.
+
 ## Betriebliche Abgrenzung und offene Fragen
 
 - **Halle (Saale) Hbf** nicht mit **Halle-Ammendorf**, **Halle (Saale) Güterbahnhof**, Neben-/S-Bahnanlagen oder benachbarten Abzweigstellen vermischen.
