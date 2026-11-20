@@ -1,0 +1,31 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+const page=await browser.newPage({viewport:{width:768,height:1024},deviceScaleFactor:1,hasTouch:true});
+const errors=[];page.on('pageerror',err=>errors.push(err.message));page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
+try{
+ await page.goto('http://127.0.0.1:8765/index.html?v=halle-start-test',{waitUntil:'domcontentloaded'});
+ const buttons=page.locator('#stCards button');
+ const halle=buttons.filter({hasText:'Halle Hbf'});
+ await halle.first().waitFor({timeout:20000});
+ assert.equal(await halle.count(),1,'There must be exactly one Halle start card');
+ assert.equal(await halle.first().isEnabled(),true,'Halle game start must be enabled');
+ await halle.first().click();
+ await page.waitForURL('**/halle-hbf-play.html*',{timeout:12000});
+ await page.locator('#departures button[data-service]').first().waitFor({timeout:22000});
+ assert.equal(await page.locator('#departures button[data-service]').count(),33);
+ const status=await page.locator('#status').innerText();
+ assert.doesNotMatch(status,/Fehler beim Laden|konnte nicht geladen/);
+ await page.locator('#departures button[data-service]').first().click();
+ const signal=await page.locator('#virtualAspect').innerText();
+ assert.match(signal,/Hp0/,'Signal should start at stop');
+ assert.equal(await page.locator('#clearRoute').isEnabled(),true,'First scheduled train needs playable test route');
+ await page.locator('#clearRoute').click();
+ assert.match(await page.locator('#virtualAspect').innerText(),/Ks1/,'Signal should be cleared');
+ assert.equal(await page.locator('#go').isEnabled(),true,'05:00 train must be dispatchable at 05:00');
+ await page.locator('#go').click();
+ assert.match(await page.locator('#virtualAspect').innerText(),/Hp0/,'Signal must fall to stop during train run');
+ await page.locator('#departures button[data-service]').first().locator('.state').getByText('abgefahren').waitFor({timeout:45000});
+ assert.equal(errors.length,0,'Browser errors: '+errors.join(' | '));
+ console.log(JSON.stringify({passed:true,halleCards:await halle.count(),departures:33,firstTrainCompleted:true,errors,finalStatus:await page.locator('#status').innerText()}));
+}finally{await browser.close();}
