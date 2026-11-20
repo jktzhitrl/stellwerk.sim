@@ -61,3 +61,16 @@ Die OSM-Weichen und signalbezogenen Objekte können in `halle-hbf-play.html` jet
 Weichen werden in einfache Dreiweg-Knoten, komplexe Kreuzungsweichen und unklare Anschlussgrade unterschieden. Der Originaldaten-Snapshot enthält kartierte Weichen mit ungewöhnlichen Anschlusszahlen; solche Punkte bleiben als prüfbedürftig gekennzeichnet. Die tatsächliche 1:1-Weichenstellung, Signalsicht/-richtung, Blockbereiche und Fahrstraßen/Verschlussabhängigkeiten fehlen weiterhin und werden nicht geschätzt.
 
 Funktionalität: OSM-Objektliste mit Typfiltern, Kennungen und Details; angetippte Marker zentrieren die Stelle. Die bisherige reine Testfahrt nutzt weiterhin konservative Weichenübergangsregeln und bleibt ausdrücklich eine **geometrische Gleisvorschau**. Tablet-/Hardware-E2E-Test noch offen. 
+
+## 20.11.2026 – Benutzerwunsch: nur Personenbahnhof mit Abstellung, kein Güterbahnhof
+
+Die bisherige große Gleisnetz-Vorschau zeigte auch den östlich gelegenen Güterbahnhof einschließlich Zugbildungs-/Rangiergleisen. Auf ausdrücklichen Wunsch wurde der **Spiel-Gleisdatensatz auf den Personenbahnhof und zugehörige Abstellung begrenzt**.
+
+- Herleitung: Personenverkehrsgleise aus OSM `railway:traffic_mode=passenger`, dazu die dokumentierte **Kasseler Gruppe (Personenzug-Abstellung)**, außerdem die kartierte **Neue Gruppe** als separat gekennzeichnete Betriebsgruppe mit noch zu prüfender Nutzung.
+- Für beide Gruppen wurden **nur tatsächlich vorhandene OSM-Verbindungs-Ways** in den Gesamtgraphen aufgenommen (u. a. IDs `1104738780`, `1104738781`, `1104738782`, `110187475`). Kein Verbindungsstück wurde frei gezeichnet.
+- Algorithmus unter `halle-hbf-personenbereich.mjs`; reproduzierbarer Konverter `tools/halle-hbf-scope.mjs`. Separater Spiel-Datensatz `data/halle-hbf-personenbereich.json`; die große Rohdatensicherung bleibt ausschließlich als technische Quelle im Repository.
+- Resultat aus dem 20.11.2026-OSM-Snapshot: **1.297 von ursprünglich 4.825 Gleissegmenten** im Spiel, davon 1.202 Personenverkehrssegmente, 25 Kasseler Abstellung, 58 Neue Gruppe und 12 original kartierte Zubringersegmente. **3.528 Segmente ausgeschlossen**, insbesondere die nicht zum Personenbahnhof gehörenden Güter-/Rangiergleise. **1.279 Gleisknoten**, ein zusammenhängender OSM-Gleisgraph, **95 kartierte Weichen und 204 signalbezogene Objekte** innerhalb des neuen Ausschnitts. Diese Objekte sind nicht alle Stellwerkssignale.
+- In der Gleisvorschau **und in der für Spieler sichtbaren Prüfkarte** wird ausschließlich der gefilterte Datensatz geladen. Der Güterbahnhof ist auch über die Schaltfläche „Alle Personengleise“ nicht mehr sichtbar.
+- Die vollständige betriebliche Zugehörigkeit einzelner Gleise, die separate Neue Gruppe, real geschaltete Weichenverbindungen und der tatsächliche 2026er Bauzustand bleiben zu prüfen. `railway:traffic_mode=passenger` ist OSM-Tagging, keine amtliche Abgrenzung nach Stellwerksbezirken. Echte Fahrstraßen dürfen aus der reinen OSM-Geometrie nicht abgeleitet werden.
+
+Quellen: [DB InfraGO Betriebsstellenplan LH, 30.09.2026](https://trassenfinder.de/apn/LH); [DB-Bahnknoten Halle / Neuanbindung Kasseler Gruppe](https://www.deutschebahn.com/resource/blob/5836704/ce4227c0fa89a67e85355496a30/2021_VM_001_Foliensatz_Pressegespraech_Halle-data.pdf); © OpenStreetMap contributors, ODbL 1.0.
