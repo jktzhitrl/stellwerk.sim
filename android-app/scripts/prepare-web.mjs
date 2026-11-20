@@ -14,8 +14,6 @@ const files = [
   'index.html',
   'editor.html',
   'custom-play.html',
-  'tycoon.html',
-  'tycoon-engine.js',
   'eilenburg-plan.js',
   'eilenburg-review.html',
   'halle-hbf-originalfahrplan.mjs',
@@ -53,8 +51,9 @@ if (!html.includes(registrationGuard)) {
 html = html.replace(registrationGuard, "if (false) { // Native app bundles local files; do not register a PWA service worker");
 await writeFile(indexFile, html, 'utf8');
 
-// The Tycoon mode is bundled locally, so its navigation target must exist.
-if (html.includes("'./tycoon.html'") && !files.includes('tycoon.html')) {
-  throw new Error('Tycoon navigation present but tycoon.html is not bundled.');
+// Tycoon has been retired from the playable app. Keep its old sources only
+// in Git history/repository, not in the packaged application or navigation.
+if (/tycoon/i.test(html) || files.some(file => /tycoon/i.test(file))) {
+  throw new Error('Tycoon mode must not be bundled or linked from Stellwerk.sim.');
 }
 console.log('Stellwerk.sim: ' + files.length + ' local files prepared in android-app/www');

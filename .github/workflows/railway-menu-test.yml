@@ -1,0 +1,54 @@
+name: Railway dispatcher menu and Tycoon removal
+on:
+  push:
+    branches:
+      - chatgpt/stellwerk-railway-menu-no-tycoon-20261120
+      - gh-pages
+    paths:
+      - 'index.html'
+      - 'tycoon.html'
+      - 'android-app/scripts/prepare-web.mjs'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - 'tools/tests/railway-menu-browser.test.mjs'
+      - '.github/workflows/railway-menu-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  menu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PWA and Android offline assets
+        run: |
+          node --check sw.js
+          node android-app/scripts/prepare-web.mjs
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const html=readFileSync('index.html','utf8');
+          new Function(html.slice(html.lastIndexOf('<script>')+8,html.lastIndexOf('</script>')));
+          assert.ok(!/tycoon/i.test(html),'Tycoon still present in the game UI');
+          assert.ok(!existsSync('android-app/www/tycoon.html'));
+          assert.ok(!existsSync('android-app/www/tycoon-engine.js'));
+          assert.ok(readFileSync('tycoon.html','utf8').includes("location.replace('./index.html')"));
+          assert.ok(readFileSync('sw.js','utf8').includes('railway-dispatch-no-tycoon'));
+          console.log('No Tycoon in UI or Android; game syntax is valid.');
+          NODE
+      - name: Use preinstalled Google Chrome on Ubuntu runner
+        run: npm install --no-save --no-package-lock playwright@1.58.2
+      - name: Browser test of 390px, 768px and 1280px railway menus
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/railway-menu-http.log 2>&1 &
+          sleep 2
+          node tools/tests/railway-menu-browser.test.mjs
+      - name: Store visual review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-dispatch-overlay-preview
+          path: menu-*.png
+          if-no-files-found: ignore
+          retention-days: 14

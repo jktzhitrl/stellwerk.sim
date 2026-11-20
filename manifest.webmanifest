@@ -1,18 +1,36 @@
 {
   "name": "Stellwerk – Gleisbildstellwerk-Simulator",
   "short_name": "Stellwerk",
-  "description": "Stellwerks-Spiel für Tablets: Fahrstraßen stellen, Signale bedienen, Züge pünktlich abfertigen (Bf Neustadt, Bf Teutschenthal).",
+  "description": "Gleisbildstellwerk für Tablets: Bahnhöfe auswählen, Fahrstraßen und Signale bedienen, Züge nach Fahrplan abfertigen und eigene Gleispläne erstellen.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "landscape",
-  "background_color": "#1b1d1f",
-  "theme_color": "#24272a",
+  "background_color": "#0c171e",
+  "theme_color": "#192a34",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

@@ -1,7 +1,7 @@
 // Service Worker: macht das Stellwerk offline spielbar.
 // Strategie: Netzwerk zuerst – immer beim Server nachfragen (cache: 'no-cache'), damit Updates sofort ankommen;
 // bei fehlender Verbindung aus dem Cache.
-const CACHE = 'stellwerk-v14-20261120-halle-start-repair';
+const CACHE = 'stellwerk-v15-20261120-railway-dispatch-no-tycoon';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png', './custom-play.html', './eilenburg-plan.js', './eilenburg-review.html', './data/eilenburg-osm-review.json', './halle-hbf-originalfahrplan.mjs', './halle-hbf-betrieb.mjs', './halle-hbf-objects.mjs', './halle-hbf-references.mjs', './halle-hbf-routing.mjs', './halle-hbf-play.html', './halle-hbf-review.html', './data/halle-hbf-personenbereich.json'];
 
 self.addEventListener('install', e => {
