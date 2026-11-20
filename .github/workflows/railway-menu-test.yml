@@ -34,7 +34,10 @@ jobs:
           assert.ok(!existsSync('android-app/www/tycoon.html'));
           assert.ok(!existsSync('android-app/www/tycoon-engine.js'));
           assert.ok(readFileSync('tycoon.html','utf8').includes("location.replace('./index.html')"));
-          assert.ok(readFileSync('sw.js','utf8').includes('railway-dispatch-no-tycoon'));
+          const sw=readFileSync('sw.js','utf8');
+          assert.match(sw,/const CACHE = 'stellwerk-v\\d+-/,'PWA cache must have a version');
+          assert.ok(sw.includes('./halle-hbf-bereiche.mjs'),'Sectors must be available offline');
+          assert.ok(!sw.includes("'./tycoon.html'"),'Tycoon must stay out of PWA offline files');
           console.log('No Tycoon in UI or Android; game syntax is valid.');
           NODE
       - name: Use preinstalled Google Chrome on Ubuntu runner
