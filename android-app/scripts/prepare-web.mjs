@@ -23,7 +23,7 @@ const files = [
   'halle-hbf-routing.mjs',
   'halle-hbf-play.html',
   'halle-hbf-review.html',
-  'data/halle-hbf-osm-review.json',
+  'data/halle-hbf-personenbereich.json',
   'data/eilenburg-osm-review.json',
   'manifest.webmanifest',
   'icons/icon-192.png',
