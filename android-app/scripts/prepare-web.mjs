@@ -19,6 +19,7 @@ const files = [
   'halle-hbf-originalfahrplan.mjs',
   'halle-hbf-betrieb.mjs',
   'halle-hbf-bereiche.mjs',
+  'halle-hbf-gleisbild.mjs',
   'halle-hbf-objects.mjs',
   'halle-hbf-references.mjs',
   'halle-hbf-routing.mjs',
