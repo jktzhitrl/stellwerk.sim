@@ -14,6 +14,14 @@ try{
  await page.waitForURL('**/halle-hbf-play.html*',{timeout:12000});
  await page.locator('#departures button[data-service]').first().waitFor({timeout:22000});
  assert.equal(await page.locator('#departures button[data-service]').count(),33);
+ const zoomBefore=await page.locator('#board').getAttribute('viewBox');
+ await page.locator('#zoomIn').click();
+ const zoomAfter=await page.locator('#board').getAttribute('viewBox');
+ assert.notEqual(zoomBefore,zoomAfter,'Toolbar zoom should update the track map');
+ assert.equal(await page.locator('#nextTrain').isVisible(),true,'Guided train choice should be visible');
+ await page.locator('#nextTrain').click();
+ assert.match(await page.locator('#selectedService').innerText(),/05:00/,'Next-train shortcut should select first scheduled departure');
+ assert.equal(await page.locator('details.technical').evaluate(el=>el.open),false,'Dense OSM source information should be collapsed initially');
  const status=await page.locator('#status').innerText();
  assert.doesNotMatch(status,/Fehler beim Laden|konnte nicht geladen/);
  await page.locator('#departures button[data-service]').first().click();
@@ -26,6 +34,15 @@ try{
  await page.locator('#go').click();
  assert.match(await page.locator('#virtualAspect').innerText(),/Hp0/,'Signal must fall to stop during train run');
  await page.locator('#departures button[data-service]').first().locator('.state').getByText('abgefahren').waitFor({timeout:45000});
+ assert.match(await page.locator('#score').innerText(),/1\/33/,'Progress should count the first completed train');
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.locator('#map').isVisible(),true,'Map should remain visible on a phone');
+ assert.equal(await page.locator('#go').isVisible(),true,'Dispatch action should stay accessible on a phone');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'No horizontal overflow on phone');
+ await page.locator('#nextTrain').click();
+ assert.notEqual(await page.locator('#selectedService').innerText(),'Wähle einen Zug aus der Original-Abfahrtstafel.');
+ await page.locator('details.technical summary').click();
+ assert.equal(await page.locator('#objectSummary').isVisible(),true,'Technical review panel must remain accessible');
  assert.equal(errors.length,0,'Browser errors: '+errors.join(' | '));
  console.log(JSON.stringify({passed:true,halleCards:await halle.count(),departures:33,firstTrainCompleted:true,errors,finalStatus:await page.locator('#status').innerText()}));
 }finally{await browser.close();}
