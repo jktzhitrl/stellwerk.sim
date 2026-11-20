@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-19.bestenliste-1">
+<meta name="app-version" content="2026-11-20.halle-hbf-gleise-preview-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3525,6 +3525,11 @@ function renderStart() {
   if(saved&&saved.version===1&&Array.isArray(saved.tracks)&&saved.tracks.length){const b=document.createElement('button');b.className='stCard';b.style.width='100%';b.innerHTML='<b>🛠️ Eigener Bahnhof spielen ▶</b><span class="sub"></span>';b.querySelector('.sub').textContent=(saved.name||'Mein Bahnhof')+' · '+saved.tracks.length+' Gleise · eigener Stellwerkbetrieb';b.addEventListener('click',()=>{window.location.href='./custom-play.html';});custom.appendChild(b);}
   const cards = $('#stCards'); cards.innerHTML = '';
   const bestAll = readBest();
+  // Halle Hbf: echte OSM-Gleise, aber noch keine bestätigten Stellwerksfahrstraßen.
+  {const b=document.createElement('button');b.className='stCard';
+   b.innerHTML='<b>🚦 Halle (Saale) Hbf · Originalgleise (Vorschau)</b><span class="sub">Gleisgeometrie aus OpenRailwayMap/OSM mit Zug-Testfahrt. Fahrstraßen und Signalabhängigkeiten noch nicht nach Original nachgebildet.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Originalgleise</span><span>Weichen</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
+   b.addEventListener('click',()=>{window.location.href='./halle-hbf-play.html';});cards.appendChild(b);
+  }
   for (const id in STATIONS) {
     const st = STATIONS[id], b = document.createElement('button');
     if (st.locked) {   // Bahnhof noch in Arbeit: sichtbar, aber nicht wählbar
