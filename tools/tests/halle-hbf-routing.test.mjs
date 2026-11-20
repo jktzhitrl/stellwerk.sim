@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildGraph,findGeometricPath,transitionPossible,trackRefs,representativeTrackNode} from '../halle-hbf-routing.mjs';
+import {buildGraph,findGeometricPath,transitionPossible,trackRefs,representativeTrackNode} from '../../halle-hbf-routing.mjs';
 const p=(id,x,y)=>({nodeId:String(id),x,y});
 const seg=(a,b,ref=null)=>({a,b,railwayTrackRef:ref});
 test('shortest distance path chooses the shorter track route',()=>{
