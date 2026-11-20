@@ -20,8 +20,8 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <header><h1>🚦 Halle (Saale) Hbf · Personenbahnhof + Abstellung</h1><a href="./index.html">← Stellwerkspiel</a><a href="./halle-hbf-review.html">🗺️ Originaldaten prüfen</a><button id="center">Bahnhof zentrieren</button><button id="all">Alle Personengleise</button></header>
 <main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g></svg></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
-<br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe ist als Personen-Zugabstellung eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
-<p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Abstellung</button><button id="newgroup" type="button">Weitere Betriebsgruppe</button></div><p><small>Die „Neue Gruppe“ ist zwar als Gleisgruppe kartiert, ihre konkrete Abstellfunktion ist noch nicht abschließend bestätigt.</small></p><p id="status" role="status">Tippe zuerst auf ein Gleis für die Einfahrt und dann auf ein anderes Gleis als Ziel.</p>
+<br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
+<p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><p id="status" role="status">Tippe zuerst auf ein Gleis für die Einfahrt und dann auf ein anderes Gleis als Ziel.</p>
 <div class="controls"><button id="new">Neue Fahrt</button><button id="go" disabled>▶ Zug fahren lassen</button></div>
 <label for="trackRef">Kartierte Gleisreferenz (OSM, keine geprüfte Bahnsteigzuordnung)</label>
 <div class="controls"><select id="trackRef" style="flex:1;min-width:110px"><option value="">Gleisreferenz auswählen</option></select><button id="fromRef">Als Start</button><button id="toRef">Als Ziel</button></div>
@@ -43,7 +43,7 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <select id="objectId"><option value="">Objekt auswählen …</option></select>
 <div class="controls"><button id="focusObject">📍 Objekt zeigen</button></div>
 <pre id="objectDetails">Objekte sind Kartendaten, keine geprüften Stellwerksstellungen.</pre>
-<p id="labels">Hellgrau: Personengleise · Grün: Kasseler Abstellung · Beige: weitere Betriebsgruppe · Gelb: Prüfweg · Rot: Zug</p>
+<p id="labels">Hellgrau: Personengleise · Grün: Kasseler Gruppe und Gleis 136 · Gelb: Prüfweg · Rot: Zug</p>
 <p><small>© OpenStreetMap contributors, ODbL 1.0. Ergänzende Quelle: <a href="https://trassenfinder.de/apn/LH" target="_blank" rel="noopener">DB-InfraGO-Gleisplan LH, 30.09.2026</a>. Die Karte kann auch angrenzende Gleisgruppen außerhalb des eigentlichen Hauptbahnhofs enthalten.</small></p>
 </aside></main>
 <script>
@@ -67,21 +67,21 @@ for(const ref of numbered){const option=document.createElement('option');option.
 $('refHint').textContent=numbered.length+' numerische Gleisreferenzen aus OpenStreetMap gefunden. Manche gehören zu Nachbaranlagen; Nummer und Betriebsgleiszugehörigkeit sind ungeprüft.';
 const V={x:700,y:100,w:1200,h:1700};let view={...V};
 function showGroup(name){
- const selected=edges.filter(e=>e.kind===name);
+ const selected=edges.filter(e=>name==='kasseler'?e.originalWayName==='Kasseler Gruppe':e.originalTrackRef==='136'&&e.kind==='abstellung');
  if(!selected.length){$('status').textContent='Keine kartierten Gleise für '+name+' gefunden.';return;}
  const xs=selected.flatMap(e=>[e.a.x,e.b.x]),ys=selected.flatMap(e=>[e.a.y,e.b.y]);
  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),margin=80;
  view={x:x0-margin,y:y0-margin,w:Math.max(360,x1-x0+2*margin),h:Math.max(300,y1-y0+2*margin)};
- showView();$('status').textContent=(name==='abstellung'?'Kasseler Abstellung':'Neue Gruppe (Nutzung noch prüfen)')+' – Original-OSM-Gleise. Nur geometrische Prüffahrten.';
+ showView();$('status').textContent=(name==='kasseler'?'Kasseler Gruppe':'DB-Abstellgleis 136')+' – originale OSM-Gleise. Nur geometrische Prüffahrten.';
 }
-$('kasseler').onclick=()=>showGroup('abstellung');
-$('newgroup').onclick=()=>showGroup('weitere-gruppe');
+$('kasseler').onclick=()=>showGroup('kasseler');
+$('abstellung136').onclick=()=>showGroup('136');
 function showView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}showView();
 const all=edges.flatMap(e=>[e.a,e.b]),minX=Math.min(...all.map(p=>p.x)),maxX=Math.max(...all.map(p=>p.x)),minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y));
 $('center').onclick=()=>{view={...V};showView();};$('all').onclick=()=>{view={x:minX-80,y:minY-80,w:maxX-minX+160,h:maxY-minY+160};showView();};
 const trackGroup=el('g',{},rail);
 edges.forEach((e,i)=>{const a=e.a,b=e.b;
- const c=e.kind==='abstellung'?'#65d8a7':e.kind==='weitere-gruppe'?'#e5b575':e.kind==='verbindung'?'#c4f0ff':'#d4dce5';
+ const c=e.kind==='abstellung'?'#65d8a7':e.kind==='verbindung'?'#c4f0ff':'#d4dce5';
  el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:c,'stroke-width':e.kind==='personenbahn'?3:4,'stroke-linecap':'round'},trackGroup);
 });
 const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':16,'data-edge':i},hits);h.style.cursor='crosshair';});
@@ -156,7 +156,7 @@ for(const {ref,label,via,osmCandidate} of referenceAudit.lines){
 }
 $('switches').onchange=ev=>symW.setAttribute('display',ev.target.checked?'inline':'none');
 $('signals').onchange=ev=>symS.setAttribute('display',ev.target.checked?'inline':'none');
-$('stats').textContent=edges.length+' gefilterte OSM-Segmente · '+(data.report.kinds.abstellung||0)+' Kasseler Abstellabschnitte · '+(data.report.kinds['weitere-gruppe']||0)+' weitere Gruppengleise · '+(data.osmSwitches||[]).length+' Weichen · '+(data.signals||[]).length+' Signalobjekte (ungeprüft)';
+$('stats').textContent=edges.length+' gefilterte OSM-Segmente · '+(data.report.kinds.abstellung||0)+' Abstellabschnitte inkl. Gleis 136 · '+(data.osmSwitches||[]).length+' Weichen · '+(data.signals||[]).length+' Signalobjekte (ungeprüft)';
 let start=null,end=null,points=null,train=null,run=null,markA=null,markB=null,line=null;
 function status(t){$('status').textContent=t;}
 function choose(id){if(run)return;if(!start||end){start=id;end=null;points=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');return;}
