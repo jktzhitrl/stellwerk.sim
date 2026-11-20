@@ -13,16 +13,22 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 .controls{display:flex;gap:7px;flex-wrap:wrap}.controls button{flex:1}
 #status{white-space:pre-wrap;line-height:1.5}#stats{font-size:12px;color:#b9cbd6}
 #labels{font-size:13px}label{display:flex;gap:8px;align-items:center;margin:8px 0}
-#objectDetails{white-space:pre-wrap;overflow-wrap:anywhere;background:#152735;padding:10px;border-radius:6px;font-size:12px;line-height:1.5;max-height:310px;overflow:auto}#objectCategory,#objectId{width:100%;min-width:0;max-width:100%;font:inherit;color:#e3f1f8;background:#213c50;padding:8px;border:1px solid #547389;border-radius:5px}#objectSummary{font-size:12px;color:#bbd1df}.objectMarker{cursor:pointer;stroke:#0d1c2a;stroke-width:2;touch-action:manipulation}.objectMarker:focus{stroke:#fff;stroke-width:4}
+.simulationHead{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}.simulationClock{font-weight:800;font-size:24px;font-variant-numeric:tabular-nums}.board{max-height:245px;overflow:auto;border:1px solid #486171;border-radius:7px;margin:8px 0}.board button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid #345264;border-radius:0;background:#1d3546;font-size:12px;padding:7px}.board button:hover,.board button.selected{background:#316476}.board button.dispatched{opacity:.55}.board b{font-size:14px}.board .clock{min-width:45px;font-variant-numeric:tabular-nums}.board .destination{flex:1;min-width:0}.signalBox{display:flex;gap:10px;align-items:center;padding:9px;background:#142a3a;border-radius:7px;margin:8px 0}.signalLamp{width:19px;height:19px;border-radius:50%;background:#ff4c50;box-shadow:0 0 7px #fa5353}.signalLamp.green{background:#4ee58a;box-shadow:0 0 7px #4ee58a}.signalCaption{font-size:12px;color:#c9dbe7}.virtualSignal{pointer-events:none}#objectDetails{white-space:pre-wrap;overflow-wrap:anywhere;background:#152735;padding:10px;border-radius:6px;font-size:12px;line-height:1.5;max-height:310px;overflow:auto}#objectCategory,#objectId{width:100%;min-width:0;max-width:100%;font:inherit;color:#e3f1f8;background:#213c50;padding:8px;border:1px solid #547389;border-radius:5px}#objectSummary{font-size:12px;color:#bbd1df}.objectMarker{cursor:pointer;stroke:#0d1c2a;stroke-width:2;touch-action:manipulation}.objectMarker:focus{stroke:#fff;stroke-width:4}
 .quickRefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px;margin:8px 0}.quickRefs button{min-width:0;min-height:42px;padding:5px;font-weight:700}.quickRefs button.active{background:#276d62;border-color:#8de6c5}.lineRefs{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}.lineRefs button{text-align:left;font-size:13px}.lineRefs button:disabled{opacity:.65}.mapRefLabel{font:700 21px system-ui,sans-serif;fill:#c7f4ff;stroke:#122c3d;stroke-width:3px;paint-order:stroke;pointer-events:none}
 @media(max-width:980px){main{display:flex;flex-direction:column;height:auto}#map{height:56dvh;min-height:350px}aside{overflow:visible}}
 </style></head><body>
 <header><h1>🚦 Halle (Saale) Hbf · Personenbahnhof + Abstellung</h1><a href="./index.html">← Stellwerkspiel</a><a href="./halle-hbf-review.html">🗺️ Originaldaten prüfen</a><button id="center">Bahnhof zentrieren</button><button id="all">Alle Personengleise</button></header>
-<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g></svg></div>
+<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g></svg></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
-<p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><p id="status" role="status">Tippe zuerst auf ein Gleis für die Einfahrt und dann auf ein anderes Gleis als Ziel.</p>
-<div class="controls"><button id="new">Neue Fahrt</button><button id="go" disabled>▶ Zug fahren lassen</button></div>
+<p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><h2 style="font-size:15px">Original-Abfahrtsfahrplan · 20.11.2026 (Fr)</h2>
+<p class="signalCaption">Auszug 05:00–06:47 nach der <a href="https://www.bahnhof.de/downloads/schedule/Regeltafel_2498.pdf" target="_blank" rel="noopener">DB-Regeltafel 2498</a> (gültig ab 14.06.2026). Züge und Gleisfelder sind Originaldaten. Einfahrten, Fahrzeuge und Fahrstraßen werden nicht als Original dargestellt.</p>
+<div class="simulationHead"><span id="simClock" class="simulationClock">05:00</span><button id="clockToggle">▶ Uhr starten</button><button id="clockNext">⏭ Nächste Abfahrt</button><span id="score">Punkte: 0</span></div>
+<div id="departures" class="board" aria-label="Originale Abfahrten Halle Hbf"></div>
+<div id="selectedService" class="signalCaption">Wähle eine Abfahrt aus dem Originalfahrplan.</div>
+<div class="signalBox"><span id="virtualLamp" class="signalLamp"></span><div><b id="virtualAspect">Hp0 · Halt (Simulation)</b><div class="signalCaption">Virtuelles Ausfahrtsignal – keine originale Signalstellung oder Verschlussabhängigkeit.</div></div></div>
+<p id="status" role="status">Zug aus der Liste wählen, Zielgleis antippen, Fahrstraße stellen und abfahren.</p>
+<div class="controls"><button id="new">Fahrweg zurücksetzen</button><button id="clearRoute" disabled>🔐 Fahrstraße stellen</button><button id="go" disabled>▶ Zug abfahren</button></div>
 <label for="trackRef">Kartierte Gleisreferenz (OSM, keine geprüfte Bahnsteigzuordnung)</label>
 <div class="controls"><select id="trackRef" style="flex:1;min-width:110px"><option value="">Gleisreferenz auswählen</option></select><button id="fromRef">Als Start</button><button id="toRef">Als Ziel</button></div>
 <p id="refHint"><small>Die hier angebotenen Gleisnummern stammen aus OSM-Weg-Tags. Die amtliche Gleis- und Bahnsteigzuordnung muss noch geprüft werden.</small></p>
@@ -55,10 +61,13 @@ const data=await response.json();if(data.dataStatus!=='UNVERIFIED_OSM_IMPORT'||d
 const {buildGraph,findGeometricPath,trackRefs,representativeTrackNode}=await import('./halle-hbf-routing.mjs');
 const {auditHalleRefs,HALLE_STATION_FOCUS}=await import('./halle-hbf-references.mjs');
 const {buildObjectAudit,readableObject}=await import('./halle-hbf-objects.mjs');
+const {HALLE_ORIGINAL_DEPARTURES,HALLE_TIMETABLE_SOURCE,timetableMinutes}=await import('./halle-hbf-originalfahrplan.mjs');
+const {HalleGameSession,clockLabel}=await import('./halle-hbf-betrieb.mjs');
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('board'),rail=document.getElementById('rails'),pathLayer=document.getElementById('path'),items=document.getElementById('items'),vehicle=document.getElementById('vehicle');
 const $=id=>document.getElementById(id),el=(tag,props,parent)=>{const n=document.createElementNS(NS,tag);for(const k of Object.keys(props))n.setAttribute(k,props[k]);parent.append(n);return n};
 const edges=data.tracks,graph=buildGraph(edges),wMap=new Map((data.osmSwitches||[]).map(w=>[String(w.osmNodeId),w]));
 const objectAudit=buildObjectAudit(data.signals||[],data.osmSwitches||[],graph);
+const game=new HalleGameSession(HALLE_ORIGINAL_DEPARTURES);
 function route(start,goal){return findGeometricPath(graph,wMap,start,goal);}
 const refs=trackRefs(edges),referenceAudit=auditHalleRefs(edges,refs);
 const trackSelect=$('trackRef');
@@ -158,15 +167,76 @@ $('switches').onchange=ev=>symW.setAttribute('display',ev.target.checked?'inline
 $('signals').onchange=ev=>symS.setAttribute('display',ev.target.checked?'inline':'none');
 $('stats').textContent=edges.length+' gefilterte OSM-Segmente · '+(data.report.kinds.abstellung||0)+' Abstellabschnitte inkl. Gleis 136 · '+(data.osmSwitches||[]).length+' Weichen · '+(data.signals||[]).length+' Signalobjekte (ungeprüft)';
 let start=null,end=null,points=null,train=null,run=null,markA=null,markB=null,line=null;
+let serviceOriginNode=null,routeResult=null,clockPlaying=false,clockInterval=null;
+const virtualLayer=$('virtualSignals');
+function updateSignalVisual(){
+ const cleared=game.signal.startsWith('Ks1');
+ $('virtualLamp').classList.toggle('green',cleared);
+ $('virtualAspect').textContent=cleared?'Ks1 · Fahrt (Simulation)':'Hp0 · Halt (Simulation)';
+ virtualLayer.replaceChildren();
+ if(!serviceOriginNode||!graph.has(serviceOriginNode))return;
+ const at=graph.get(serviceOriginNode).p;
+ el('circle',{cx:at.x,cy:at.y,r:12,fill:cleared?'#4ee58a':'#ec424a',stroke:'#fff','stroke-width':2,class:'virtualSignal'},virtualLayer);
+ const text=el('text',{x:at.x+17,y:at.y-17,fill:'#fff','font-size':14,'font-weight':700,class:'virtualSignal'},virtualLayer);
+ text.textContent='SIM';
+}
+function renderSchedule(){
+ $('simClock').textContent=clockLabel(game.clock);
+ $('score').textContent='Punkte: '+game.score;
+ $('go').disabled=!game.route?.cleared||game.running||game.clock<timetableMinutes(game.selected?.time||'23:59');
+ $('clearRoute').disabled=!routeResult||!game.selected||game.route?.cleared||start!==serviceOriginNode||game.running;
+ $('selectedService').textContent=game.selected?
+   game.selected.train+' · Abfahrt '+game.selected.time+' · Gleis '+game.selected.trackField+' · '+game.selected.destination+' | '+game.stateOf(game.selected.id):
+   'Wähle einen Zug aus der Original-Abfahrtstafel.';
+ for(const btn of $('departures').querySelectorAll('button[data-service]')){
+   const id=btn.dataset.service,st=game.stateOf(id);
+   btn.classList.toggle('selected',id===game.selected?.id);
+   btn.classList.toggle('dispatched',game.dispatched.has(id));
+   btn.querySelector('.state').textContent=st;
+ }
+ updateSignalVisual();
+}
+function chooseService(service){
+ if(!game.select(service.id)){status('Zug nicht auswählbar: laufende Fahrt oder gestelltes Signal.');return;}
+ const target=referenceAudit.platforms.find(r=>r.ref===service.trackRef)?.osmCandidate;
+ serviceOriginNode=target?.nodeId??null;
+ start=null;end=null;points=null;routeResult=null;
+ pathLayer.replaceChildren();vehicle.replaceChildren();
+ if(serviceOriginNode&&graph.has(serviceOriginNode)){
+   choose(serviceOriginNode);focusCandidate(target,'Gleis '+service.trackField+'?');
+   status(service.train+' '+service.time+' nach '+service.destination+' gewählt. Jetzt ein Zielgleis antippen. Die Bahnsteig-OSM-Zuordnung ist noch ungeprüft.');
+ }else status('Zum DB-Gleis '+service.trackField+' fehlt eine verlässliche OSM-Auswahl. Keine Abfahrt möglich.');
+ renderSchedule();
+}
+for(const service of HALLE_ORIGINAL_DEPARTURES){
+ const btn=document.createElement('button');btn.type='button';btn.dataset.service=service.id;
+ const clock=document.createElement('b');clock.className='clock';clock.textContent=service.time;
+ const trainName=document.createElement('span');trainName.style.minWidth='54px';trainName.textContent=service.train;
+ const dest=document.createElement('span');dest.className='destination';dest.textContent=service.destination+' · Gl. '+service.trackField;
+ const state=document.createElement('small');state.className='state';state.textContent='geplant';
+ btn.append(clock,trainName,dest,state);
+ btn.onclick=()=>chooseService(service);
+ $('departures').append(btn);
+}
+$('clockToggle').onclick=()=>{
+ clockPlaying=!clockPlaying;$('clockToggle').textContent=clockPlaying?'⏸ Uhr anhalten':'▶ Uhr starten';
+};
+$('clockNext').onclick=()=>{
+ if(game.running){status('Während einer Zugfahrt kann die Uhr nicht springen.');return;}
+ const next=game.nextScheduled();
+ if(next!=null){game.advance(next-game.clock);renderSchedule();}
+};
+clockInterval=setInterval(()=>{if(clockPlaying){game.advance(1);renderSchedule();}},3000);
+renderSchedule();
 function status(t){$('status').textContent=t;}
-function choose(id){if(run)return;if(!start||end){start=id;end=null;points=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');return;}
+function choose(id){if(run)return;if(!start||end){game.cancel();start=id;end=null;points=null;routeResult=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');renderSchedule();return;}
  end=id;if(start===end){end=null;status('Bitte ein anderes Zielgleis wählen.');return;}
  const found=route(start,end);
- points=found?.points||null;
- if(!points){status('Keine geometrisch zulässige Verbindung gefunden. Weichen mit unklaren OSM-Tags werden vorsorglich gesperrt.');return;}
+ routeResult=found;points=found?.points||null;
+ if(!points){status('Keine geometrisch zulässige Verbindung gefunden. Weichen mit unklaren OSM-Tags bleiben gesperrt.');renderSchedule();return;}
  line=el('polyline',{points:points.map(p=>p.x+','+p.y).join(' '),stroke:'#f6cf54','stroke-width':7,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},pathLayer);
  markB=el('circle',{cx:graph.get(end).p.x,cy:graph.get(end).p.y,r:10,fill:'#f69b9b',stroke:'#102020','stroke-width':2},pathLayer);
- $('go').disabled=false;status('Geometrischer Prüfweg gefunden ('+points.length+' Knoten, '+Math.round(found.cost)+' Karteneinheiten). Keine echte Signal- oder Fahrstraßenfreigabe.');}
+ status('Geometrischer Prüfweg mit '+points.length+' Knoten gefunden. Für einen Fahrplanzug jetzt das virtuelle Signal stellen. Keine echte Fahrstraßenfreigabe.');renderSchedule();}
 function pickRef(forced){
  const selected=trackSelect.value,indices=refs.get(selected);
  if(!indices?.length){status('Bitte erst eine kartierte OSM-Gleisreferenz auswählen.');return;}
@@ -183,9 +253,57 @@ $('fromRef').onclick=()=>pickRef('start');
 $('toRef').onclick=()=>pickRef('end');
 let pointerTravel=0,ignoreNextClick=false;
 svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
-$('new').onclick=()=>{run=null;start=end=points=null;pathLayer.replaceChildren();vehicle.replaceChildren();$('go').disabled=true;status('Tippe auf ein Gleis für den Start und anschließend auf ein anderes Gleis für das Ziel.');};
-$('go').onclick=()=>{if(!points||run)return;const segments=[];let total=0;for(let i=1;i<points.length;i++){const len=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);segments.push({a:points[i-1],b:points[i],start:total,end:total+len});total+=len;}train=el('circle',{cx:points[0].x,cy:points[0].y,r:12,fill:'#f05252',stroke:'#fff','stroke-width':2},vehicle);run={segments,total,pos:0,last:performance.now()};$('go').disabled=true;requestAnimationFrame(step);status('Zug fährt auf der geometrisch gefundenen Prüfstrecke. Keine echte Stellwerksfreigabe.');};
-function step(now){if(!run)return;const dt=Math.max(0,Math.min(.1,(now-run.last)/1000));run.last=now;run.pos=Math.min(run.total,run.pos+dt*Number($('speed').value));const seg=run.segments.find(s=>run.pos<=s.end)||run.segments.at(-1);if(seg){const frac=Math.max(0,Math.min(1,(run.pos-seg.start)/(seg.end-seg.start||1)));train.setAttribute('cx',seg.a.x+(seg.b.x-seg.a.x)*frac);train.setAttribute('cy',seg.a.y+(seg.b.y-seg.a.y)*frac);}if(run.pos<run.total)requestAnimationFrame(step);else{run=null;status('Prüffahrt beendet. Neues Ziel über „Neue Fahrt“ wählen.');}}
+$('new').onclick=()=>{
+ if(game.running){status('Erst laufende Zugfahrt beenden.');return;}
+ game.cancel();end=null;points=null;routeResult=null;
+ pathLayer.replaceChildren();vehicle.replaceChildren();
+ if(game.selected&&serviceOriginNode){start=null;choose(serviceOriginNode);}
+ else start=null;
+ status('Fahrweg zurückgesetzt. Bei Bedarf ein Zielgleis wählen.');
+ renderSchedule();
+};
+$('clearRoute').onclick=()=>{
+ if(!routeResult||!game.selected||start!==serviceOriginNode)return;
+ if(!game.reserve({serviceId:game.selected.id,ids:routeResult.ids,points:routeResult.points,startNode:serviceOriginNode})){
+   status('Fahrstraße konnte nicht reserviert werden.');return;
+ }
+ if(!game.clearSignal()){status('Virtuelles Signal bleibt auf Halt.');return;}
+ status('Virtuelle Fahrstraße für '+game.selected.train+' gestellt. Signal zeigt Ks1 in der Simulation. Abfahrt frühestens um '+game.selected.time+'.');
+ renderSchedule();
+};
+$('go').onclick=()=>{
+ if(!points||run||!game.dispatch()){status('Abfahrt gesperrt: Fahrt, Signalstellung und Original-Abfahrtszeit prüfen.');return;}
+ const segments=[];let total=0;
+ for(let i=1;i<points.length;i++){
+  const len=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);
+  segments.push({a:points[i-1],b:points[i],start:total,end:total+len});total+=len;
+ }
+ train=el('circle',{cx:points[0].x,cy:points[0].y,r:12,fill:'#f05252',stroke:'#fff','stroke-width':2},vehicle);
+ const name=el('text',{x:points[0].x+15,y:points[0].y-13,'font-size':17,fill:'#fff'},vehicle);name.textContent=game.selected.train;
+ run={segments,total,pos:0,last:performance.now(),label:name};
+ renderSchedule();requestAnimationFrame(step);
+ status(game.selected.train+' abgefertigt; virtuelle Ausfahrt steht wieder auf Halt. Zug fährt entlang des geprüften OSM-Weges.');
+};
+function step(now){
+ if(!run)return;
+ const dt=Math.max(0,Math.min(.1,(now-run.last)/1000));run.last=now;
+ run.pos=Math.min(run.total,run.pos+dt*Number($('speed').value));
+ const seg=run.segments.find(s=>run.pos<=s.end)||run.segments.at(-1);
+ if(seg){
+  const frac=Math.max(0,Math.min(1,(run.pos-seg.start)/(seg.end-seg.start||1)));
+  const x=seg.a.x+(seg.b.x-seg.a.x)*frac,y=seg.a.y+(seg.b.y-seg.a.y)*frac;
+  train.setAttribute('cx',x);train.setAttribute('cy',y);
+  run.label.setAttribute('x',x+15);run.label.setAttribute('y',y-13);
+ }
+ if(run.pos<run.total)requestAnimationFrame(step);
+ else{
+  const name=game.selected?.train??'Zug';
+  game.complete();run=null;start=end=points=routeResult=serviceOriginNode=null;
+  pathLayer.replaceChildren();vehicle.replaceChildren();
+  renderSchedule();
+  status(name+' abgefahren. Fahrstraße und virtuelles Signal auf Halt zurückgesetzt. Nächsten Fahrplanzug auswählen.');
+ }
+}
 function screenPoint(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
 let drag=null;const touch=new Map();let pinch=null;
 svg.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;pointerTravel=0;svg.setPointerCapture(ev.pointerId);if(ev.pointerType==='touch')touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2};pinch={view:{...view},dist:Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y),anchor:screenPoint(mid)};drag=null;}else drag={id:ev.pointerId,x:ev.clientX,y:ev.clientY};});
