@@ -1,0 +1,53 @@
+name: Halle passenger station and stabling smoke test
+on:
+  push:
+    branches:
+      - gh-pages
+      - chatgpt/halle-hbf-personenbahnhof-abstellung-20261120
+    paths:
+      - 'halle-hbf-play.html'
+      - 'halle-hbf-review.html'
+      - 'halle-hbf-personenbereich.mjs'
+      - 'data/halle-hbf-personenbereich.json'
+      - 'tools/tests/halle-hbf-personenbereich.test.mjs'
+      - '.github/workflows/halle-hbf-personenbereich-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run station graph, route and stabling tests
+        run: |
+          node --test tools/tests/halle-hbf-personenbereich.test.mjs tools/tests/halle-hbf-routing.test.mjs tools/tests/halle-hbf-references.test.mjs tools/tests/halle-hbf-objects.test.mjs
+      - name: Validate scoped live map topology and excluded groups
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const data=JSON.parse(readFileSync('data/halle-hbf-personenbereich.json','utf8'));
+          assert.equal(data.scope,'PASSENGER_STATION_AND_STABLING');
+          assert.equal(data.report.retainedSegments,1253);
+          assert.equal(data.report.components.length,1);
+          assert.equal(data.tracks.length,1253);
+          assert.deepEqual([...new Set(data.tracks.map(t=>t.kind))].sort(),['abstellung','personenbahn','verbindung']);
+          assert.equal(data.tracks.some(t=>t.originalWayName==='Neue Gruppe'),false);
+          assert.equal(data.tracks.filter(t=>t.originalTrackRef==='136'&&t.kind==='abstellung').length,20);
+          assert.equal(data.report.excludedFreightWays>0,true);
+          const names=new Set(data.tracks.map(t=>t.originalTrackRef));
+          for(let i=1;i<=13;i++)assert.ok(names.has(String(i)), 'missing platform ref '+i);
+          console.log('Halle passenger + stabling only:',data.tracks.length,'segments,',data.osmSwitches.length,'switches,',data.signals.length,'signal objects');
+          NODE
+      - name: Validate source scripts and PWA references
+        run: |
+          node --check halle-hbf-personenbereich.mjs
+          node --check halle-hbf-routing.mjs
+          node -e "const fs=require('fs');for(const name of ['halle-hbf-play.html','halle-hbf-review.html']){const s=fs.readFileSync(name,'utf8');new Function(s.slice(s.lastIndexOf('<script>')+8,s.lastIndexOf('</script>')));if(!s.includes('./data/halle-hbf-personenbereich.json'))throw Error(name+' still uses freight map')}"
+          node <<'NODE'
+          const fs=require('fs');
+          const content=fs.readFileSync('sw.js','utf8');
+          if(!content.includes('halle-hbf-personenbereich.json') || content.includes('./data/halle-hbf-osm-review.json'))throw Error('PWA caches wrong dataset');
+          NODE

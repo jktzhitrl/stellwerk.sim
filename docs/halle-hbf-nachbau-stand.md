@@ -61,3 +61,28 @@ Die OSM-Weichen und signalbezogenen Objekte können in `halle-hbf-play.html` jet
 Weichen werden in einfache Dreiweg-Knoten, komplexe Kreuzungsweichen und unklare Anschlussgrade unterschieden. Der Originaldaten-Snapshot enthält kartierte Weichen mit ungewöhnlichen Anschlusszahlen; solche Punkte bleiben als prüfbedürftig gekennzeichnet. Die tatsächliche 1:1-Weichenstellung, Signalsicht/-richtung, Blockbereiche und Fahrstraßen/Verschlussabhängigkeiten fehlen weiterhin und werden nicht geschätzt.
 
 Funktionalität: OSM-Objektliste mit Typfiltern, Kennungen und Details; angetippte Marker zentrieren die Stelle. Die bisherige reine Testfahrt nutzt weiterhin konservative Weichenübergangsregeln und bleibt ausdrücklich eine **geometrische Gleisvorschau**. Tablet-/Hardware-E2E-Test noch offen. 
+
+## 20.11.2026 – Benutzerwunsch: nur Personenbahnhof mit Abstellung, kein Güterbahnhof
+
+Die zuvor veröffentlichte große OSM-Gleisnetzvorschau zeigte auch den östlichen **Güterbahnhof samt Zugbildungsanlage (ZBA)**. Deshalb wurde der für Spieler sichtbare Plan auf belegte Personengleise und die dazugehörige Abstellung begrenzt.
+
+### Tatsächlich aufgenommene Gleise
+
+- **1.202 OSM-Segmente** mit `railway:traffic_mode=passenger` für die durchgehenden Personengleise und ihre Bahnsteig-/Zufahrtsbereiche.
+- **45 Abstellsegmente:** 25 kartierte Gleisabschnitte der **Kasseler Gruppe** (als Personenzug-Abstellung bei der DB bezeichnet) und 20 Abschnitte des in der DB-InfraGO-Serviceeinrichtungsübersicht 2026 als „Halle (Saale) Hbf, Gleis 136, Abstellung 2“ geführten Gleises. Das OSM-Gleis 136 ist über die originale Knotengeometrie mit dem Personenbahnhof verbunden.
+- **6 Abschnitte echter OSM-Verbindungs-Ways** (IDs `1104738780`, `110187475`) ergänzen die Kasseler Abstellung, ohne künstliche Gleise oder erfundene Weichen zu zeichnen.
+- **Ausgeschlossen:** alle als `railway:traffic_mode=freight` oder `usage=industrial` getaggten Gleise, nicht als Personenbahnhof oder dokumentierte Abstellung identifizierte Rangiergleise sowie die **„Neue Gruppe“**, deren tatsächliche Funktion noch nicht hinreichend belegt ist.
+
+Der reproduzierbare Zuschnitt aus denselben Originaldaten wird in `halle-hbf-personenbereich.mjs` erzeugt und mit `tools/halle-hbf-scope.mjs` geprüft. **Ergebnis am 20.11.2026: 1.253 von 4.825 Gleissegmenten bleiben**, 3.572 entfallen. Die 1.253 Segmente bilden **einen zusammenhängenden OSM-Gleisgraphen mit 1.236 Knoten**; darin sind 90 kartierte Weichen und 200 signalbezogene OSM-Objekte vorhanden. Diese Werte sagen nichts über die Anzahl tatsächlicher Stellwerksfahrstraßen aus. Die Karte enthält weiterhin echte Personenzug-Zufahrten, jedoch keine Darstellung der Güterbahnhofsgleise.
+
+### Umsetzung im Spiel
+
+- `halle-hbf-play.html` und `halle-hbf-review.html` lesen ausschließlich `data/halle-hbf-personenbereich.json`; die vollständige OSM-Rohaufnahme `data/halle-hbf-osm-review.json` verbleibt als separate technische Quelle.
+- Grün markiert: Kasseler Abstellgruppe und DB-Abstellgleis 136; direkte Schaltflächen zentrieren diese Anlagen, ohne in den Güterbahnhof zu springen.
+- Der normale Spielstart, die PWA-Offline-Liste und das Android-Paket benutzen den gefilterten Gleisdatensatz. Die vorhandenen Stellwerke bleiben unverändert.
+
+### Offene Prüfungen
+
+`railway:traffic_mode=passenger` bezeichnet eine OSM-Klassifikation und ist **kein amtlich festgelegter Stellwerksbezirk**. Einzelne Betriebs- und Abstellgleise können in OSM fehlen oder falsch gekennzeichnet sein. DB-Gleisnummern, der Planstand vom 30.09.2026, die tatsächlichen Weichenstellungen, Signalrichtungen und Fahrstraßen müssen weiter abgeglichen werden. Die Testzüge sind **geometrische Prüffahrten**, keine bestätigten Original-Stellwerksfahrten.
+
+Quellen: [DB InfraGO Betriebsstellenplan LH, 30.09.2026](https://trassenfinder.de/apn/LH); [DB InfraGO, Gleise in Serviceeinrichtungen 2026](https://www.dbinfrago.com/resource/blob/10907624/448400d59ac3a7179c79a1cc4067d044/gleise_in_serviceeinrichtungen_2026-data.pdf); [Deutsche Bahn – Neuanschluss Kasseler Gruppe](https://www.deutschebahn.com/resource/blob/5836704/ce4227c0fa89a67e85355496a30/2021_VM_001_Foliensatz_Pressegespraech_Halle-data.pdf); © OpenStreetMap contributors, ODbL 1.0.
