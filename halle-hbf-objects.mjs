@@ -6,8 +6,8 @@ const has=(tags,prefix)=>Object.keys(tags||{}).some(k=>k===prefix||k.startsWith(
 export function classifySignal(signal){
   const tags=signal?.railwayTags||{};
   if(tags.railway==='buffer_stop')return{kind:'buffer',label:'Prellbock / Abschluss',color:'#9ba7af',operational:false};
-  if(has(tags,'railway:signal:main'))return{kind:'main',label:'Hauptsignal-Tag',color:'#58d4ff',operational:false};
-  if(has(tags,'railway:signal:shunting'))return{kind:'shunting',label:'Rangiersignal-Tag',color:'#f7cc79',operational:false};
+  if(has(tags,'railway:signal:main')||has(tags,'railway:signal:combined'))return{kind:'main',label:'Haupt-/Ks-Mehrabschnittssignal-Tag',color:'#58d4ff',operational:false};
+  if(has(tags,'railway:signal:shunting')||has(tags,'railway:signal:minor'))return{kind:'shunting',label:'Rangiersignal-Tag',color:'#f7cc79',operational:false};
   if(has(tags,'railway:signal:distant'))return{kind:'distant',label:'Vorsignal-Tag',color:'#a5a2ff',operational:false};
   if(has(tags,'railway:signal:speed_limit')||has(tags,'railway:signal:speed_limit_distant'))
     return{kind:'speed',label:'Geschwindigkeitssignal-Tag',color:'#a5d7a0',operational:false};
