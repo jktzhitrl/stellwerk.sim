@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Halle (Saale) Hbf – OSM Gleisprüfung (keine Stellwerksfreigabe)</title>
+<title>Halle (Saale) Hbf – Personenbahnhof und Abstellung (keine Stellwerksfreigabe)</title>
 <style>
 :root{font-family:system-ui,sans-serif;color-scheme:dark;background:#101b24;color:#f0f6fa}
 *{box-sizing:border-box}body{margin:0}header{display:flex;gap:12px;padding:12px 16px;align-items:center;flex-wrap:wrap;background:#253945}
@@ -20,7 +20,7 @@ label{display:block;padding:8px}button{font:inherit;min-height:42px;background:#
 <main>
 <div id="map"><svg id="board" role="img" aria-label="OSM-Eisenbahngleise, Weichen und Signale" xmlns="http://www.w3.org/2000/svg"><g id="tracks"></g><g id="switches"></g><g id="signals"></g></svg></div>
 <aside>
-<p id="counts"></p>
+<p id="counts"></p><p><b>Nur Personenbahnhof und Kasseler Abstellung.</b> Weitere Gruppe: vorläufig aufgenommen, betriebliche Abgrenzung offen. Güterbahnhof und Zugbildungsanlage sind nicht Bestandteil dieser Karte.</p>
 <label><input type="checkbox" id="showTracks" checked> Gleise (hellgrau)</label>
 <label><input type="checkbox" id="showSwitches" checked> Weichen (orange)</label>
 <label><input type="checkbox" id="showSignals" checked> Signalobjekte (blau)</label><p><small>Blau: Hauptsignal-Tags · Violett: andere Signale, Tafeln und Prellböcke. Nicht alles ist ein Fahrt zeigendes Signal.</small></p>
@@ -32,14 +32,14 @@ label{display:block;padding:8px}button{font:inherit;min-height:42px;background:#
 'use strict';
 (async()=>{
 const data=await (async()=>{
-  const response=await fetch('./data/halle-hbf-osm-review.json',{cache:'force-cache'});
+  const response=await fetch('./data/halle-hbf-personenbereich.json',{cache:'force-cache'});
   if(!response.ok)throw Error('OSM-Datensatz nicht erreichbar: HTTP '+response.status);
   return response.json();
 })(),svg=document.getElementById('board'),ns='http://www.w3.org/2000/svg';
 function el(tag,attrs,root){const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,v);root.append(e);return e;}
 const points=data.tracks.flatMap(t=>[t.a,t.b]),margin=50;
 const xs=points.map(p=>p.x),ys=points.map(p=>p.y),bounds={x:Math.min(...xs)-margin,y:Math.min(...ys)-margin,w:Math.max(...xs)-Math.min(...xs)+2*margin,h:Math.max(...ys)-Math.min(...ys)+2*margin};
-const stationView={x:0,y:0,w:2800,h:1800};let view={...stationView};function drawView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}
+const stationView={...bounds};let view={...stationView};function drawView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}
 drawView();document.getElementById('reset').onclick=()=>{view={...bounds};drawView();};document.getElementById('station').onclick=()=>{view={...stationView};drawView();};
 const gT=document.getElementById('tracks'),gW=document.getElementById('switches'),gS=document.getElementById('signals');
 for(const t of data.tracks)el('line',{x1:t.a.x,y1:t.a.y,x2:t.b.x,y2:t.b.y,stroke:t.service==='yard'?'#89b3c1':t.service==='siding'?'#8c969e':'#d8e3eb','stroke-width':3},gT);
@@ -61,7 +61,7 @@ svg.addEventListener('click',ev=>{
   }
   if(winner)winner.dispatchEvent(new MouseEvent('click',{bubbles:false}));
 });
-document.getElementById('counts').textContent=data.tracks.length+' Gleissegmente · '+data.osmSwitches.length+' kartierte Weichen · '+data.signals.filter(s=>s.railwayTags?.['railway:signal:main']).length+' Hauptsignalobjekte · '+data.signals.length+' signalbezogene Objekte insgesamt · '+data.report.connectedComponents.length+' topologische Komponenten';
+document.getElementById('counts').textContent=data.tracks.length+' Gleissegmente · '+data.osmSwitches.length+' kartierte Weichen · '+data.signals.filter(s=>s.railwayTags?.['railway:signal:main']).length+' Hauptsignalobjekte · '+data.signals.length+' signalbezogene Objekte insgesamt · '+(data.report.connectedComponents||data.report.components).length+' topologische Komponenten';
 const touches=new Map();let pan=null,gesture=null;
 function p(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const m=svg.getScreenCTM();return pt.matrixTransform(m.inverse());}
 function startGesture(){const t=[...touches.values()].slice(0,2),mid={clientX:(t[0].x+t[1].x)/2,clientY:(t[0].y+t[1].y)/2};gesture={dist:Math.max(1,Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y)),zoom:{...view},anchor:p(mid)};pan=null;}
