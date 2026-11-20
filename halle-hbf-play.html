@@ -171,11 +171,50 @@ const {auditHalleRefs,HALLE_STATION_FOCUS}=await import('./halle-hbf-references.
 const {buildObjectAudit,readableObject}=await import('./halle-hbf-objects.mjs');
 const {HALLE_ORIGINAL_DEPARTURES,HALLE_TIMETABLE_SOURCE,timetableMinutes}=await import('./halle-hbf-originalfahrplan.mjs');
 const {HalleGameSession,clockLabel}=await import('./halle-hbf-betrieb.mjs');
+const {HALLE_AREAS,createHalleAreas,pickShuntingPath}=await import('./halle-hbf-bereiche.mjs');
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('board'),rail=document.getElementById('rails'),pathLayer=document.getElementById('path'),items=document.getElementById('items'),vehicle=document.getElementById('vehicle');
 const $=id=>document.getElementById(id),el=(tag,props,parent)=>{const n=document.createElementNS(NS,tag);for(const k of Object.keys(props))n.setAttribute(k,props[k]);parent.append(n);return n};
 const edges=data.tracks,graph=buildGraph(edges),wMap=new Map((data.osmSwitches||[]).map(w=>[String(w.osmNodeId),w]));
 const objectAudit=buildObjectAudit(data.signals||[],data.osmSwitches||[],graph);
 const game=new HalleGameSession(HALLE_ORIGINAL_DEPARTURES);
+const areas=createHalleAreas(edges);
+let currentSector='west',schematicMode=true;
+const world=document.createElementNS(NS,'g');world.id='schematicWorld';
+while(svg.firstElementChild)world.append(svg.firstElementChild);
+svg.append(world);
+world.setAttribute('transform','matrix('+areas.matrix.join(' ')+')');
+function displayPoint(p){return schematicMode?areas.toView(p):{x:p.x,y:p.y};}
+function viewAspect(){return Math.max(.5,$('map').clientWidth/Math.max(1,$('map').clientHeight));}
+function rawBoundsForSector(sector){
+ const matching=edges.filter(e=>sector==='gesamt'||areas.edgeArea(e)===sector);
+ const pts=matching.flatMap(e=>[e.a,e.b]);
+ if(!pts.length)return{...V};
+ const x0=Math.min(...pts.map(p=>p.x)),x1=Math.max(...pts.map(p=>p.x)),
+  y0=Math.min(...pts.map(p=>p.y)),y1=Math.max(...pts.map(p=>p.y));
+ let w=Math.max(350,x1-x0+120),h=Math.max(350,y1-y0+120);
+ if(w/h<viewAspect())w=h*viewAspect();else h=w/viewAspect();
+ return{x:(x0+x1-w)/2,y:(y0+y1-h)/2,w,h};
+}
+function selectSector(sector,{preserveView=false}={}){
+ if(!HALLE_AREAS.some(a=>a.id===sector))return;
+ currentSector=sector;
+ document.body.classList.remove('sector-west','sector-ost','sector-ww','sector-gesamt');
+ document.body.classList.add('sector-'+sector);
+ for(const btn of $('sectorTabs').querySelectorAll('button[data-sector]'))
+  btn.setAttribute('aria-pressed',String(btn.dataset.sector===sector));
+ const area=HALLE_AREAS.find(a=>a.id===sector);
+ $('sectorStatus').textContent=area.label+' · '+area.description;
+ $('sectorViewMode').textContent=schematicMode?'Schemaplan ✓':'OSM-Karte';
+ $('sectorViewMode').setAttribute('aria-pressed',String(schematicMode));
+ document.querySelector('.mapHud').firstChild.textContent=schematicMode?
+  'HALLE HBF · SCHEMATISCHES GLEISBILD':'HALLE HBF · OSM-ORIGINALGEOMETRIE';
+ world.setAttribute('transform',schematicMode?'matrix('+areas.matrix.join(' ')+')':'');
+ if(!preserveView){view=schematicMode?areas.bounds(sector,viewAspect()):rawBoundsForSector(sector);showView();}
+ if(typeof renderHandoff==='function')renderHandoff();
+}
+for(const btn of $('sectorTabs').querySelectorAll('[data-sector]'))
+ btn.onclick=()=>selectSector(btn.dataset.sector);
+$('sectorViewMode').onclick=()=>{schematicMode=!schematicMode;selectSector(currentSector);};
 function route(start,goal){return findGeometricPath(graph,wMap,start,goal);}
 const refs=trackRefs(edges),referenceAudit=auditHalleRefs(edges,refs);
 const trackSelect=$('trackRef');
@@ -188,7 +227,7 @@ $('zoomIn').onclick=()=>zoomCenter(.72);
 $('zoomOut').onclick=()=>zoomCenter(1.38);
 function fitRoute(points){
  if(!points?.length)return;
- const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+ const rendered=points.map(displayPoint),xs=rendered.map(p=>p.x),ys=rendered.map(p=>p.y);
  const l=Math.min(...xs),r=Math.max(...xs),t=Math.min(...ys),b=Math.max(...ys);
  const aspect=Math.max(.5,$('map').clientWidth/Math.max(1,$('map').clientHeight));
  const w=Math.max(240,r-l+180,(b-t+180)*aspect),h=w/aspect;
@@ -197,22 +236,26 @@ function fitRoute(points){
 function showGroup(name){
  const selected=edges.filter(e=>name==='kasseler'?e.originalWayName==='Kasseler Gruppe':e.originalTrackRef==='136'&&e.kind==='abstellung');
  if(!selected.length){$('status').textContent='Keine kartierten Gleise für '+name+' gefunden.';return;}
- const xs=selected.flatMap(e=>[e.a.x,e.b.x]),ys=selected.flatMap(e=>[e.a.y,e.b.y]);
+ selectSector('ww',{preserveView:true});
+ const locations=selected.flatMap(e=>[displayPoint(e.a),displayPoint(e.b)]);
+ const xs=locations.map(p=>p.x),ys=locations.map(p=>p.y);
  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),margin=80;
- view={x:x0-margin,y:y0-margin,w:Math.max(360,x1-x0+2*margin),h:Math.max(300,y1-y0+2*margin)};
+ const aspect=viewAspect(),w=Math.max(360,x1-x0+2*margin,(y1-y0+2*margin)*aspect),h=w/aspect;
+ view={x:(x0+x1-w)/2,y:(y0+y1-h)/2,w,h};
  showView();$('status').textContent=(name==='kasseler'?'Kasseler Gruppe':'DB-Abstellgleis 136')+' – originale OSM-Gleise. Nur geometrische Prüffahrten.';
 }
 $('kasseler').onclick=()=>showGroup('kasseler');
 $('abstellung136').onclick=()=>showGroup('136');
 function showView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}showView();
 const all=edges.flatMap(e=>[e.a,e.b]),minX=Math.min(...all.map(p=>p.x)),maxX=Math.max(...all.map(p=>p.x)),minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y));
-$('center').onclick=()=>{view={...V};showView();};$('all').onclick=()=>{view={x:minX-80,y:minY-80,w:maxX-minX+160,h:maxY-minY+160};showView();};
+$('center').onclick=()=>selectSector(currentSector);
+$('all').onclick=()=>selectSector('gesamt');
 const trackGroup=el('g',{},rail);
 edges.forEach((e,i)=>{const a=e.a,b=e.b;
  const c=e.kind==='abstellung'?'#65d8a7':e.kind==='verbindung'?'#c4f0ff':'#d4dce5';
- el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:c,'stroke-width':e.kind==='personenbahn'?3:4,'stroke-linecap':'round'},trackGroup);
+ el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:c,'stroke-width':e.kind==='personenbahn'?4.5:5, 'stroke-linecap':'round',class:'trackLine','data-area':areas.assigned[i]},trackGroup);
 });
-const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':16,'data-edge':i},hits);h.style.cursor='crosshair';});
+const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':19,class:'hitLine','data-area':areas.assigned[i],'data-edge':i},hits);h.style.cursor='crosshair';});
 const symW=el('g',{},items),symS=el('g',{display:'none'},items),platformMarkers=el('g',{},items);
 const objectByKey=new Map();
 function objectKey(kind,id){return kind+':'+id;}
@@ -257,7 +300,8 @@ populateObjects();
 $('objectSummary').textContent=objectAudit.switches.length+' OSM-Weichen ('+(objectAudit.switchCounts.complex||0)+' komplex; '+(objectAudit.switchCounts.unresolved||0)+' mit ungeklärtem Knotengrad) · '+objectAudit.signals.length+' signalbezogene OSM-Objekte (davon '+(objectAudit.signalCounts.main||0)+' mit Hauptsignal-Tags).';
 function focusCandidate(candidate,label=''){
  if(!candidate)return;
- view={x:candidate.x-view.w/2,y:candidate.y-view.h/2,w:view.w,h:view.h};showView();
+ const pos=displayPoint(candidate);
+ view={x:pos.x-view.w/2,y:pos.y-view.h/2,w:view.w,h:view.h};showView();
  platformMarkers.replaceChildren();
  el('circle',{cx:candidate.x,cy:candidate.y,r:20,fill:'none',stroke:'#bdf7de','stroke-width':5},platformMarkers);
  const name=el('text',{x:candidate.x+24,y:candidate.y-26,class:'mapRefLabel'},platformMarkers);
@@ -385,12 +429,12 @@ function pickRef(forced){
  if(forced==='start'){start=null;end=null;points=null;choose(id);}
  else if(!start){status('Bitte zuerst einen Startpunkt wählen.');}
  else{end=null;choose(id);}
- const pos=graph.get(id).p;view={x:pos.x-view.w/2,y:pos.y-view.h/2,w:view.w,h:view.h};showView();
+ const pos=displayPoint(graph.get(id).p);view={x:pos.x-view.w/2,y:pos.y-view.h/2,w:view.w,h:view.h};showView();
 }
 $('fromRef').onclick=()=>pickRef('start');
 $('toRef').onclick=()=>pickRef('end');
 let pointerTravel=0,ignoreNextClick=false;
-svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
+svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev,true);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
 $('new').onclick=()=>{
  if(game.running){status('Erst laufende Zugfahrt beenden.');return;}
  game.cancel();end=null;points=null;routeResult=null;
@@ -444,7 +488,7 @@ function step(now){
   status(name+' abgefahren. Fahrstraße und virtuelles Signal auf Halt zurückgesetzt. Nächsten Fahrplanzug auswählen.');
  }
 }
-function screenPoint(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+function screenPoint(ev,original=false){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const target=original?world:svg;const inverse=target.getScreenCTM()?.inverse();return inverse?pt.matrixTransform(inverse):null;}
 let drag=null;const touch=new Map();let pinch=null;
 svg.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;pointerTravel=0;svg.setPointerCapture(ev.pointerId);if(ev.pointerType==='touch')touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2};pinch={view:{...view},dist:Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y),anchor:screenPoint(mid)};drag=null;}else drag={id:ev.pointerId,x:ev.clientX,y:ev.clientY};});
 svg.addEventListener('pointermove',ev=>{if(drag&&drag.id===ev.pointerId)pointerTravel+=Math.hypot(ev.clientX-drag.x,ev.clientY-drag.y);if(pinch)pointerTravel=100;if(touch.has(ev.pointerId))touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(pinch&&touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2},d=Math.max(1,Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y)),f=pinch.dist/d;view={...pinch.view,w:pinch.view.w*f,h:pinch.view.h*f};showView();const p=screenPoint(mid);view.x+=pinch.anchor.x-p.x;view.y+=pinch.anchor.y-p.y;showView();return;}if(!drag||ev.pointerId!==drag.id)return;const a=screenPoint({clientX:drag.x,clientY:drag.y}),b=screenPoint(ev);view.x+=a.x-b.x;view.y+=a.y-b.y;showView();drag.x=ev.clientX;drag.y=ev.clientY;});
