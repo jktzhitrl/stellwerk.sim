@@ -57,6 +57,9 @@ button:focus-visible,summary:focus-visible{outline:3px solid #9be9db;outline-off
 body{--fdltrack:#b7cbd6;--fdlroute:#ffd35c}
 #map{background-color:#1e2c34;background-image:linear-gradient(rgba(142,177,196,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(142,177,196,.09) 1px,transparent 1px);background-size:34px 34px}
 #rails .trackLine{stroke-width:4.5;stroke-linecap:round}
+#platformLabels text{font:700 14px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#c9eff6;stroke:#142d39;stroke-width:3.5;paint-order:stroke;pointer-events:none}
+#platformLabels circle{fill:#10293b;stroke:#75c6d8;stroke-width:1.5;pointer-events:none}
+
 #rails .trackLine[data-area="ww"]{stroke:#66d5ae}
 #path polyline{filter:drop-shadow(0 0 2px #ffe57b77)}
 .sectorBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 12px;background:#152c3a;border-bottom:1px solid #527487}
@@ -257,6 +260,15 @@ edges.forEach((e,i)=>{const a=e.a,b=e.b;
 });
 const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':19,class:'hitLine','data-area':areas.assigned[i],'data-edge':i},hits);h.style.cursor='crosshair';});
 const symW=el('g',{},items),symS=el('g',{display:'none'},items),platformMarkers=el('g',{},items);
+const platformLabels=el('g',{id:'platformLabels','pointer-events':'none'},items);
+for(const {ref,osmCandidate} of referenceAudit.platforms){
+ if(!osmCandidate)continue;
+ const x=osmCandidate.x,y=osmCandidate.y,n=Number(ref);
+ el('circle',{cx:x,cy:y,r:8},platformLabels);
+ const label=el('text',{x:x+11,y:y+(n%2? -8:20)},platformLabels);
+ label.textContent='OSM '+ref+'?';
+}
+
 const objectByKey=new Map();
 function objectKey(kind,id){return kind+':'+id;}
 for(const w of objectAudit.switches){
