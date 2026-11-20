@@ -1,0 +1,47 @@
+name: Halle Hbf Fahrplan und Signalspiel – Regressionstests
+on:
+  push:
+    branches:
+      - chatgpt/halle-hbf-signale-originalfahrplan-20261120
+      - gh-pages
+    paths:
+      - 'halle-hbf-betrieb.mjs'
+      - 'halle-hbf-originalfahrplan.mjs'
+      - 'halle-hbf-routing.mjs'
+      - 'halle-hbf-play.html'
+      - 'halle-hbf-objects.mjs'
+      - 'tools/tests/halle-hbf-betrieb.test.mjs'
+      - 'tools/tests/halle-hbf-spielmodus.test.mjs'
+      - '.github/workflows/halle-hbf-spielbetrieb-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test original timetable, virtual signals and geometry
+        run: |
+          node --test tools/tests/halle-hbf-betrieb.test.mjs tools/tests/halle-hbf-spielmodus.test.mjs tools/tests/halle-hbf-routing.test.mjs tools/tests/halle-hbf-objects.test.mjs tools/tests/halle-hbf-references.test.mjs tools/tests/halle-hbf-personenbereich.test.mjs
+      - name: Validate game and offline packaging
+        run: |
+          node --check halle-hbf-betrieb.mjs
+          node --check halle-hbf-originalfahrplan.mjs
+          node --check halle-hbf-routing.mjs
+          node --check halle-hbf-objects.mjs
+          node --check sw.js
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const h=fs.readFileSync('halle-hbf-play.html','utf8');
+          new Function(h.slice(h.lastIndexOf('<script>')+8,h.lastIndexOf('</script>')));
+          for(const id of ['departures','simClock','virtualLamp','clearRoute','go','clockNext','virtualSignals','switchLocks'])assert.ok(h.includes('id="'+id+'"'));
+          for(const name of ['halle-hbf-originalfahrplan.mjs','halle-hbf-betrieb.mjs','halle-hbf-routing.mjs']){
+            assert.ok(h.includes("import('./"+name+"')"),name+' not imported');
+            assert.ok(fs.readFileSync('sw.js','utf8').includes("'./"+name+"'"),name+' missing in PWA');
+            assert.ok(fs.readFileSync('android-app/scripts/prepare-web.mjs','utf8').includes("'"+name+"'"),name+' missing in Android');
+          }
+          assert.ok(h.includes("halle-hbf-personenbereich.json"));
+          console.log('Halle live timetable, signal UI and offline asset paths ready');
+          NODE
