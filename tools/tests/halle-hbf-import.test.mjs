@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { importHalle (Saale) Hbf } from '../halle-hbf-import.mjs';
+import { importHalleHbf } from '../halle-hbf-import.mjs';
 
 const node=(id,lat,lon,tags={})=>({type:'node',id,lat,lon,tags});
 const way=(id,ids,tags={})=>({type:'way',id,nodes:ids,tags:{railway:'rail',...tags}});
@@ -14,7 +14,7 @@ const sample={elements:[
   way(103,[8,9],{construction:'yes'}),
 ]};
 test('keeps exact OSM node topology, including mapped turnouts',()=>{
-  const r=importHalle (Saale) Hbf(sample);
+  const r=importHalleHbf(sample);
   assert.equal(r.tracks.length,5);
   assert.equal(r.osmSwitches[0].ref,'W99');
   assert.equal(r.osmSwitches[0].degree,3);
@@ -29,7 +29,7 @@ test('keeps exact OSM node topology, including mapped turnouts',()=>{
   assert.match(r.attribution,/OpenStreetMap/);
 });
 test('same coordinates with DIFFERENT OSM IDs never get joined',()=>{
-  const r=importHalle (Saale) Hbf({elements:[
+  const r=importHalleHbf({elements:[
     node(1,51.45,12.63),node(2,51.45,12.631),
     node(3,51.45,12.631),node(4,51.451,12.631),
     way(1,[1,2]),way(2,[3,4]),
@@ -41,8 +41,8 @@ test('same coordinates with DIFFERENT OSM IDs never get joined',()=>{
   assert.equal(r.report.coincidentDistinctNodes.length,1);
 });
 test('rejects incomplete Overpass documents and preserves missing-geometry warnings',()=>{
-  assert.throws(()=>importHalle (Saale) Hbf({}),/elements/);
-  const r=importHalle (Saale) Hbf({elements:[way(1,[101,102])]});
+  assert.throws(()=>importHalleHbf({}),/elements/);
+  const r=importHalleHbf({elements:[way(1,[101,102])]});
   assert.equal(r.tracks.length,0);
   assert.equal(r.report.warnings.length,1);
 });
@@ -51,7 +51,7 @@ test('supports out geom without separate node elements and deduplicates overlapp
     {type:'way',id:14,nodes:[14,15],geometry:[{lat:51.45,lon:12.64},{lat:51.45,lon:12.641}],tags:{railway:'rail'}},
     {type:'way',id:15,nodes:[15,14],geometry:[{lat:51.45,lon:12.641},{lat:51.45,lon:12.64}],tags:{railway:'rail'}},
   ];
-  const r=importHalle (Saale) Hbf({elements});
+  const r=importHalleHbf({elements});
   assert.equal(r.tracks.length,1);
   assert.equal(r.report.connectedComponents.length,1);
   assert.equal(r.report.nodes,2);
