@@ -63,7 +63,7 @@ export function scopeHallePersonenbahnhof(raw,imported){
   if(!byKind.personenbahn||!byKind.abstellung)throw Error('Passenger or stabling ways missing from OSM source.');
   const report={source:'DB InfraGO LH (30.09.2026), OpenStreetMap/OpenRailwayMap',
     originalSegments:imported.tracks.length,retainedSegments:tracks.length,removedSegments:imported.tracks.length-tracks.length,
-    kinds:byKind,railNodes:graph.size,components,signals:signals.length,switches:switches.length,
+    kinds:byKind,railNodes:graph.size,components,connectedComponents:components,signals:signals.length,switches:switches.length,
     excludedFreightWays:[...freightWayIds].length,
     warnings:['Halle Gbf/ZBA und nicht zugeordnete Rangiergleise aus der SPIELANSICHT ausgeschlossen',
       'Kasseler Gruppe als Personen-Zugabstellung belegt; einzelne Gleise und betriebliche Nutzung noch überprüfen',
