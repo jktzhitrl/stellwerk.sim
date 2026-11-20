@@ -4,6 +4,7 @@ on:
     branches:
       - chatgpt/halle-hbf-originalfahrplan-live-20261120
       - gh-pages
+      - chatgpt/halle-hbf-fahrplan-e2e-check-20261120
     paths:
       - 'halle-hbf-betrieb.mjs'
       - 'halle-hbf-originalfahrplan.mjs'
