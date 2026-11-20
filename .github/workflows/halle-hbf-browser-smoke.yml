@@ -4,6 +4,7 @@ on:
     branches:
       - chatgpt/halle-remove-locked-and-fix-start-20261120
       - gh-pages
+      - chatgpt/halle-hbf-control-desk-20261120
     paths:
       - 'index.html'
       - 'halle-hbf-play.html'
