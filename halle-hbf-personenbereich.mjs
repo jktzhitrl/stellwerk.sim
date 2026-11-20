@@ -6,12 +6,12 @@
  * Source tags are evidence; the operational border and use of "Neue Gruppe"
  * still need manual validation against original station documentation.
  */
-export const HALLE_STABLING_NAMES=Object.freeze(['Kasseler Gruppe','Neue Gruppe']);
+export const HALLE_STABLING_NAMES=Object.freeze(['Kasseler Gruppe']);
 // Exact OSM way IDs, located by shortest non-freight connection to tagged
 // passenger lines from each of the two named groups. They are original ways,
 // not manually added physical edges. Check when source OSM data changes.
 export const HALLE_STABLING_CONNECTORS=Object.freeze([
-  '1104738780','1104738781','1104738782','110187475'
+  '1104738780','110187475'
 ]);
 export function classifyPassengerWay(way){
   if(way?.type!=='way'||way.tags?.railway!=='rail')return null;
@@ -21,7 +21,9 @@ export function classifyPassengerWay(way){
      tags.proposed==='yes')return null;
   if(tags['railway:traffic_mode']==='passenger')return 'personenbahn';
   if(tags.name==='Kasseler Gruppe')return 'abstellung';
-  if(tags.name==='Neue Gruppe')return 'weitere-gruppe';
+  // DB InfraGO 2026 lists Halle Hbf track 136 as Abstellung 2.
+  // The exact OSM way ID avoids mistaking other "136" sidings for this asset.
+  if(id==='749425495'&&tags['railway:track_ref']==='136'&&tags.service==='yard')return 'abstellung';
   if(HALLE_STABLING_CONNECTORS.includes(id))return 'verbindung';
   return null;
 }
@@ -57,7 +59,7 @@ export function scopeHallePersonenbahnhof(raw,imported){
     components.push(size);
   }
   components.sort((a,b)=>b-a);
-  const byKind=Object.fromEntries(['personenbahn','abstellung','weitere-gruppe','verbindung'].map(k=>[k,tracks.filter(t=>t.kind===k).length]));
+  const byKind=Object.fromEntries(['personenbahn','abstellung','verbindung'].map(k=>[k,tracks.filter(t=>t.kind===k).length]));
   const freightWayIds=new Set(raw.elements.filter(w=>w.type==='way'&&(w.tags?.['railway:traffic_mode']==='freight'||w.tags?.usage==='industrial')).map(w=>String(w.id)));
   if(tracks.some(t=>freightWayIds.has(String(t.osmWayId))))throw Error('Freight segment leaked into passenger station.');
   if(!byKind.personenbahn||!byKind.abstellung)throw Error('Passenger or stabling ways missing from OSM source.');
@@ -67,7 +69,8 @@ export function scopeHallePersonenbahnhof(raw,imported){
     excludedFreightWays:[...freightWayIds].length,
     warnings:['Halle Gbf/ZBA und nicht zugeordnete Rangiergleise aus der SPIELANSICHT ausgeschlossen',
       'Kasseler Gruppe als Personen-Zugabstellung belegt; einzelne Gleise und betriebliche Nutzung noch überprüfen',
-      'Neue Gruppe nur als weitere Gleisgruppe, nicht als bestätigte Personenabstellung gekennzeichnet',
+      'Neue Gruppe und nicht zugeordnete Betriebsgruppen bleiben aus dem Spiel ausgeschlossen',
+      'Gleis 136 ist bei DB InfraGO 2026 als Halle Hbf Abstellung ausgewiesen',
       'Streckenanschlüsse, Signalrichtungen und Originalfahrstraßen weiterhin fachlich prüfen']};
   return {version:2,name:'Halle (Saale) Hbf – Personenbahnhof und Abstellung (OSM-Vorschau)',
     dataStatus:'UNVERIFIED_OSM_IMPORT',scope:'PASSENGER_STATION_AND_STABLING',
