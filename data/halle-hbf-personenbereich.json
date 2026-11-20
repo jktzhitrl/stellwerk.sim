@@ -29768,6 +29768,9 @@
     "components": [
       1279
     ],
+    "connectedComponents": [
+      1279
+    ],
     "signals": 204,
     "switches": 95,
     "excludedFreightWays": 100,
