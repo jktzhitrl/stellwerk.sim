@@ -52,8 +52,46 @@ button:focus-visible,summary:focus-visible{outline:3px solid #9be9db;outline-off
 @media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 350px}header h1{flex-basis:100%}}
 @media(max-width:850px){main{display:flex;flex-direction:column;height:auto}#map{height:54dvh;min-height:310px}aside{border-left:0;border-top:1px solid #426071;overflow:visible;padding:10px}header h1{font-size:18px}.mapHud small{display:none}}
 @media(max-width:420px){header a{font-size:12px}header button{font-size:12px;padding:7px 8px}.dispatchDesk .simulationHead button{font-size:11px}.primaryActions button{font-size:12px}}
+
+/* Three virtual desks, horizontal schematic based on the existing OSM graph. */
+body{--fdltrack:#b7cbd6;--fdlroute:#ffd35c}
+#map{background-color:#1e2c34;background-image:linear-gradient(rgba(142,177,196,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(142,177,196,.09) 1px,transparent 1px);background-size:34px 34px}
+#rails .trackLine{stroke-width:4.5;stroke-linecap:round}
+#rails .trackLine[data-area="ww"]{stroke:#66d5ae}
+#path polyline{filter:drop-shadow(0 0 2px #ffe57b77)}
+.sectorBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 12px;background:#152c3a;border-bottom:1px solid #527487}
+.sectorTabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.sectorTabs button{font-size:13px;font-weight:750;min-height:43px;padding:7px 13px;white-space:nowrap}
+.sectorTabs button[aria-pressed="true"]{background:#286780;border-color:#78ccda;box-shadow:inset 0 -3px #61d7b2}
+#sectorViewMode{font-size:12px;min-height:42px;background:#273f50}
+#sectorStatus{padding:4px 8px;font-size:11px;color:#bdd4e0;background:#122837;min-width:0}
+body.sector-west #rails .trackLine[data-area="ost"],body.sector-ost #rails .trackLine[data-area="west"],body.sector-ww #rails .trackLine:not([data-area="ww"]){opacity:.18}
+body.sector-west #rails .hitLine[data-area="ost"],body.sector-ost #rails .hitLine[data-area="west"],body.sector-ww #rails .hitLine:not([data-area="ww"]){pointer-events:none}
+#wwDesk{display:none}
+body.sector-ww #wwDesk{display:block}
+body.sector-ww .dispatchDesk{display:none}
+#wwDesk .deskActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}
+#wwDesk .deskActions button{font-size:12px;min-height:51px;padding:7px}
+#wwDesk #shuntStatus{font-size:12px;line-height:1.5;background:#0d2637;border-left:3px solid #55d1a4;border-radius:6px;padding:10px;margin-top:8px}
+#wwDesk .shuntLabel{font-size:12px;color:#b4d4de;line-height:1.5}
+#manualHandoffLabel{display:flex;gap:9px;align-items:center;font-size:12px;margin-top:10px;padding-top:8px;border-top:1px solid #496779}
+#handoffBox{border:1px solid #44667b;border-radius:8px;background:#112c3d;margin-top:8px;padding:10px;font-size:12px}
+#handoffBox[hidden]{display:none}#handoffHint{color:#bbd6e4;margin-bottom:8px}#handoffBox .controls button{font-size:12px}
+#sectorHelp{font-size:10px;color:#9fb9c7;margin:5px 0 0}
+@media(max-width:850px){.sectorBar{padding:7px 8px;gap:5px}.sectorTabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}.sectorTabs button{flex:none;min-height:44px;padding:8px 11px;font-size:12px}#sectorViewMode{min-height:40px;flex:none}.sectorBar #sectorStatus{flex:1 1 100%;font-size:11px}#map{height:53dvh;min-height:310px}}
+@media(max-width:410px){.sectorTabs button{font-size:11px;padding:8px 9px}.sectorBar{gap:3px}#sectorViewMode{font-size:11px;padding:6px}}
 </style></head><body>
 <header><h1>🚦 Halle (Saale) Hbf · Personenbahnhof + Abstellung</h1><a href="./index.html">← Stellwerkspiel</a><a href="./halle-hbf-review.html">🗺️ Originaldaten prüfen</a><button id="center">Bahnhof zentrieren</button><button id="all">Alle Personengleise</button></header>
+<nav class="sectorBar" aria-label="Bedienbereich und Gleisbild">
+<div class="sectorTabs" id="sectorTabs" role="group" aria-label="Stellwerksbereich">
+<button type="button" data-sector="west" aria-pressed="true">🚦 Fdl West</button>
+<button type="button" data-sector="ost" aria-pressed="false">🚦 Fdl Ost</button>
+<button type="button" data-sector="ww" aria-pressed="false">🛠 Ww Abstellung</button>
+<button type="button" data-sector="gesamt" aria-pressed="false">▦ Gesamtpult</button>
+</div>
+<button id="sectorViewMode" type="button" aria-pressed="true" title="Schematische Spielansicht oder unveränderte OSM-Geometrie">Schemaplan ✓</button>
+<div id="sectorStatus" role="status">Spielbereich West · virtuelle Grenze</div>
+</nav>
 <main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
@@ -105,13 +143,21 @@ button:focus-visible,summary:focus-visible{outline:3px solid #9be9db;outline-off
  const secondary=document.createElement('div');secondary.className='secondaryActions';secondary.append(el('autoRoute'),el('new'));panel.append(secondary);
  const coach=document.createElement('div');coach.id='coach';coach.textContent='① Zug wählen · ② Fahrstraße stellen · ③ Zug abfahren';
  panel.append(coach,el('status'));
+ const manual=document.createElement('label');manual.id='manualHandoffLabel';
+ manual.innerHTML='<input id="manualHandoff" type="checkbox"> Bereichsübergaben manuell bestätigen (Einzelspieler: automatisch)';
+ panel.append(manual);
+ const handoff=document.createElement('section');handoff.id='handoffBox';handoff.hidden=true;
+ handoff.innerHTML='<b>Virtuelle Bereichsübergabe</b><div id="handoffHint"></div><div class="controls"><button id="handoffRequest" type="button">Übergabe anfordern</button><button id="handoffApprove" type="button">Für diesen Bereich bestätigen</button></div>';
+ panel.append(handoff);
  const heading=document.createElement('div');heading.className='deskTimetable';heading.textContent='Original-Abfahrtsfahrplan · 20.11.2026';panel.append(heading,el('departures'));
  const groups=document.createElement('div');groups.className='quickGroups';groups.append(el('kasseler'),el('abstellung136'));
  const details=document.createElement('details');details.className='technical';
  details.innerHTML='<summary>Originaldaten, Gleisreferenzen &amp; technische Prüfung</summary><div class="technicalBody"></div>';
  const body=details.querySelector('.technicalBody');
  while(aside.firstChild)body.append(aside.firstChild);
- aside.append(panel,groups,details);
+ const ww=document.createElement('section');ww.id='wwDesk';ww.className='dispatchDesk';
+ ww.innerHTML='<h2>Weichenwärter · Abstellung <small>VIRTUELL</small></h2><p class="shuntLabel">Kasseler Gruppe und DB-Abstellgleis 136. Die folgenden Rangierfahrten sind frei erfundene Übungsfahrten auf zusammenhängenden OSM-Prüfwegen, keine DB-Fahrplanleistungen oder Original-Weichenstellungen.</p><div class="deskActions"><button id="shuntKasseler" type="button">① Kasseler Gruppe vorbereiten</button><button id="shunt136" type="button">① Gleis 136 vorbereiten</button><button id="shuntRelease" type="button" disabled>② Rangierweg freigeben</button><button id="shuntStart" type="button" disabled>③ Rangierfahrt starten</button></div><div id="shuntStatus" role="status">Rangiergleis wählen. Geometrische Fahrwege werden ohne erfundene Weichenverbindungen geprüft.</div><p id="shuntCount" class="shuntLabel">Virtuelle Rangierfahrten: 0</p><button id="wwApproveTransfer" type="button" disabled>Bereichsübergabe für Abstellung bestätigen</button><p id="sectorHelp">Nur Spielbetrieb: Die originalen Fahrstraßen und Schutzabhängigkeiten sind nicht bekannt.</p>';
+ aside.append(panel,ww,groups,details);
 })();
 </script>
 <script>
