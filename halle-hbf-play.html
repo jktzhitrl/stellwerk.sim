@@ -13,6 +13,7 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 .controls{display:flex;gap:7px;flex-wrap:wrap}.controls button{flex:1}
 #status{white-space:pre-wrap;line-height:1.5}#stats{font-size:12px;color:#b9cbd6}
 #labels{font-size:13px}label{display:flex;gap:8px;align-items:center;margin:8px 0}
+#objectDetails{white-space:pre-wrap;overflow-wrap:anywhere;background:#152735;padding:10px;border-radius:6px;font-size:12px;line-height:1.5;max-height:310px;overflow:auto}#objectCategory,#objectId{width:100%;min-width:0;max-width:100%;font:inherit;color:#e3f1f8;background:#213c50;padding:8px;border:1px solid #547389;border-radius:5px}#objectSummary{font-size:12px;color:#bbd1df}.objectMarker{cursor:pointer;stroke:#0d1c2a;stroke-width:2;touch-action:manipulation}.objectMarker:focus{stroke:#fff;stroke-width:4}
 .quickRefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px;margin:8px 0}.quickRefs button{min-width:0;min-height:42px;padding:5px;font-weight:700}.quickRefs button.active{background:#276d62;border-color:#8de6c5}.lineRefs{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}.lineRefs button{text-align:left;font-size:13px}.lineRefs button:disabled{opacity:.65}.mapRefLabel{font:700 21px system-ui,sans-serif;fill:#c7f4ff;stroke:#122c3d;stroke-width:3px;paint-order:stroke;pointer-events:none}
 @media(max-width:980px){main{display:flex;flex-direction:column;height:auto}#map{height:56dvh;min-height:350px}aside{overflow:visible}}
 </style></head><body>
@@ -34,6 +35,14 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <label>Fahrtempo <select id="speed"><option value="70">Langsam</option><option value="160" selected>Normal</option><option value="350">Schnell</option></select></label>
 <label><input id="switches" type="checkbox" checked> Kartierte Weichen anzeigen</label>
 <label><input id="signals" type="checkbox"> Signalobjekte anzeigen (nur Information)</label>
+<h2 style="font-size:15px">Original-Weichen und Signalobjekte prüfen</h2>
+<p id="objectSummary">Lade OSM-Objektprüfung …</p>
+<label for="objectCategory">Objektgruppe</label>
+<select id="objectCategory"><option value="switch">Weichen</option><option value="main">Hauptsignal-Tags</option><option value="distant">Vorsignal-Tags</option><option value="shunting">Rangiersignal-Tags</option><option value="speed">Geschwindigkeitstafeln</option><option value="other">Weitere signalbezogene Objekte</option></select>
+<label for="objectId">OSM-Objekt</label>
+<select id="objectId"><option value="">Objekt auswählen …</option></select>
+<div class="controls"><button id="focusObject">📍 Objekt zeigen</button></div>
+<pre id="objectDetails">Objekte sind Kartendaten, keine geprüften Stellwerksstellungen.</pre>
 <p id="labels">Grau: Gleise · Orange: Weichen · Gelb: geometrisch möglicher Weg · Rot: Zug</p>
 <p><small>© OpenStreetMap contributors, ODbL 1.0. Ergänzende Quelle: <a href="https://trassenfinder.de/apn/LH" target="_blank" rel="noopener">DB-InfraGO-Gleisplan LH, 30.09.2026</a>. Die Karte kann auch angrenzende Gleisgruppen außerhalb des eigentlichen Hauptbahnhofs enthalten.</small></p>
 </aside></main>
@@ -45,9 +54,11 @@ if(!response.ok)throw Error('Halle-Gleisdaten konnten nicht geladen werden (HTTP
 const data=await response.json();if(data.dataStatus!=='UNVERIFIED_OSM_IMPORT'||!Array.isArray(data.tracks)||!data.tracks.length)throw Error('Ungültige OSM-Daten');
 const {buildGraph,findGeometricPath,trackRefs,representativeTrackNode}=await import('./halle-hbf-routing.mjs');
 const {auditHalleRefs,HALLE_STATION_FOCUS}=await import('./halle-hbf-references.mjs');
+const {buildObjectAudit,readableObject}=await import('./halle-hbf-objects.mjs');
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('board'),rail=document.getElementById('rails'),pathLayer=document.getElementById('path'),items=document.getElementById('items'),vehicle=document.getElementById('vehicle');
 const $=id=>document.getElementById(id),el=(tag,props,parent)=>{const n=document.createElementNS(NS,tag);for(const k of Object.keys(props))n.setAttribute(k,props[k]);parent.append(n);return n};
 const edges=data.tracks,graph=buildGraph(edges),wMap=new Map((data.osmSwitches||[]).map(w=>[String(w.osmNodeId),w]));
+const objectAudit=buildObjectAudit(data.signals||[],data.osmSwitches||[],graph);
 function route(start,goal){return findGeometricPath(graph,wMap,start,goal);}
 const refs=trackRefs(edges),referenceAudit=auditHalleRefs(edges,refs);
 const trackSelect=$('trackRef');
@@ -62,8 +73,47 @@ const trackGroup=el('g',{},rail);
 edges.forEach((e,i)=>{const a=e.a,b=e.b;el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:e.service?'#91a6b5':'#d4dce5','stroke-width':3,'stroke-linecap':'round'},trackGroup);});
 const hits=el('g',{},rail);edges.forEach((e,i)=>{const a=e.a,b=e.b;const h=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':16,'data-edge':i},hits);h.style.cursor='crosshair';});
 const symW=el('g',{},items),symS=el('g',{display:'none'},items),platformMarkers=el('g',{},items);
-for(const w of data.osmSwitches||[])el('circle',{cx:w.x,cy:w.y,r:7,fill:'#ffb45e',stroke:'#141922','stroke-width':2},symW);
-for(const w of data.signals||[])el('circle',{cx:w.x,cy:w.y,r:5,fill:w.railwayTags?.['railway:signal:main']?'#55caed':'#a99df4'},symS);
+const objectByKey=new Map();
+function objectKey(kind,id){return kind+':'+id;}
+for(const w of objectAudit.switches){
+ const key=objectKey('switch',w.osmNodeId);objectByKey.set(key,w);
+ const dot=el('circle',{cx:w.x,cy:w.y,r:7,fill:w.kind==='complex'?'#ff8b6c':w.kind==='unresolved'?'#ed6b83':'#ffb45e',class:'objectMarker',tabindex:'0',role:'button','aria-label':'Weiche '+(w.ref||w.osmNodeId)},symW);
+ dot.addEventListener('click',ev=>{ev.stopPropagation();showObject(key);});
+ dot.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showObject(key);}});
+}
+for(const w of objectAudit.signals){
+ const key=objectKey('signal',w.osmNodeId);objectByKey.set(key,w);
+ const dot=el('circle',{cx:w.x,cy:w.y,r:6,fill:w.color,class:'objectMarker',tabindex:'0',role:'button','aria-label':w.label+' '+(w.ref||w.osmNodeId)},symS);
+ dot.addEventListener('click',ev=>{ev.stopPropagation();showObject(key);});
+ dot.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showObject(key);}});
+}
+const category=$('objectCategory'),objectSelect=$('objectId');
+function matchingObjects(){
+ if(category.value==='switch')return objectAudit.switches.map(w=>({key:objectKey('switch',w.osmNodeId),value:w}));
+ return objectAudit.signals.filter(w=>w.kind===category.value||category.value==='other'&&['other','buffer','stop'].includes(w.kind)).map(w=>({key:objectKey('signal',w.osmNodeId),value:w}));
+}
+function populateObjects(){
+ objectSelect.replaceChildren();
+ const blank=document.createElement('option');blank.value='';blank.textContent='Objekt auswählen …';objectSelect.append(blank);
+ for(const {key,value} of matchingObjects()){
+  const option=document.createElement('option');option.value=key;option.textContent=(value.ref||('OSM '+value.osmNodeId))+' · '+(value.label||value.type||value.kind)+' · #'+value.osmNodeId;objectSelect.append(option);
+ }
+}
+function showObject(key){
+ const item=objectByKey.get(key);if(!item)return;
+ const kind=key.startsWith('switch:')?'switch':item.kind==='buffer'||item.kind==='stop'?'other':item.kind;
+ category.value=kind;populateObjects();objectSelect.value=key;
+ if(kind==='switch')$('switches').checked=true,symW.setAttribute('display','inline');
+ else $('signals').checked=true,symS.setAttribute('display','inline');
+ focusCandidate(item,(item.ref||item.osmNodeId)+'?');
+ $('objectDetails').textContent=readableObject(item);
+ status('OSM-Objekt '+(item.ref||item.osmNodeId)+' ausgewählt. Keine geprüfte Signalstellung oder Weichenfreigabe.');
+}
+category.addEventListener('change',populateObjects);
+$('focusObject').addEventListener('click',()=>showObject(objectSelect.value));
+objectSelect.addEventListener('change',()=>{if(objectSelect.value)showObject(objectSelect.value);});
+populateObjects();
+$('objectSummary').textContent=objectAudit.switches.length+' OSM-Weichen ('+(objectAudit.switchCounts.complex||0)+' komplex; '+(objectAudit.switchCounts.unresolved||0)+' mit ungeklärtem Knotengrad) · '+objectAudit.signals.length+' signalbezogene OSM-Objekte (davon '+(objectAudit.signalCounts.main||0)+' mit Hauptsignal-Tags).';
 function focusCandidate(candidate,label=''){
  if(!candidate)return;
  view={x:candidate.x-view.w/2,y:candidate.y-view.h/2,w:view.w,h:view.h};showView();
