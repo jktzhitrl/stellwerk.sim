@@ -46,4 +46,8 @@ jobs:
           node --check halle-hbf-personenbereich.mjs
           node --check halle-hbf-routing.mjs
           node -e "const fs=require('fs');for(const name of ['halle-hbf-play.html','halle-hbf-review.html']){const s=fs.readFileSync(name,'utf8');new Function(s.slice(s.lastIndexOf('<script>')+8,s.lastIndexOf('</script>')));if(!s.includes('./data/halle-hbf-personenbereich.json'))throw Error(name+' still uses freight map')}"
-          node -e "const fs=require('fs');const s=fs.readFileSync('sw.js','utf8');if(!s.includes('halle-hbf-personenbereich.json')||s.includes("'./data/halle-hbf-osm-review.json'"))throw Error('PWA caches wrong dataset')"
+          node <<'NODE'
+          const fs=require('fs');
+          const content=fs.readFileSync('sw.js','utf8');
+          if(!content.includes('halle-hbf-personenbereich.json') || content.includes('./data/halle-hbf-osm-review.json'))throw Error('PWA caches wrong dataset');
+          NODE
