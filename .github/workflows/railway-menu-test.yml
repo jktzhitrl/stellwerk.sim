@@ -37,10 +37,8 @@ jobs:
           assert.ok(readFileSync('sw.js','utf8').includes('railway-dispatch-no-tycoon'));
           console.log('No Tycoon in UI or Android; game syntax is valid.');
           NODE
-      - name: Install Chromium browser automation
-        run: |
-          npm install --no-save --no-package-lock playwright@1.58.2
-          npx playwright install --with-deps chromium
+      - name: Use preinstalled Google Chrome on Ubuntu runner
+        run: npm install --no-save --no-package-lock playwright@1.58.2
       - name: Browser test of 390px, 768px and 1280px railway menus
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/railway-menu-http.log 2>&1 &
