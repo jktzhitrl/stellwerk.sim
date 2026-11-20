@@ -26,7 +26,7 @@ try{
      const offenders=[...e.querySelectorAll('*')].map(el=>({tag:el.tagName,cls:el.className?.baseVal??el.className,
        id:el.id,right:Math.round(el.getBoundingClientRect().right),left:Math.round(el.getBoundingClientRect().left),
        scroll:el.scrollWidth,client:el.clientWidth}))
-       .filter(o=>o.right>bounds.right+5||o.left<bounds.left-5).slice(0,18);
+       .filter(o=>o.right>bounds.right+5||o.left<bounds.left-5||o.scroll>o.client+5).slice(0,30);
      return {has:e.scrollWidth>e.clientWidth+5,width:e.clientWidth,scroll:e.scrollWidth,offenders};
    });
    assert.equal(overflowInfo.has,false,'Menu has horizontal overflow at '+viewport.width+': '+JSON.stringify(overflowInfo));
