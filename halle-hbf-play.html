@@ -331,9 +331,79 @@ $('signals').onchange=ev=>symS.setAttribute('display',ev.target.checked?'inline'
 $('stats').textContent=edges.length+' gefilterte OSM-Segmente · '+(data.report.kinds.abstellung||0)+' Abstellabschnitte inkl. Gleis 136 · '+(data.osmSwitches||[]).length+' Weichen · '+(data.signals||[]).length+' Signalobjekte (ungeprüft)';
 let start=null,end=null,points=null,train=null,run=null,markA=null,markB=null,line=null;
 let serviceOriginNode=null,routeResult=null,clockPlaying=false,clockInterval=null;
+let shuntReady=null,shuntCount=0,handoffRequested=false;
+const approvedSectors=new Set();
+function requiredHandoffs(){
+ if(!routeResult||!serviceOriginNode||!graph.has(serviceOriginNode))return [];
+ const own=areas.areaForNode(serviceOriginNode,graph.get(serviceOriginNode).p);
+ return areas.routeAreas(routeResult.ids,graph).filter(s=>s!==own);
+}
+function resetHandoffs(){handoffRequested=false;approvedSectors.clear();}
+function handoffsOk(){return !$('manualHandoff').checked||requiredHandoffs().every(s=>approvedSectors.has(s));}
+function renderHandoff(){
+ const req=requiredHandoffs(),pending=req.filter(id=>!approvedSectors.has(id));
+ const active=$('manualHandoff').checked&&req.length>0&&!game.route?.cleared;
+ $('handoffBox').hidden=!active;
+ $('handoffHint').textContent=active?(pending.length?'Warten auf Freigabe: '+pending.join(', '):'Alle beteiligten Bereiche haben bestätigt.'):'';
+ $('handoffRequest').disabled=!active||handoffRequested;
+ $('handoffApprove').disabled=!active||!handoffRequested||!pending.includes(currentSector);
+ $('wwApproveTransfer').disabled=!active||!handoffRequested||currentSector!=='ww'||!pending.includes('ww');
+}
+function approveHandoff(id){
+ if(!handoffRequested||!requiredHandoffs().includes(id))return;
+ approvedSectors.add(id);renderSchedule();
+ if(currentSector==='ww')$('shuntStatus').textContent='Übergabe für Abstellung bestätigt. Zum Fahrdienstleiter zurückwechseln.';
+ else status('Übergabe für '+id.toUpperCase()+' bestätigt. Zurück zum ursprünglichen Fahrdienstleiter.');
+}
+$('manualHandoff').onchange=()=>{resetHandoffs();renderSchedule();};
+$('handoffRequest').onclick=()=>{handoffRequested=true;renderHandoff();status('Übergabe angefordert. Zielbereich wählen, bestätigen und zum Ausgangspult zurückkehren.');};
+$('handoffApprove').onclick=()=>approveHandoff(currentSector);
+$('wwApproveTransfer').onclick=()=>approveHandoff('ww');
+function renderShunt(){
+ $('shuntRelease').disabled=!shuntReady||shuntReady.released||!!run||game.running;
+ $('shuntStart').disabled=!shuntReady?.released||!!run||game.running;
+ $('shuntKasseler').disabled=!!run||game.running||!!game.route?.cleared;
+ $('shunt136').disabled=!!run||game.running||!!game.route?.cleared;
+ $('shuntCount').textContent='Virtuelle Rangierfahrten abgeschlossen: '+shuntCount;
+}
+function prepareShunt(name){
+ if(run||game.running||game.route?.cleared){$('shuntStatus').textContent='Zuerst laufende Fahrt oder gestellte Fahrstraße abschließen.';return;}
+ const route=pickShuntingPath(edges,graph,wMap,name,findGeometricPath,suggestTestRoute);
+ if(!route){$('shuntStatus').textContent='Kein konservativ zulässiger OSM-Rangierweg gefunden. Keine künstliche Fahrstraße.';return;}
+ game.cancel();game.selected=null;resetHandoffs();
+ serviceOriginNode=null;start=end=points=routeResult=null;
+ shuntReady={name,route,released:false};
+ pathLayer.replaceChildren();vehicle.replaceChildren();
+ line=el('polyline',{points:route.points.map(p=>p.x+','+p.y).join(' '),stroke:'#ffcf67','stroke-width':7,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},pathLayer);
+ fitRoute(route.points);
+ $('shuntStatus').textContent=(name==='kasseler'?'Kasseler Gruppe':'Gleis 136')+': '+route.ids.length+' OSM-Knoten für virtuellen Rangierweg geprüft.';
+ renderSchedule();
+}
+$('shuntKasseler').onclick=()=>prepareShunt('kasseler');
+$('shunt136').onclick=()=>prepareShunt('136');
+$('shuntRelease').onclick=()=>{
+ if(!shuntReady||run)return;
+ shuntReady.released=true;
+ if(line)line.setAttribute('stroke','#55e49a');
+ $('shuntStatus').textContent='Virtuellen Rangierweg freigegeben. Keine originale Weichen- oder Signalschaltung.';
+ renderSchedule();
+};
+$('shuntStart').onclick=()=>{
+ if(!shuntReady?.released||run||game.running)return;
+ const pts=shuntReady.route.points,segments=[];let total=0;
+ for(let i=1;i<pts.length;i++){const len=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);segments.push({a:pts[i-1],b:pts[i],start:total,end:total+len});total+=len;}
+ train=el('circle',{cx:pts[0].x,cy:pts[0].y,r:12,fill:'#61b8ff',stroke:'#fff','stroke-width':2},vehicle);
+ const label=el('text',{x:pts[0].x+15,y:pts[0].y-13,'font-size':17,fill:'#fff'},vehicle);label.textContent='Rangierfahrt SIM';
+ run={kind:'shunt',segments,total,pos:0,last:performance.now(),label};
+ if(line)line.setAttribute('stroke','#ffa75d');
+ $('shuntStatus').textContent='Virtuelle Rangierfahrt unterwegs. Keine DB-Fahrplanleistung.';
+ renderSchedule();requestAnimationFrame(step);
+};
 const virtualLayer=$('virtualSignals'),lockLayer=$('switchLocks');
-function drawSwitchLocks(){lockLayer.replaceChildren();if(!game.route?.cleared)return;
- for(const id of game.route.ids){const w=wMap.get(id);if(!w)continue;
+function drawSwitchLocks(){lockLayer.replaceChildren();
+ const ids=game.route?.cleared?game.route.ids:shuntReady?.released?shuntReady.route.ids:null;
+ if(!ids)return;
+ for(const id of ids){const w=wMap.get(id);if(!w)continue;
   el('circle',{cx:w.x,cy:w.y,r:13,fill:'none',stroke:'#58e5ee','stroke-width':4,opacity:.9},lockLayer);
  }
 }
@@ -351,10 +421,10 @@ function updateSignalVisual(){
 function renderSchedule(){
  $('simClock').textContent=clockLabel(game.clock);
  $('score').textContent='Punkte: '+game.score+' · '+game.completed.size+'/'+game.departures.length+' Züge';
- $('nextTrain').disabled=game.running||!!game.route?.cleared||game.completed.size===game.departures.length;
+ $('nextTrain').disabled=game.running||!!run||!!shuntReady||!!game.route?.cleared||game.completed.size===game.departures.length;
  $('coach').textContent=game.running?'Zug unterwegs – Fahrweg belegt':!game.selected?'① Fahrplanzug auswählen':!game.route?.cleared?'② Prüfweg prüfen und Fahrstraße stellen':game.clock<timetableMinutes(game.selected.time)?'③ Abfahrt ab '+game.selected.time+' Uhr möglich':'③ Signal auf Fahrt – Zug abfahren';
- $('go').disabled=!game.route?.cleared||game.running||game.clock<timetableMinutes(game.selected?.time||'23:59');
- $('clearRoute').disabled=!routeResult||!game.selected||game.route?.cleared||start!==serviceOriginNode||game.running;
+ $('go').disabled=!game.route?.cleared||game.running||!!run||game.clock<timetableMinutes(game.selected?.time||'23:59');
+ $('clearRoute').disabled=!routeResult||!game.selected||game.route?.cleared||start!==serviceOriginNode||game.running||!!run||!handoffsOk();
  $('selectedService').textContent=game.selected?
    game.selected.train+' · Abfahrt '+game.selected.time+' · Gleis '+game.selected.trackField+' · '+game.selected.destination+' | '+game.stateOf(game.selected.id):
    'Wähle einen Zug aus der Original-Abfahrtstafel.';
@@ -365,7 +435,7 @@ function renderSchedule(){
    btn.querySelector('.state').textContent=st;
  }
  updateSignalVisual();
- drawSwitchLocks();
+ drawSwitchLocks();renderHandoff();renderShunt();
 }
 function suggestRouteForSelected(){
  if(!serviceOriginNode||!game.selected){status('Bitte erst eine Fahrplan-Abfahrt wählen.');return;}
