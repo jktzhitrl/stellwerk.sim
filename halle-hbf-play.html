@@ -16,9 +16,45 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 .simulationHead{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}.simulationClock{font-weight:800;font-size:24px;font-variant-numeric:tabular-nums}.board{max-height:245px;overflow:auto;border:1px solid #486171;border-radius:7px;margin:8px 0}.board button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid #345264;border-radius:0;background:#1d3546;font-size:12px;padding:7px}.board button:hover,.board button.selected{background:#316476}.board button.dispatched{opacity:.55}.board b{font-size:14px}.board .clock{min-width:45px;font-variant-numeric:tabular-nums}.board .destination{flex:1;min-width:0}.signalBox{display:flex;gap:10px;align-items:center;padding:9px;background:#142a3a;border-radius:7px;margin:8px 0}.signalLamp{width:19px;height:19px;border-radius:50%;background:#ff4c50;box-shadow:0 0 7px #fa5353}.signalLamp.green{background:#4ee58a;box-shadow:0 0 7px #4ee58a}.signalCaption{font-size:12px;color:#c9dbe7}.virtualSignal{pointer-events:none}#objectDetails{white-space:pre-wrap;overflow-wrap:anywhere;background:#152735;padding:10px;border-radius:6px;font-size:12px;line-height:1.5;max-height:310px;overflow:auto}#objectCategory,#objectId{width:100%;min-width:0;max-width:100%;font:inherit;color:#e3f1f8;background:#213c50;padding:8px;border:1px solid #547389;border-radius:5px}#objectSummary{font-size:12px;color:#bbd1df}.objectMarker{cursor:pointer;stroke:#0d1c2a;stroke-width:2;touch-action:manipulation}.objectMarker:focus{stroke:#fff;stroke-width:4}
 .quickRefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px;margin:8px 0}.quickRefs button{min-width:0;min-height:42px;padding:5px;font-weight:700}.quickRefs button.active{background:#276d62;border-color:#8de6c5}.lineRefs{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}.lineRefs button{text-align:left;font-size:13px}.lineRefs button:disabled{opacity:.65}.mapRefLabel{font:700 21px system-ui,sans-serif;fill:#c7f4ff;stroke:#122c3d;stroke-width:3px;paint-order:stroke;pointer-events:none}
 @media(max-width:980px){main{display:flex;flex-direction:column;height:auto}#map{height:56dvh;min-height:350px}aside{overflow:visible}}
+
+/* Fahrdienstleiter-Pult, responsive desktop and tablet */
+header{background:#1b3446;border-bottom:1px solid #4a6679;padding:10px 14px}
+header h1{flex:1 1 350px;font-size:19px}
+header a{font-size:13px;text-decoration:none}
+main{height:calc(100dvh - 86px);grid-template-columns:minmax(0,1fr) minmax(340px,390px)}
+#map{position:relative;overflow:hidden;background:#081621}
+aside{background:#122839;border-left:1px solid #3c5a70}
+.mapHud{position:absolute;top:12px;left:12px;z-index:2;pointer-events:none;background:#122d3edc;border:1px solid #537284;border-radius:7px;padding:8px 10px;font-size:12px;font-weight:800}
+.mapHud small{display:block;font-size:10px;font-weight:400;color:#bdd2dd}
+.mapZoom{position:absolute;z-index:3;right:12px;top:12px;display:grid;gap:6px}.mapZoom button{min-width:46px;min-height:46px;font-size:23px;padding:4px}
+.dispatchDesk{background:#193648;border:1px solid #4c6b7f;border-radius:12px;padding:12px;margin-bottom:10px}
+.dispatchDesk h2{font-size:17px;margin:0 0 9px}.dispatchDesk h2 small{font-size:10px;color:#bcebdc;border:1px solid #5d8992;border-radius:14px;padding:4px}
+.dispatchDesk .simulationHead{border-block:1px solid #49677b;padding:8px 0;margin:5px 0 9px;gap:6px}
+.dispatchDesk .simulationClock{margin-right:auto;font-size:28px}
+.dispatchDesk .simulationHead button{font-size:12px;padding:6px 7px}
+#nextTrain{width:100%;font-weight:800;background:#27516c;border-color:#76a6bd;margin-bottom:9px}
+#selectedService{background:#102a3b;border:1px solid #4a6a7f;border-radius:7px;padding:9px;min-height:44px;font-size:13px}
+.dispatchDesk .signalBox{border:1px solid #4a677b}
+.primaryActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
+.primaryActions button{min-height:53px;padding:8px 6px;font-size:13px;font-weight:800}
+#clearRoute{background:#275c75;border-color:#699fb6}
+#go:not(:disabled){background:#177b54;border-color:#5bdd9b}
+.secondaryActions{display:flex;gap:7px}.secondaryActions button{flex:1;padding:8px 6px;font-size:12px}
+#coach{min-height:18px;color:#b9e5d6;font-size:12px;margin:9px 0}
+.dispatchDesk #status{background:#10293a;border-left:3px solid #e5b767;border-radius:5px;font-size:12px;padding:9px;line-height:1.5;margin:8px 0}
+.dispatchDesk .board{max-height:230px}.dispatchDesk .board button{min-height:43px}
+.deskTimetable{border-top:1px solid #4a677c;padding-top:11px;margin-top:14px;font-size:14px;font-weight:750}
+.quickGroups{display:flex;gap:7px;margin:10px 0}.quickGroups button{flex:1;font-size:12px}
+.technical{background:#1b3445;border:1px solid #3d5b70;border-radius:9px;overflow:hidden;margin:10px 0}
+.technical summary{font-size:13px;font-weight:750;cursor:pointer;padding:13px}
+.technical .technicalBody{padding:0 12px 12px;border-top:1px solid #3d5b70}
+button:focus-visible,summary:focus-visible{outline:3px solid #9be9db;outline-offset:2px}
+@media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 350px}header h1{flex-basis:100%}}
+@media(max-width:850px){main{display:flex;flex-direction:column;height:auto}#map{height:54dvh;min-height:310px}aside{border-left:0;border-top:1px solid #426071;overflow:visible;padding:10px}header h1{font-size:18px}.mapHud small{display:none}}
+@media(max-width:420px){header a{font-size:12px}header button{font-size:12px;padding:7px 8px}.dispatchDesk .simulationHead button{font-size:11px}.primaryActions button{font-size:12px}}
 </style></head><body>
 <header><h1>🚦 Halle (Saale) Hbf · Personenbahnhof + Abstellung</h1><a href="./index.html">← Stellwerkspiel</a><a href="./halle-hbf-review.html">🗺️ Originaldaten prüfen</a><button id="center">Bahnhof zentrieren</button><button id="all">Alle Personengleise</button></header>
-<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg></div>
+<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
 <p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><h2 style="font-size:15px">Original-Abfahrtsfahrplan · 20.11.2026 (Fr)</h2>
@@ -53,6 +89,32 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <p><small>© OpenStreetMap contributors, ODbL 1.0. Ergänzende Quelle: <a href="https://trassenfinder.de/apn/LH" target="_blank" rel="noopener">DB-InfraGO-Gleisplan LH, 30.09.2026</a>. Die Karte kann auch angrenzende Gleisgruppen außerhalb des eigentlichen Hauptbahnhofs enthalten.</small></p>
 </aside></main>
 <script>
+/* Restructure only existing DOM nodes before the simulator initializes. */
+(()=>{
+ const el=id=>document.getElementById(id),aside=document.querySelector('aside');
+ const panel=document.createElement('section');panel.className='dispatchDesk';
+ panel.innerHTML='<h2>Fahrdienstleiter-Pult <small>VIRTUELLER BETRIEB</small></h2>';
+ panel.append(document.querySelector('.simulationHead'));
+ const next=document.createElement('button');next.id='nextTrain';next.textContent='① Nächsten Fahrplanzug auswählen';
+ next.addEventListener('click',()=>{
+  const btn=[...el('departures').querySelectorAll('button[data-service]')].find(b=>!b.classList.contains('dispatched'));
+  if(btn)btn.click();else el('status').textContent='Alle verfügbaren Abfahrten bearbeitet.';
+ });
+ panel.append(next,el('selectedService'),document.querySelector('.signalBox'));
+ const primary=document.createElement('div');primary.className='primaryActions';primary.append(el('clearRoute'),el('go'));panel.append(primary);
+ const secondary=document.createElement('div');secondary.className='secondaryActions';secondary.append(el('autoRoute'),el('new'));panel.append(secondary);
+ const coach=document.createElement('div');coach.id='coach';coach.textContent='① Zug wählen · ② Fahrstraße stellen · ③ Zug abfahren';
+ panel.append(coach,el('status'));
+ const heading=document.createElement('div');heading.className='deskTimetable';heading.textContent='Original-Abfahrtsfahrplan · 20.11.2026';panel.append(heading,el('departures'));
+ const groups=document.createElement('div');groups.className='quickGroups';groups.append(el('kasseler'),el('abstellung136'));
+ const details=document.createElement('details');details.className='technical';
+ details.innerHTML='<summary>Originaldaten, Gleisreferenzen &amp; technische Prüfung</summary><div class="technicalBody"></div>';
+ const body=details.querySelector('.technicalBody');
+ while(aside.firstChild)body.append(aside.firstChild);
+ aside.append(panel,groups,details);
+})();
+</script>
+<script>
 'use strict';
 (async()=>{
 const response=await fetch('./data/halle-hbf-personenbereich.json');
@@ -75,6 +137,17 @@ const numbered=[...refs.keys()].filter(ref=>/^\d{1,3}$/.test(ref)).sort((a,b)=>N
 for(const ref of numbered){const option=document.createElement('option');option.value=ref;option.textContent='OSM-Gleisref '+ref;trackSelect.append(option);}
 $('refHint').textContent=numbered.length+' numerische Gleisreferenzen aus OpenStreetMap gefunden. Manche gehören zu Nachbaranlagen; Nummer und Betriebsgleiszugehörigkeit sind ungeprüft.';
 const V={x:700,y:100,w:1200,h:1700};let view={...V};
+function zoomCenter(factor){const cx=view.x+view.w/2,cy=view.y+view.h/2,w=Math.max(80,Math.min(28000,view.w*factor)),h=Math.max(80,Math.min(28000,view.h*factor));view={x:cx-w/2,y:cy-h/2,w,h};showView();}
+$('zoomIn').onclick=()=>zoomCenter(.72);
+$('zoomOut').onclick=()=>zoomCenter(1.38);
+function fitRoute(points){
+ if(!points?.length)return;
+ const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+ const l=Math.min(...xs),r=Math.max(...xs),t=Math.min(...ys),b=Math.max(...ys);
+ const aspect=Math.max(.5,$('map').clientWidth/Math.max(1,$('map').clientHeight));
+ const w=Math.max(240,r-l+180,(b-t+180)*aspect),h=w/aspect;
+ view={x:(l+r-w)/2,y:(t+b-h)/2,w,h};showView();
+}
 function showGroup(name){
  const selected=edges.filter(e=>name==='kasseler'?e.originalWayName==='Kasseler Gruppe':e.originalTrackRef==='136'&&e.kind==='abstellung');
  if(!selected.length){$('status').textContent='Keine kartierten Gleise für '+name+' gefunden.';return;}
@@ -187,7 +260,9 @@ function updateSignalVisual(){
 }
 function renderSchedule(){
  $('simClock').textContent=clockLabel(game.clock);
- $('score').textContent='Punkte: '+game.score;
+ $('score').textContent='Punkte: '+game.score+' · '+game.completed.size+'/'+game.departures.length+' Züge';
+ $('nextTrain').disabled=game.running||!!game.route?.cleared||game.completed.size===game.departures.length;
+ $('coach').textContent=game.running?'Zug unterwegs – Fahrweg belegt':!game.selected?'① Fahrplanzug auswählen':!game.route?.cleared?'② Prüfweg prüfen und Fahrstraße stellen':game.clock<timetableMinutes(game.selected.time)?'③ Abfahrt ab '+game.selected.time+' Uhr möglich':'③ Signal auf Fahrt – Zug abfahren';
  $('go').disabled=!game.route?.cleared||game.running||game.clock<timetableMinutes(game.selected?.time||'23:59');
  $('clearRoute').disabled=!routeResult||!game.selected||game.route?.cleared||start!==serviceOriginNode||game.running;
  $('selectedService').textContent=game.selected?
@@ -208,7 +283,7 @@ function suggestRouteForSelected(){
  const test=suggestTestRoute(graph,wMap,serviceOriginNode);
  if(!test){status('Von diesem Gleis lässt sich ohne unbestätigte Weichenübergänge kein Prüfweg finden.');return;}
  start=null;end=null;routeResult=null;points=null;choose(serviceOriginNode);choose(test.ids.at(-1));
- if(points)status('OSM-Prüfweg vorbereitet ('+test.ids.length+' Gleisknoten). Dies ist NICHT die überprüfte Ausfahrt nach '+game.selected.destination+'. Bitte virtuelle Fahrstraße stellen.');
+ if(points){fitRoute(points);status('OSM-Prüfweg vorbereitet ('+test.ids.length+' Gleisknoten). Dies ist NICHT die überprüfte Ausfahrt nach '+game.selected.destination+'. Bitte virtuelle Fahrstraße stellen.');}
  renderSchedule();
 }
 $('autoRoute').onclick=suggestRouteForSelected;

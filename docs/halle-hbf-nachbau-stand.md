@@ -97,3 +97,17 @@ Der Nutzer wünscht jetzt **Fahrplanbetrieb mit Signalen**. Eine geprüfte Origi
 - **Spielbarkeit:** Für jedes der 13 Bahnsteiggleis-OSM-Kandidaten ermittelt die konservative Gleiswegprüfung einen tatsächlich zusammenhängenden, längeren **geometrischen OSM-Prüfweg**. Die vorgeschlagenen Wegenden sind **nicht automatisch reale Streckenausfahrten** zu den Fahrplanzielen; die Zuordnung muss später mit Stellwerksunterlagen geprüft werden. Unbekannte DKW/Weichenübergänge bleiben ausgeschlossen. Das Spiel kann keinen außerhalb des OSM-Graphen liegenden Zugweg erfinden.
 - **Abstellung:** Kasseler Gruppe und DB-Abstellgleis 136 bleiben im Personenbahnhofs-Spielplan. Güterbahnhof, ZBA und ungeklärte Neue Gruppe bleiben ausgeschlossen.
 - **Bedienung:** Zug aus Originaltafel auswählen, OSM-Prüfweg prüfen oder durch Antippen abändern, virtuelle Fahrstraße stellen, virtuelles Signalsystem auf Fahrt, erst nach planmäßiger Abfahrtszeit abfahren lassen, Punktestand bei Abfahrt erhalten. Uhr manuell anhalten oder beschleunigt laufen lassen, alternativ nächste Abfahrt anspringen.
+
+
+## 20.11.2026 – Bedienpult und Tablet-Layout (Entwicklungsbranch)
+
+Der **Halle-Hbf-Spielmodus** wurde ergonomisch überarbeitet; die echte Datenherkunft und die Grenzen der Simulation bleiben unverändert.
+
+- Die bisher lang scrollende Seitenleiste rückt Fahrplan, Uhr, Zugauswahl, virtuellen Signalbegriff und die Schritte **Zug wählen → Fahrstraße stellen → Abfahrt freigeben** ins vordere Fahrdienstleiter-Pult.
+- Ein Knopf wählt den nächsten noch nicht abgefertigten Fahrplanzug. Ein Statushinweis zeigt den nächsten notwendigen Arbeitsschritt; die bestehende Zeitprüfung verhindert weiterhin eine Abfahrt vor Sollzeit.
+- Die Gleiskarte besitzt separate Zoomtasten für Touch-Geräte und rahmt einen vorgeschlagenen geometrischen Prüfweg automatisch ein. Die vorhandene Zwei-Finger-, Maus- und Gleis-Tipp-Bedienung bleibt erhalten.
+- Kasseler Gruppe und DB-Abstellgleis 136 bleiben direkt erreichbar. Kartierte Signal-/Weichenobjekte, OSM-Referenzen und Originalquellen stehen in einem aufklappbaren Detailbereich; Daten werden nicht entfernt.
+- **Keine reale Stellwerkserweiterung:** virtuelle Signalbegriffe, Fahrstraßen und Fahrziele sind weiterhin ausdrücklich keine verifizierten Originalabhängigkeiten. Für echte Fahrstraßen sind DB-Stellwerksunterlagen, Signalrichtungen, DKW-Stellungen, Flankenschutz und verbindliche Bahnsteigzuordnung notwendig.
+- Automatische Browser-Prüfung: `tools/tests/halle-hbf-browser-smoke.mjs` testet die Zugauswahl, Zoom, Zeitprüfung, virtuelle Fahrt, Fortschritt und schmale Touch-Ansicht. Workflow: `.github/workflows/halle-hbf-browser-smoke.yml`. Ein Praxistest auf dem tatsächlichen Android-Tablet steht weiterhin aus.
+
+Die Änderung liegt auf `chatgpt/halle-hbf-control-desk-20261120` und wird über Pull Request nach `gh-pages` übernommen, sobald die Prüfung erfolgreich ist.
