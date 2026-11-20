@@ -9,7 +9,7 @@
  */
 const TRACKS=[...Array.from({length:13},(_,i)=>i+1),136,160,161,162];
 const Y=Object.freeze(Object.fromEntries(TRACKS.map(n=>[String(n),
-  n<=7?148+(n-1)*59:n<=13?648+(n-8)*59:n===136?1104:n===160?1194:n===161?1262:1330])));
+  n<=7?192+(n-1)*59:n<=13?700+(n-8)*59:n===136?1160:n===160?1235:n===161?1310:1380])));
 const AREA=Object.freeze(Object.fromEntries(TRACKS.map(n=>[String(n),n<=7?'west':n<=13?'ost':'ww'])));
 export const HALLE_SCHEMATIC_LANES=Y;
 export const HALLE_SCHEMATIC_TRACKS=TRACKS;
@@ -95,10 +95,10 @@ export function createHalleSchematic(tracks,areas){
  };
  function frame(area,aspect=1.6){
   let base;
-  if(area==='west')base={x:530,y:63,w:1010,h:590};
-  else if(area==='ost')base={x:530,y:578,w:1010,h:495};
-  else if(area==='ww')base={x:530,y:1015,w:1010,h:450};
-  else base={x:260,y:70,w:1600,h:1375};
+  if(area==='west')base={x:590,y:100,w:900,h:590};
+  else if(area==='ost')base={x:590,y:635,w:900,h:475};
+  else if(area==='ww')base={x:590,y:1075,w:900,h:380};
+  else base={x:300,y:63,w:1500,h:1380};
   let {x,y,w,h}=base;
   const ratio=Math.max(.5,Math.min(3,aspect)),cx=x+w/2,cy=y+h/2;
   if(w/h<ratio)w=h*ratio;else h=w/ratio;
