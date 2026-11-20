@@ -14,7 +14,7 @@ test('same coordinates do not connect distinct OSM IDs',()=>{
  assert.equal(findGeometricPath(buildGraph(tracks),new Map(),'a','d'),null);
 });
 test('unknown and untagged junctions cannot be used for crossing',()=>{
- const tracks=[seg(p('a',-10,0),p('j',0,0)),seg(p('j',0,0),p('b',10,0)),seg(p('j',0,0),p('c',0,10))],g=buildGraph(tracks);
+ const tracks=[seg(p('a',-10,0),p('j',0,0)),seg(p('j',0,0),p('b',10,0)),seg(p('j',0,0),p('c',10,10))],g=buildGraph(tracks);
  assert.equal(findGeometricPath(g,new Map(),'a','b'),null);
  const switches=new Map([['j',{degree:3}]]);
  assert.ok(findGeometricPath(g,switches,'a','b'));
