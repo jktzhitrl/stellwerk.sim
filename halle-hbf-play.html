@@ -21,6 +21,9 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
 <p id="stats">Lade OSM-Gleise …</p><p id="status" role="status">Tippe zuerst auf ein Gleis für die Einfahrt und dann auf ein anderes Gleis als Ziel.</p>
 <div class="controls"><button id="new">Neue Fahrt</button><button id="go" disabled>▶ Zug fahren lassen</button></div>
+<label for="trackRef">Kartierte Gleisreferenz (OSM, keine geprüfte Bahnsteigzuordnung)</label>
+<div class="controls"><select id="trackRef" style="flex:1;min-width:110px"><option value="">Gleisreferenz auswählen</option></select><button id="fromRef">Als Start</button><button id="toRef">Als Ziel</button></div>
+<p id="refHint"><small>Die hier angebotenen Gleisnummern stammen aus OSM-Weg-Tags. Die amtliche Gleis- und Bahnsteigzuordnung muss noch geprüft werden.</small></p>
 <label>Fahrtempo <select id="speed"><option value="70">Langsam</option><option value="160" selected>Normal</option><option value="350">Schnell</option></select></label>
 <label><input id="switches" type="checkbox" checked> Kartierte Weichen anzeigen</label>
 <label><input id="signals" type="checkbox"> Signalobjekte anzeigen (nur Information)</label>
@@ -33,45 +36,16 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 const response=await fetch('./data/halle-hbf-osm-review.json');
 if(!response.ok)throw Error('Halle-Gleisdaten konnten nicht geladen werden (HTTP '+response.status+')');
 const data=await response.json();if(data.dataStatus!=='UNVERIFIED_OSM_IMPORT'||!Array.isArray(data.tracks)||!data.tracks.length)throw Error('Ungültige OSM-Daten');
+const {buildGraph,findGeometricPath,trackRefs,representativeTrackNode}=await import('./halle-hbf-routing.mjs');
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('board'),rail=document.getElementById('rails'),pathLayer=document.getElementById('path'),items=document.getElementById('items'),vehicle=document.getElementById('vehicle');
 const $=id=>document.getElementById(id),el=(tag,props,parent)=>{const n=document.createElementNS(NS,tag);for(const k of Object.keys(props))n.setAttribute(k,props[k]);parent.append(n);return n};
-const graph=new Map(),edges=data.tracks;
-function add(id,pt,neighbor,index,len){if(!graph.has(id))graph.set(id,{p:pt,adj:[]});graph.get(id).adj.push({to:neighbor,edge:index,len});}
-for(let i=0;i<edges.length;i++){const e=edges[i],a=String(e.a.nodeId),b=String(e.b.nodeId),len=Math.hypot(e.a.x-e.b.x,e.a.y-e.b.y);if(!Number.isFinite(len)||len<.001)continue;add(a,e.a,b,i,len);add(b,e.b,a,i,len);}
-const wMap=new Map((data.osmSwitches||[]).map(w=>[String(w.osmNodeId),w])),selectable=[...graph.keys()];
-function possible(id,inEdge,outEdge){
- if(inEdge===outEdge)return false;
- const node=graph.get(id);if(node.adj.length<=2)return true;
- const sw=wMap.get(id);if(!sw||sw.degree!==node.adj.length)return false; // unmapped/abnormal junctions: do not guess
- const inc=node.adj.find(e=>e.edge===inEdge),out=node.adj.find(e=>e.edge===outEdge);
- if(!inc||!out)return false;
- const p=node.p,a=graph.get(inc.to).p,b=graph.get(out.to).p;
- const va=[a.x-p.x,a.y-p.y],vb=[b.x-p.x,b.y-p.y],la=Math.hypot(...va)||1,lb=Math.hypot(...vb)||1;
- if(node.adj.length===3){
-   const ds=node.adj.map(e=>{const q=graph.get(e.to).p,l=Math.hypot(q.x-p.x,q.y-p.y)||1;return[(q.x-p.x)/l,(q.y-p.y)/l]});
-   let i0=0,j0=1,best=-Infinity;
-   for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const dot=ds[i][0]*ds[j][0]+ds[i][1]*ds[j][1];if(dot>best){best=dot;i0=i;j0=j;}}
-   // Never connect two divergent legs; path must traverse the switch toe.
-   const trunk=node.adj.find((_,i)=>i!==i0&&i!==j0)?.edge;
-   return inEdge===trunk||outEdge===trunk;
- }
- // Four-way crossing / DKW: only geometrically near-opposite traversal is
- // considered for a provisional *track trace*, not a guaranteed valid route.
- return (va[0]*vb[0]+va[1]*vb[1])/(la*lb)<-0.93;
-}
-function route(start,goal){
- const init=start+'|-1',dist=new Map([[init,0]]),parent=new Map(),open=[{node:start,inEdge:-1,state:init,cost:0}];
- let found=null;
- while(open.length){open.sort((a,b)=>b.cost-a.cost);const cur=open.pop();if(cur.cost!==dist.get(cur.state))continue;if(cur.node===goal){found=cur.state;break;}
-  for(const e of graph.get(cur.node).adj){if(cur.inEdge!==-1&&!possible(cur.node,cur.inEdge,e.edge))continue;
-    const id=e.to+'|'+e.edge,cost=cur.cost+e.len;if(cost>=(dist.get(id)??Infinity))continue;
-    dist.set(id,cost);parent.set(id,{prev:cur.state,node:e.to});open.push({node:e.to,inEdge:e.edge,state:id,cost});
-  }
- }
- if(!found)return null;
- const ids=[goal];for(let at=found;at!==init;){const last=parent.get(at);if(!last)return null;at=last.prev;ids.push(at.split('|')[0]);}ids.reverse();
- return ids.map(id=>graph.get(id).p);
-}
+const edges=data.tracks,graph=buildGraph(edges),wMap=new Map((data.osmSwitches||[]).map(w=>[String(w.osmNodeId),w]));
+function route(start,goal){return findGeometricPath(graph,wMap,start,goal);}
+const refs=trackRefs(edges);
+const trackSelect=$('trackRef');
+const numbered=[...refs.keys()].filter(ref=>/^\d{1,3}$/.test(ref)).sort((a,b)=>Number(a)-Number(b));
+for(const ref of numbered){const option=document.createElement('option');option.value=ref;option.textContent='OSM-Gleisref '+ref;trackSelect.append(option);}
+$('refHint').textContent=numbered.length+' numerische Gleisreferenzen aus OpenStreetMap gefunden. Manche gehören zu Nachbaranlagen; Nummer und Betriebsgleiszugehörigkeit sind ungeprüft.';
 const V={x:0,y:0,w:2800,h:1800};let view={...V};
 function showView(){svg.setAttribute('viewBox',[view.x,view.y,view.w,view.h].join(' '));}showView();
 const all=edges.flatMap(e=>[e.a,e.b]),minX=Math.min(...all.map(p=>p.x)),maxX=Math.max(...all.map(p=>p.x)),minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y));
@@ -89,20 +63,35 @@ let start=null,end=null,points=null,train=null,run=null,markA=null,markB=null,li
 function status(t){$('status').textContent=t;}
 function choose(id){if(run)return;if(!start||end){start=id;end=null;points=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');return;}
  end=id;if(start===end){end=null;status('Bitte ein anderes Zielgleis wählen.');return;}
- points=route(start,end);
+ const found=route(start,end);
+ points=found?.points||null;
  if(!points){status('Keine geometrisch zulässige Verbindung gefunden. Weichen mit unklaren OSM-Tags werden vorsorglich gesperrt.');return;}
  line=el('polyline',{points:points.map(p=>p.x+','+p.y).join(' '),stroke:'#f6cf54','stroke-width':7,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},pathLayer);
  markB=el('circle',{cx:graph.get(end).p.x,cy:graph.get(end).p.y,r:10,fill:'#f69b9b',stroke:'#102020','stroke-width':2},pathLayer);
- $('go').disabled=false;status('Geometrischer Prüfweg gefunden ('+points.length+' Knoten). Die tatsächliche Fahrstraßenfreigabe ist nicht bestätigt.');}
-svg.addEventListener('click',ev=>{const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
+ $('go').disabled=false;status('Geometrischer Prüfweg gefunden ('+points.length+' Knoten, '+Math.round(found.cost)+' Karteneinheiten). Keine echte Signal- oder Fahrstraßenfreigabe.');}
+function pickRef(forced){
+ const selected=trackSelect.value,indices=refs.get(selected);
+ if(!indices?.length){status('Bitte erst eine kartierte OSM-Gleisreferenz auswählen.');return;}
+ const id=representativeTrackNode(edges,indices);
+ if(!id||!graph.has(id)){status('Diese Gleisreferenz hat keinen nutzbaren OSM-Knoten.');return;}
+ if(run){status('Zug fährt. Bitte neue Fahrt starten.');return;}
+ if(forced==='start'){start=null;end=null;points=null;choose(id);}
+ else if(!start){status('Bitte zuerst einen Startpunkt wählen.');}
+ else{end=null;choose(id);}
+ const pos=graph.get(id).p;view={x:pos.x-view.w/2,y:pos.y-view.h/2,w:view.w,h:view.h};showView();
+}
+$('fromRef').onclick=()=>pickRef('start');
+$('toRef').onclick=()=>pickRef('end');
+let pointerTravel=0,ignoreNextClick=false;
+svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
 $('new').onclick=()=>{run=null;start=end=points=null;pathLayer.replaceChildren();vehicle.replaceChildren();$('go').disabled=true;status('Tippe auf ein Gleis für den Start und anschließend auf ein anderes Gleis für das Ziel.');};
 $('go').onclick=()=>{if(!points||run)return;const segments=[];let total=0;for(let i=1;i<points.length;i++){const len=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);segments.push({a:points[i-1],b:points[i],start:total,end:total+len});total+=len;}train=el('circle',{cx:points[0].x,cy:points[0].y,r:12,fill:'#f05252',stroke:'#fff','stroke-width':2},vehicle);run={segments,total,pos:0,last:performance.now()};$('go').disabled=true;requestAnimationFrame(step);status('Zug fährt auf der geometrisch gefundenen Prüfstrecke. Keine echte Stellwerksfreigabe.');};
 function step(now){if(!run)return;const dt=Math.max(0,Math.min(.1,(now-run.last)/1000));run.last=now;run.pos=Math.min(run.total,run.pos+dt*Number($('speed').value));const seg=run.segments.find(s=>run.pos<=s.end)||run.segments.at(-1);if(seg){const frac=Math.max(0,Math.min(1,(run.pos-seg.start)/(seg.end-seg.start||1)));train.setAttribute('cx',seg.a.x+(seg.b.x-seg.a.x)*frac);train.setAttribute('cy',seg.a.y+(seg.b.y-seg.a.y)*frac);}if(run.pos<run.total)requestAnimationFrame(step);else{run=null;status('Prüffahrt beendet. Neues Ziel über „Neue Fahrt“ wählen.');}}
 function screenPoint(ev){const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
 let drag=null;const touch=new Map();let pinch=null;
-svg.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;svg.setPointerCapture(ev.pointerId);if(ev.pointerType==='touch')touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2};pinch={view:{...view},dist:Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y),anchor:screenPoint(mid)};drag=null;}else drag={id:ev.pointerId,x:ev.clientX,y:ev.clientY};});
-svg.addEventListener('pointermove',ev=>{if(touch.has(ev.pointerId))touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(pinch&&touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2},d=Math.max(1,Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y)),f=pinch.dist/d;view={...pinch.view,w:pinch.view.w*f,h:pinch.view.h*f};showView();const p=screenPoint(mid);view.x+=pinch.anchor.x-p.x;view.y+=pinch.anchor.y-p.y;showView();return;}if(!drag||ev.pointerId!==drag.id)return;const a=screenPoint({clientX:drag.x,clientY:drag.y}),b=screenPoint(ev);view.x+=a.x-b.x;view.y+=a.y-b.y;showView();drag.x=ev.clientX;drag.y=ev.clientY;});
-for(const name of ['pointercancel','pointerup'])svg.addEventListener(name,ev=>{touch.delete(ev.pointerId);if(touch.size<2)pinch=null;if(!touch.size)drag=null;});
+svg.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;pointerTravel=0;svg.setPointerCapture(ev.pointerId);if(ev.pointerType==='touch')touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2};pinch={view:{...view},dist:Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y),anchor:screenPoint(mid)};drag=null;}else drag={id:ev.pointerId,x:ev.clientX,y:ev.clientY};});
+svg.addEventListener('pointermove',ev=>{if(drag&&drag.id===ev.pointerId)pointerTravel+=Math.hypot(ev.clientX-drag.x,ev.clientY-drag.y);if(pinch)pointerTravel=100;if(touch.has(ev.pointerId))touch.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});if(pinch&&touch.size===2){const ts=[...touch.values()],mid={clientX:(ts[0].x+ts[1].x)/2,clientY:(ts[0].y+ts[1].y)/2},d=Math.max(1,Math.hypot(ts[0].x-ts[1].x,ts[0].y-ts[1].y)),f=pinch.dist/d;view={...pinch.view,w:pinch.view.w*f,h:pinch.view.h*f};showView();const p=screenPoint(mid);view.x+=pinch.anchor.x-p.x;view.y+=pinch.anchor.y-p.y;showView();return;}if(!drag||ev.pointerId!==drag.id)return;const a=screenPoint({clientX:drag.x,clientY:drag.y}),b=screenPoint(ev);view.x+=a.x-b.x;view.y+=a.y-b.y;showView();drag.x=ev.clientX;drag.y=ev.clientY;});
+for(const name of ['pointercancel','pointerup'])svg.addEventListener(name,ev=>{if(pointerTravel>7)ignoreNextClick=true;touch.delete(ev.pointerId);if(touch.size<2)pinch=null;if(!touch.size)drag=null;});
 svg.addEventListener('wheel',ev=>{ev.preventDefault();const anchor=screenPoint(ev),f=Math.exp(ev.deltaY*.001);view.w=Math.max(50,Math.min(28000,view.w*f));view.h=Math.max(50,Math.min(18000,view.h*f));showView();const next=screenPoint(ev);view.x+=anchor.x-next.x;view.y+=anchor.y-next.y;showView();},{passive:false});
 })().catch(error=>{console.error(error);document.getElementById('status').textContent='Fehler beim Laden der Halle-Vorschau: '+error.message;});
 </script></body></html>
