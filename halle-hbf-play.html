@@ -140,6 +140,14 @@ const V={x:700,y:100,w:1200,h:1700};let view={...V};
 function zoomCenter(factor){const cx=view.x+view.w/2,cy=view.y+view.h/2,w=Math.max(80,Math.min(28000,view.w*factor)),h=Math.max(80,Math.min(28000,view.h*factor));view={x:cx-w/2,y:cy-h/2,w,h};showView();}
 $('zoomIn').onclick=()=>zoomCenter(.72);
 $('zoomOut').onclick=()=>zoomCenter(1.38);
+function fitRoute(points){
+ if(!points?.length)return;
+ const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+ const l=Math.min(...xs),r=Math.max(...xs),t=Math.min(...ys),b=Math.max(...ys);
+ const aspect=Math.max(.5,$('map').clientWidth/Math.max(1,$('map').clientHeight));
+ const w=Math.max(240,r-l+180,(b-t+180)*aspect),h=w/aspect;
+ view={x:(l+r-w)/2,y:(t+b-h)/2,w,h};showView();
+}
 function showGroup(name){
  const selected=edges.filter(e=>name==='kasseler'?e.originalWayName==='Kasseler Gruppe':e.originalTrackRef==='136'&&e.kind==='abstellung');
  if(!selected.length){$('status').textContent='Keine kartierten Gleise für '+name+' gefunden.';return;}
@@ -275,7 +283,7 @@ function suggestRouteForSelected(){
  const test=suggestTestRoute(graph,wMap,serviceOriginNode);
  if(!test){status('Von diesem Gleis lässt sich ohne unbestätigte Weichenübergänge kein Prüfweg finden.');return;}
  start=null;end=null;routeResult=null;points=null;choose(serviceOriginNode);choose(test.ids.at(-1));
- if(points)status('OSM-Prüfweg vorbereitet ('+test.ids.length+' Gleisknoten). Dies ist NICHT die überprüfte Ausfahrt nach '+game.selected.destination+'. Bitte virtuelle Fahrstraße stellen.');
+ if(points){fitRoute(points);status('OSM-Prüfweg vorbereitet ('+test.ids.length+' Gleisknoten). Dies ist NICHT die überprüfte Ausfahrt nach '+game.selected.destination+'. Bitte virtuelle Fahrstraße stellen.');}
  renderSchedule();
 }
 $('autoRoute').onclick=suggestRouteForSelected;
