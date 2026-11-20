@@ -28,3 +28,12 @@ Quellen: [DB InfraGO LH](https://trassenfinder.de/apn/LH), [Halle Hbf Bahnsteigd
 ## Technische Prüfungen
 
 Vier Node.js- und drei Python-Regressionstests aus dem Eilenburg-Verfahren für den Halle-Importer übernommen. [GitHub-Testlauf #44697217699](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44697217699) erfolgreich: OSM-Datenabruf, Konvertierung, Graph-Diagnose, Offline-Prüfkarte und Datensnapshot. Die dynamische fahrwegfähige Oberfläche ist als Entwicklungsstand zu betrachten; vor Behauptung voller Originaltreue sind Tablet- und Betriebsregressionstests notwendig.
+
+## Ausbau 20.11.2026: Gleisreferenzen und sichere Fahrwegsuche
+
+- Separates Modul `halle-hbf-routing.mjs`: Dijkstra-Fahrwegfindung mit Min-Heap; für große OSM-Graphen günstiger als wiederholtes Sortieren sämtlicher Kandidaten.
+- Keine Fahrten über nicht als Weiche kartierte Verzweigungen; bei Dreiweg-Weichen nur über den geometrisch plausiblen Weichenfuß. **Unbestätigte DKW- und Mehrfachkreuzungsübergänge werden jetzt vollständig gesperrt**, statt vermeintlich geradlinige Fahrten durch ungesicherte Kreuzungen zu erlauben.
+- In der Bahnhofsvorschau ist eine Auswahl für numerische Gleis-Referenzen der OSM-Wege ergänzt. Sie zeigt ausdrücklich **OSM-Weg-Referenzen**, nicht bereits geprüfte DB-Bahnsteigbezeichnungen. Start und Ziel lassen sich so ohne millimetergenaues Tippen auf das Tablet-Gleisbild setzen.
+- Bedienung verbessert: Ziehen der Karte soll nicht als Fahrwegauswahl interpretiert werden.
+- Neue automatisierte Routentests dokumentieren die Grenzen.
+- Weiterhin nicht vollständig originalgetreu: Fahrstraßen, Signale, Flankenschutz und Weichenstellungen erfordern einen gesonderten Abgleich mit DB-Unterlagen.
