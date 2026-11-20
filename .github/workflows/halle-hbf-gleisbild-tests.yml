@@ -1,0 +1,26 @@
+name: Halle true Gleisbild layout and graph tests
+on:
+  push:
+    branches:
+      - gh-pages
+      - chatgpt/halle-true-schematic-20261120
+    paths:
+      - 'halle-hbf-play.html'
+      - 'halle-hbf-gleisbild.mjs'
+      - 'halle-hbf-bereiche.mjs'
+      - 'tools/tests/halle-hbf-gleisbild.test.mjs'
+      - '.github/workflows/halle-hbf-gleisbild-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gleisbild:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Module syntax
+        run: |
+          node --check halle-hbf-gleisbild.mjs
+          node --check halle-hbf-bereiche.mjs
+      - name: Schematic node mapping and game regressions
+        run: node --test tools/tests/halle-hbf-gleisbild.test.mjs tools/tests/halle-hbf-bereiche.test.mjs tools/tests/halle-hbf-spielmodus.test.mjs
