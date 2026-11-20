@@ -5,11 +5,12 @@ import {classifyPassengerWay,scopeHallePersonenbahnhof} from '../../halle-hbf-pe
 const p=(id,x,y)=>({nodeId:String(id),x,y});
 const edge=(id,a,b)=>({osmWayId:String(id),a,b,service:null,railwayTrackRef:null});
 const way=(id,tags)=>({type:'way',id,tags:{railway:'rail',...tags}});
-test('Pbf includes passenger tracks, Kasseler stabling, additional group and exact OSM links, no freight',()=>{
+test('Pbf includes passenger tracks, Kasseler stabling, DB track 136 and real links but no unrelated group or freight',()=>{
  const raw={elements:[
   way(1,{'railway:traffic_mode':'passenger','railway:track_ref':'1'}),
   way(2,{name:'Kasseler Gruppe',service:'yard','railway:track_ref':'162'}),
   way(3,{name:'Neue Gruppe',service:'yard'}),
+  way(749425495,{'railway:track_ref':'136',service:'yard'}),
   way(4,{'railway:traffic_mode':'freight',service:'yard'}),
   way(5,{service:'yard',name:'Unbestimmtes Rangiergleis'}),
   way(1104738780,{service:'yard'}),
@@ -19,6 +20,7 @@ test('Pbf includes passenger tracks, Kasseler stabling, additional group and exa
   edge(1104738780,p('b',10,0),p('c',20,0)),
   edge(2,p('c',20,0),p('d',30,0)),
   edge(3,p('d',30,0),p('e',40,0)),
+  edge(749425495,p('d',30,0),p('f',40,-10)),
   edge(4,p('b',10,0),p('z',10,10)),
   edge(5,p('z',10,10),p('q',20,10)),
  ],osmSwitches:[{osmNodeId:'c'},{osmNodeId:'z'}],
@@ -26,7 +28,8 @@ test('Pbf includes passenger tracks, Kasseler stabling, additional group and exa
  const scoped=scopeHallePersonenbahnhof(raw,imported);
  assert.equal(scoped.tracks.length,4);
  assert.deepEqual(scoped.report.components,[5]);
- assert.deepEqual(scoped.report.kinds,{personenbahn:1,abstellung:1,'weitere-gruppe':1,verbindung:1});
+ assert.deepEqual(scoped.report.kinds,{personenbahn:1,abstellung:2,verbindung:1});
+ assert.ok(!scoped.tracks.some(t=>t.osmWayId==='3'));
  assert.equal(scoped.report.excludedFreightWays,1);
  assert.equal(scoped.osmSwitches.length,1);
  assert.equal(scoped.signals.length,1);
