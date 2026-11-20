@@ -448,12 +448,14 @@ function suggestRouteForSelected(){
 }
 $('autoRoute').onclick=suggestRouteForSelected;
 function chooseService(service){
+ if(run||shuntReady){status('Vorher die virtuelle Rangierfahrt abschließen.');return;}
  if(!game.select(service.id)){status('Zug nicht auswählbar: laufende Fahrt oder gestelltes Signal.');return;}
  const target=referenceAudit.platforms.find(r=>r.ref===service.trackRef)?.osmCandidate;
- serviceOriginNode=target?.nodeId??null;
+ serviceOriginNode=target?.nodeId??null;resetHandoffs();
  start=null;end=null;points=null;routeResult=null;
  pathLayer.replaceChildren();vehicle.replaceChildren();
  if(serviceOriginNode&&graph.has(serviceOriginNode)){
+   selectSector(areas.sectorForPoint(graph.get(serviceOriginNode).p));
    focusCandidate(target,'Gleis '+service.trackField+'?');
    suggestRouteForSelected();
    status(service.train+' '+service.time+' nach '+service.destination+' ausgewählt. Geometrischer OSM-Prüfweg vorgeschlagen: virtuelle Fahrstraße stellen. Realer Ausfahrweg und Bahnsteigzuordnung nicht bestätigt.');
@@ -474,15 +476,15 @@ $('clockToggle').onclick=()=>{
  clockPlaying=!clockPlaying;$('clockToggle').textContent=clockPlaying?'⏸ Uhr anhalten':'▶ Uhr starten';
 };
 $('clockNext').onclick=()=>{
- if(game.running){status('Während einer Zugfahrt kann die Uhr nicht springen.');return;}
+ if(game.running||run){status('Während einer Zugfahrt kann die Uhr nicht springen.');return;}
  const next=game.nextScheduled();
  if(next!=null){game.advance(next-game.clock);renderSchedule();}
 };
 clockInterval=setInterval(()=>{if(clockPlaying){game.advance(1);renderSchedule();}},3000);
-renderSchedule();
+selectSector('west');renderSchedule();
 function status(t){$('status').textContent=t;}
-function choose(id){if(run||game.route?.cleared)return;if(!start||end){game.cancel();start=id;end=null;points=null;routeResult=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');renderSchedule();return;}
- end=id;if(start===end){end=null;status('Bitte ein anderes Zielgleis wählen.');return;}
+function choose(id){if(run||game.route?.cleared||shuntReady)return;if(!start||end){game.cancel();resetHandoffs();start=id;end=null;points=null;routeResult=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');renderSchedule();return;}
+ resetHandoffs();end=id;if(start===end){end=null;status('Bitte ein anderes Zielgleis wählen.');return;}
  const found=route(start,end);
  routeResult=found;points=found?.points||null;
  if(!points){status('Keine geometrisch zulässige Verbindung gefunden. Weichen mit unklaren OSM-Tags bleiben gesperrt.');renderSchedule();return;}
@@ -506,8 +508,9 @@ $('toRef').onclick=()=>pickRef('end');
 let pointerTravel=0,ignoreNextClick=false;
 svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev,true);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
 $('new').onclick=()=>{
- if(game.running){status('Erst laufende Zugfahrt beenden.');return;}
- game.cancel();end=null;points=null;routeResult=null;
+ if(shuntReady){shuntReady=null;resetHandoffs();}
+ if(game.running||run){status('Erst laufende Zugfahrt beenden.');return;}
+ game.cancel();resetHandoffs();end=null;points=null;routeResult=null;
  pathLayer.replaceChildren();vehicle.replaceChildren();
  if(game.selected&&serviceOriginNode){start=null;choose(serviceOriginNode);}
  else start=null;
@@ -515,7 +518,7 @@ $('new').onclick=()=>{
  renderSchedule();
 };
 $('clearRoute').onclick=()=>{
- if(!routeResult||!game.selected||start!==serviceOriginNode)return;
+ if(!routeResult||!game.selected||start!==serviceOriginNode||!handoffsOk())return;
  if(!game.reserve({serviceId:game.selected.id,ids:routeResult.ids,points:routeResult.points,startNode:serviceOriginNode})){
    status('Fahrstraße konnte nicht reserviert werden.');return;
  }
@@ -525,7 +528,7 @@ $('clearRoute').onclick=()=>{
  renderSchedule();
 };
 $('go').onclick=()=>{
- if(!points||run||!game.dispatch()){status('Abfahrt gesperrt: Fahrt, Signalstellung und Original-Abfahrtszeit prüfen.');return;}
+ if(!points||run||shuntReady||!game.dispatch()){status('Abfahrt gesperrt: Fahrt, Signalstellung und Original-Abfahrtszeit prüfen.');return;}
  const segments=[];let total=0;
  for(let i=1;i<points.length;i++){
   const len=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);
@@ -533,7 +536,7 @@ $('go').onclick=()=>{
  }
  train=el('circle',{cx:points[0].x,cy:points[0].y,r:12,fill:'#f05252',stroke:'#fff','stroke-width':2},vehicle);
  const name=el('text',{x:points[0].x+15,y:points[0].y-13,'font-size':17,fill:'#fff'},vehicle);name.textContent=game.selected.train;
- run={segments,total,pos:0,last:performance.now(),label:name};
+ run={kind:'departure',segments,total,pos:0,last:performance.now(),label:name};
  if(line)line.setAttribute('stroke','#fa9e5a');
  renderSchedule();requestAnimationFrame(step);
  status(game.selected.train+' abgefertigt; virtuelle Ausfahrt steht wieder auf Halt. Zug fährt entlang des geprüften OSM-Weges.');
@@ -551,6 +554,15 @@ function step(now){
  }
  if(run.pos<run.total)requestAnimationFrame(step);
  else{
+  if(run.kind==='shunt'){
+   const group=shuntReady?.name==='kasseler'?'Kasseler Gruppe':'Gleis 136';
+   run=null;shuntReady=null;shuntCount++;
+   start=end=points=routeResult=serviceOriginNode=null;
+   pathLayer.replaceChildren();vehicle.replaceChildren();
+   renderSchedule();
+   $('shuntStatus').textContent='Virtuelle Rangierfahrt in '+group+' abgeschlossen. Prüfweg und Sicherung zurückgesetzt.';
+   return;
+  }
   const name=game.selected?.train??'Zug';
   game.complete();run=null;start=end=points=routeResult=serviceOriginNode=null;
   pathLayer.replaceChildren();vehicle.replaceChildren();
