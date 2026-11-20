@@ -111,3 +111,21 @@ Der **Halle-Hbf-Spielmodus** wurde ergonomisch überarbeitet; die echte Datenher
 - Automatische Browser-Prüfung: `tools/tests/halle-hbf-browser-smoke.mjs` testet die Zugauswahl, Zoom, Zeitprüfung, virtuelle Fahrt, Fortschritt und schmale Touch-Ansicht. Workflow: `.github/workflows/halle-hbf-browser-smoke.yml`. Ein Praxistest auf dem tatsächlichen Android-Tablet steht weiterhin aus.
 
 Die Änderung liegt auf `chatgpt/halle-hbf-control-desk-20261120` und wird über Pull Request nach `gh-pages` übernommen, sobald die Prüfung erfolgreich ist.
+
+
+## 20.11.2026 – Halle Hbf: virtuelle Stellwerksbereiche West/Ost und Weichenwärter Abstellung
+
+Die Nutzerentscheidung lautet: den Halle-Hbf-Spielmodus wie die anderen Bahnhöfe als klar lesbares, waagerechtes Gleisbild anzeigen und in **Fdl West**, **Fdl Ost**, **Weichenwärter Abstellung** und eine gemeinsame **Gesamtansicht** gliedern.
+
+**Wichtig – keine historischen oder heutigen Original-Stellwerksbezirke:** Die Grenze West/Ost wird rein für die Spielansicht aus der Lage der OSM-Personengleise entlang der Hauptachse abgeleitet, nicht aus DB-Stellwerksunterlagen. Einfache Hauptachsen-Projektion und seitliche Spreizung werden nur als SVG-Darstellung benutzt. Alle originalen Knotenkoordinaten, Gleisverbindungen und konservativen geometrischen Fahrwegprüfungen bleiben unverändert. OSM-Gleisreferenzen 1–13 werden im Pult mit Fragezeichen als ungeprüfte Kandidaten gekennzeichnet.
+
+**Bedienung:**
+- Bereichsregister „Fdl West“, „Fdl Ost“, „Ww Abstellung“, „Gesamtpult“; alle arbeiten auf einer gemeinsamen virtuellen Spieluhr, Fahrplanauswahl, Fahrstraßen- und Gleisbelegungssimulation. Eine Bereichsauswahl vergrößert automatisch den jeweiligen Abschnitt. Die originale OSM-Geometrie kann zu Prüfzwecken zugeschaltet werden.
+- Die bestehende Ausfahrtssimulation mit den 33 belegten DB-Abfahrten bleibt erhalten: Abfahrt auswählen, zusammenhängenden OSM-Testweg anzeigen, virtuelle Fahrstraße stellen, virtuellen Hp0/Ks1-Zustand auswerten, erst nach Planzeit abfahren und Punkte vergeben.
+- Optionaler **manueller Übergabemodus** für Spielabsprachen zwischen West/Ost/Weichenwärter: Übergabe anfordern, betroffenen Bereich auswählen, dort bestätigen, dann Fahrt im zuständigen Ausgangspult freigeben. Im voreingestellten Einzelspielermodus laufen Bereichsübergaben automatisch. Eine Übergabebestätigung ist ausdrücklich keine reale Betriebsfreigabe.
+- Der eigene Weichenwärter-Modus kann für die belegte Kasseler Gruppe und für DB-Abstellgleis 136 einen konservativ berechneten OSM-Rangierweg vorbereiten, ihn virtuell freigeben und eine animierte Übungs-Rangierfahrt durchführen. Virtuelle Rangierfahrten haben **keine erfundenen DB-Zugnummern, Ankunftszeiten oder Fahrplanpunkte** und sind von den 33 offiziellen DB-Abfahrten getrennt.
+- Die übrigen dokumentierten Personen-, Kasseler- und Gleis-136-Gleise bleiben erhalten. Halle Güterbahnhof, ZBA und die nicht belegte „Neue Gruppe“ bleiben ausgeschlossen.
+
+**Sicherheits- und Vorbildgrenzen:** Weder eine im Spiel angezeigte West-/Ost-Grenze noch die virtuelle Weichenwärterfreigabe, OSM-Weichenmarkierung oder der vorgeschlagene Prüfweg sind Nachweise von Original-Weichenstellungen, Signalrichtungen, echten Fahrstraßen, Verschluss-/Flankenschutz, Rangierbezirken oder betrieblicher Zuständigkeit. Dafür fehlen weitere maßgebliche Stellwerksunterlagen. Fiktive Spieloperationen sind im Pult als Simulation gekennzeichnet.
+
+**Technik und Test:** `halle-hbf-bereiche.mjs` bildet die Bereiche und erzeugt ausschließlich visuelle Koordinaten; `halle-hbf-play.html` hält die gemeinsame Bedienung, Simulation und Pointer-Berechnung. `tools/tests/halle-hbf-bereiche.test.mjs` validiert die Abstellgruppen, unveränderte Geometrie und Weichenübergänge. Der bestehende Chromium-Test wurde um Bedienbereiche, Touch-Anzeige, OSM-/Schemamodus und tatsächliche virtuelle Rangierfahrt erweitert. Service Worker `sw.js` und `android-app/scripts/prepare-web.mjs` enthalten das neue Modul für Offline-Betrieb; die Android-Paketdateiliste wird im CI geprüft. Ein manueller Hardwaretest auf dem konkreten Android-Tablet bleibt offen.
