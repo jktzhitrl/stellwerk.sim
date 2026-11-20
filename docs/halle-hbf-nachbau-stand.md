@@ -28,3 +28,20 @@ Quellen: [DB InfraGO LH](https://trassenfinder.de/apn/LH), [Halle Hbf Bahnsteigd
 ## Technische Prüfungen
 
 Vier Node.js- und drei Python-Regressionstests aus dem Eilenburg-Verfahren für den Halle-Importer übernommen. [GitHub-Testlauf #44697217699](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44697217699) erfolgreich: OSM-Datenabruf, Konvertierung, Graph-Diagnose, Offline-Prüfkarte und Datensnapshot. Die dynamische fahrwegfähige Oberfläche ist als Entwicklungsstand zu betrachten; vor Behauptung voller Originaltreue sind Tablet- und Betriebsregressionstests notwendig.
+
+## Ausbau 20.11.2026: Gleisreferenzen und sichere Fahrwegsuche
+
+- Separates Modul `halle-hbf-routing.mjs`: Dijkstra-Fahrwegfindung mit Min-Heap; für große OSM-Graphen günstiger als wiederholtes Sortieren sämtlicher Kandidaten.
+- Keine Fahrten über nicht als Weiche kartierte Verzweigungen; bei Dreiweg-Weichen nur über den geometrisch plausiblen Weichenfuß. **Unbestätigte DKW- und Mehrfachkreuzungsübergänge werden jetzt vollständig gesperrt**, statt vermeintlich geradlinige Fahrten durch ungesicherte Kreuzungen zu erlauben.
+- In der Bahnhofsvorschau ist eine Auswahl für numerische Gleis-Referenzen der OSM-Wege ergänzt. Sie zeigt ausdrücklich **OSM-Weg-Referenzen**, nicht bereits geprüfte DB-Bahnsteigbezeichnungen. Start und Ziel lassen sich so ohne millimetergenaues Tippen auf das Tablet-Gleisbild setzen.
+- Bedienung verbessert: Ziehen der Karte soll nicht als Fahrwegauswahl interpretiert werden.
+- Neue automatisierte Routentests dokumentieren die Grenzen.
+- Weiterhin nicht vollständig originalgetreu: Fahrstraßen, Signale, Flankenschutz und Weichenstellungen erfordern einen gesonderten Abgleich mit DB-Unterlagen.
+
+## Tatsächliche OSM-Risiken des ersten Imports
+
+Die GitHub-Actions-Rohdatenprüfung für den vollständigen vorläufigen Kartenausschnitt hat **140 als ungewöhnlich eingestufte Weichen-Knotengrade** und **10 Gleisverzweigungen ohne `railway=switch`-Tag** gefunden. Diese Daten sind ein Arbeitsvorrat für die fachliche Prüfung, keine realen Defekte des Bahnhofs. Sie dürfen nicht mit ursprünglich korrekt stellbaren Weichen gleichgesetzt werden. Die derzeitige Fahrwegvorschau verweigert Übergänge an ungetaggten Verzweigungen und an Mehrfachkreuzungen/DKW; auch mit den OSM-Geometriedaten lässt sich die reale DKW-Stellung allein nicht bestimmen.
+
+Die OSM-Wegreferenzen **1 bis 13** treten im Datensatz auf, sind aber noch **nicht** gegen den amtlichen LH-Plan zu den einzelnen Bahnsteiggleisen abgeglichen. Die Oberfläche bezeichnet sie deshalb ausdrücklich als OSM-Gleisreferenzen. Die ausgewählte Referenz zoomt auf einen dazugehörigen erfassten Gleisabschnitt; ein möglicherweise gleichnamiges Gleis außerhalb des Hauptbahnhofs muss später abgegrenzt werden.
+
+**Automatischer Test:** [Halle Routing #44698657191](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44698657191) erfolgreich; fünf Routentests einschließlich Sperrung ungesicherter DKWs und Trennung gleicher Koordinaten mit verschiedenen OSM-Knoten.

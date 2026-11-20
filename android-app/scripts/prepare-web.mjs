@@ -18,6 +18,7 @@ const files = [
   'tycoon-engine.js',
   'eilenburg-plan.js',
   'eilenburg-review.html',
+  'halle-hbf-routing.mjs',
   'halle-hbf-play.html',
   'halle-hbf-review.html',
   'data/halle-hbf-osm-review.json',
