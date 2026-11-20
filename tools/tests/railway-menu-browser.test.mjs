@@ -35,7 +35,7 @@ try{
    await page.screenshot({path:'menu-'+viewport.width+'.png',fullPage:false});
    // Start actual station and open the in-game overlay.
    await page.locator('#stGo').click();
-   await page.locator('#start.hidden').waitFor({timeout:12000});
+   await page.locator('#start').waitFor({state:'hidden',timeout:12000});
    await page.locator('#btnMenu').click();
    await page.locator('#menu.open').waitFor({timeout:5000});
    assert.equal(await page.locator('#menu .dispatchMenuHead').count(),1);
