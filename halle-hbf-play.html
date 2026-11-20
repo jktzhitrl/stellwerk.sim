@@ -28,7 +28,7 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 <div id="selectedService" class="signalCaption">Wähle eine Abfahrt aus dem Originalfahrplan.</div>
 <div class="signalBox"><span id="virtualLamp" class="signalLamp"></span><div><b id="virtualAspect">Hp0 · Halt (Simulation)</b><div class="signalCaption">Virtuelles Ausfahrtsignal – keine originale Signalstellung oder Verschlussabhängigkeit.</div></div></div>
 <p id="status" role="status">Zug aus der Liste wählen, Zielgleis antippen, Fahrstraße stellen und abfahren.</p>
-<div class="controls"><button id="new">Fahrweg zurücksetzen</button><button id="clearRoute" disabled>🔐 Fahrstraße stellen</button><button id="go" disabled>▶ Zug abfahren</button></div>
+<div class="controls"><button id="new">Fahrweg zurücksetzen</button><button id="autoRoute">🛤 OSM-Prüfweg</button><button id="clearRoute" disabled>🔐 Fahrstraße stellen</button><button id="go" disabled>▶ Zug abfahren</button></div><p class="signalCaption">Der vorgeschlagene Testweg führt zu einem erreichbaren OSM-Gleisende, <b>nicht automatisch zur tatsächlichen Streckenausfahrt</b> des Zugziels. Die virtuelle Signalanzeige ist keine Original-Signalstellung.</p>
 <label for="trackRef">Kartierte Gleisreferenz (OSM, keine geprüfte Bahnsteigzuordnung)</label>
 <div class="controls"><select id="trackRef" style="flex:1;min-width:110px"><option value="">Gleisreferenz auswählen</option></select><button id="fromRef">Als Start</button><button id="toRef">Als Ziel</button></div>
 <p id="refHint"><small>Die hier angebotenen Gleisnummern stammen aus OSM-Weg-Tags. Die amtliche Gleis- und Bahnsteigzuordnung muss noch geprüft werden.</small></p>
@@ -58,7 +58,7 @@ svg{width:100%;height:100%;touch-action:none}aside{overflow:auto;padding:12px;ba
 const response=await fetch('./data/halle-hbf-personenbereich.json');
 if(!response.ok)throw Error('Halle-Gleisdaten konnten nicht geladen werden (HTTP '+response.status+')');
 const data=await response.json();if(data.dataStatus!=='UNVERIFIED_OSM_IMPORT'||data.scope!=='PASSENGER_STATION_AND_STABLING'||!Array.isArray(data.tracks)||!data.tracks.length)throw Error('Ungültige Personengleis-Auswahl');
-const {buildGraph,findGeometricPath,trackRefs,representativeTrackNode}=await import('./halle-hbf-routing.mjs');
+const {buildGraph,findGeometricPath,suggestTestRoute,trackRefs,representativeTrackNode}=await import('./halle-hbf-routing.mjs');
 const {auditHalleRefs,HALLE_STATION_FOCUS}=await import('./halle-hbf-references.mjs');
 const {buildObjectAudit,readableObject}=await import('./halle-hbf-objects.mjs');
 const {HALLE_ORIGINAL_DEPARTURES,HALLE_TIMETABLE_SOURCE,timetableMinutes}=await import('./halle-hbf-originalfahrplan.mjs');
@@ -196,6 +196,16 @@ function renderSchedule(){
  }
  updateSignalVisual();
 }
+function suggestRouteForSelected(){
+ if(!serviceOriginNode||!game.selected){status('Bitte erst eine Fahrplan-Abfahrt wählen.');return;}
+ if(game.running||game.route?.cleared){status('Fahrstraße ist bereits gestellt oder Zug fährt.');return;}
+ const test=suggestTestRoute(graph,wMap,serviceOriginNode);
+ if(!test){status('Von diesem Gleis lässt sich ohne unbestätigte Weichenübergänge kein Prüfweg finden.');return;}
+ start=null;end=null;routeResult=null;points=null;choose(serviceOriginNode);choose(test.ids.at(-1));
+ if(points)status('OSM-Prüfweg vorbereitet ('+test.ids.length+' Gleisknoten). Dies ist NICHT die überprüfte Ausfahrt nach '+game.selected.destination+'. Bitte virtuelle Fahrstraße stellen.');
+ renderSchedule();
+}
+$('autoRoute').onclick=suggestRouteForSelected;
 function chooseService(service){
  if(!game.select(service.id)){status('Zug nicht auswählbar: laufende Fahrt oder gestelltes Signal.');return;}
  const target=referenceAudit.platforms.find(r=>r.ref===service.trackRef)?.osmCandidate;
@@ -203,8 +213,9 @@ function chooseService(service){
  start=null;end=null;points=null;routeResult=null;
  pathLayer.replaceChildren();vehicle.replaceChildren();
  if(serviceOriginNode&&graph.has(serviceOriginNode)){
-   choose(serviceOriginNode);focusCandidate(target,'Gleis '+service.trackField+'?');
-   status(service.train+' '+service.time+' nach '+service.destination+' gewählt. Jetzt ein Zielgleis antippen. Die Bahnsteig-OSM-Zuordnung ist noch ungeprüft.');
+   focusCandidate(target,'Gleis '+service.trackField+'?');
+   suggestRouteForSelected();
+   status(service.train+' '+service.time+' nach '+service.destination+' ausgewählt. Geometrischer OSM-Prüfweg vorgeschlagen: virtuelle Fahrstraße stellen. Realer Ausfahrweg und Bahnsteigzuordnung nicht bestätigt.');
  }else status('Zum DB-Gleis '+service.trackField+' fehlt eine verlässliche OSM-Auswahl. Keine Abfahrt möglich.');
  renderSchedule();
 }
@@ -229,7 +240,7 @@ $('clockNext').onclick=()=>{
 clockInterval=setInterval(()=>{if(clockPlaying){game.advance(1);renderSchedule();}},3000);
 renderSchedule();
 function status(t){$('status').textContent=t;}
-function choose(id){if(run)return;if(!start||end){game.cancel();start=id;end=null;points=null;routeResult=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');renderSchedule();return;}
+function choose(id){if(run||game.route?.cleared)return;if(!start||end){game.cancel();start=id;end=null;points=null;routeResult=null;$('go').disabled=true;pathLayer.replaceChildren();vehicle.replaceChildren();markA=el('circle',{cx:graph.get(start).p.x,cy:graph.get(start).p.y,r:10,fill:'#7be6a2',stroke:'#102020','stroke-width':2},pathLayer);status('Startgleis gewählt. Jetzt Zielgleis antippen.');renderSchedule();return;}
  end=id;if(start===end){end=null;status('Bitte ein anderes Zielgleis wählen.');return;}
  const found=route(start,end);
  routeResult=found;points=found?.points||null;
