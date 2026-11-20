@@ -281,6 +281,119 @@
   .sw { display: inline-block; width: 22px; height: 5px; vertical-align: middle; border-radius: 2px; }
   .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; border: 1px solid #000; }
 
+
+  /* Eisenbahn-Fahrdienstoberfläche: dienstliche Tafeln statt App-Kacheln */
+  #start {
+    padding: clamp(10px, 2.6vw, 28px);
+    background:
+      repeating-linear-gradient(90deg, transparent 0, transparent 75px, #ffffff05 76px, transparent 77px),
+      radial-gradient(ellipse 80% 70% at 50% -16%, #344e5d 0, #192933 48%, #0c171e 100%);
+  }
+  #start .wrap {max-width: 1030px; padding: 4px 0 15px;}
+  #start .dispatchHero {
+    display: block; margin: 0 0 15px; padding: 18px clamp(14px,3vw,28px) 12px;
+    border: 1px solid #527080; border-top: 4px solid #e8c16b;
+    border-radius: 11px; background: linear-gradient(140deg,#223844,#0e2029 76%);
+    box-shadow: 0 15px 35px #0006, inset 0 1px #ffffff13;
+  }
+  .dispatchEyebrow { display:flex; gap:9px; align-items:center; flex-wrap:wrap; font: 700 11px ui-monospace,monospace;
+    letter-spacing:.13em; color:#e9cb8b; }
+  .smallSignalIcon {display:inline-block;width:10px;height:10px;border-radius:100%;background:#4ee093;
+    border:2px solid #162b32; box-shadow:0 0 0 1px #a0bed0,0 0 10px #32ce7c55;flex:none;}
+  .dispatchHeroState {margin-left:auto;color:#afc4d0;letter-spacing:.04em;font-weight:600;}
+  .dispatchHeroTitle {display:flex;gap:20px;align-items:center;justify-content:space-between;margin-top:10px;}
+  .dispatchBrand {display:flex;align-items:center;gap:15px;min-width:0;}
+  #start .dispatchBrand svg {flex:none;max-width:66px;}
+  #start .dispatchBrand h1 {font:800 clamp(23px,4.3vw,37px) system-ui,sans-serif;letter-spacing:.045em;line-height:1.05;}
+  #start .dispatchBrand h1 span {display:block;font-weight:500;letter-spacing:.24em;font-size:.54em;color:#eac46f;margin-top:3px;}
+  #start .dispatchSubtitle {margin:8px 0 0;color:#bfd1dc;font-size:13px;line-height:1.4;}
+  .dispatchHeroPlate {min-width:165px;border-left:2px solid #587481;padding:10px 0 10px 18px;color:#d8e6ed;}
+  .dispatchHeroPlate b {display:block;font:700 12px ui-monospace,monospace;color:#e9ce90;letter-spacing:.06em;}
+  .dispatchHeroPlate span {display:block;margin-top:5px;font-size:12px;color:#98afbf;}
+  #start .dispatchTrackDiagram {width:100%;height:auto;max-height:84px;display:block;margin-top:11px;
+    background:#132832a6;border:1px solid #395665;border-radius:5px;}
+  #start .box {background:linear-gradient(180deg,#273842,#1c2c36);border:1px solid #49616e;border-radius:9px;
+    padding:15px 17px;box-shadow:inset 0 1px #ffffff0d,0 6px 17px #0003;}
+  #start .box h2 {display:flex;align-items:center;gap:8px;color:#e7c67c;font-size:12px;letter-spacing:.11em;margin-bottom:12px;}
+  #start .panelIndex {display:inline-grid;place-items:center;width:27px;height:25px;border:1px solid #627d8c;
+    color:#dae7ee;background:#1a2c35;border-radius:4px;font:700 12px ui-monospace,monospace;}
+  #start .stationCaption {font-size:13px;color:#adc4d0;margin:-5px 0 13px;}
+  #stCards {grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:10px;}
+  .stCard {position:relative;overflow:hidden;padding:14px 13px 14px 19px;min-height:114px;
+    background:linear-gradient(135deg,#14252e,#203440);border:1px solid #58707d;border-radius:7px;
+    transition:border-color .15s,background .15s,transform .15s;box-shadow:inset 0 1px #ffffff09;}
+  .stCard::before {content:"";position:absolute;top:15px;bottom:15px;left:8px;width:3px;
+    border-left:1px solid #a1bac6;border-right:1px solid #a1bac6;opacity:.8;}
+  .stCard:hover:not(:disabled) {border-color:#e6c471; background:#213f4a;}
+  .stCard:active:not(:disabled) {transform:translateY(1px);}
+  .stCard.on {border-color:#eac76f;background:linear-gradient(135deg,#29444c,#1b3740);
+    box-shadow:inset 0 0 0 1px #bb994766;}
+  .stCard.on::before {border-color:#eac76f;}
+  .stCard b {font-size:16px;line-height:1.4;color:#f3f7f9;}
+  .stCard .sub {font-size:12.5px;color:#bbced9;}
+  .stCard .tags span {background:#263e49;border:1px solid #4c6876;color:#cedfe8;padding:3px 6px;}
+  .modeChoices {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .modeChoice {border:1px solid #54707e;background:linear-gradient(115deg,#132b33,#1b3741);
+    border-radius:7px;min-height:91px;display:flex;flex-direction:column;justify-content:center;gap:3px;
+    box-shadow:inset 4px 0 #648594;padding:13px 17px;}
+  .modeChoice b {font-size:15px;letter-spacing:.04em;margin:0;color:#eaf5f8;}
+  .modeChoice span {font-size:12px;color:#b7ccd7;}
+  .modeChoice .modeGlyph {font-size:20px;vertical-align:middle;margin-right:8px;}
+  .modeChoice.on {border-color:#d5b46c;background:#26424a;box-shadow:inset 4px 0 #eac76f;}
+  .modeChoice:hover {border-color:#efcb79;}
+  #start .optRow {border-bottom:1px solid #ffffff12;padding:4px 0 8px;}
+  #start .optRow > span:first-child {color:#d4e5ed;}
+  #start .seg {border-color:#597685;}
+  #start .seg .btn.on {border-color:#3c9271;background:#265a4e;color:#e8fff4;}
+  #start .actions {padding:8px 3px;gap:10px;}
+  #stGo {background:#286e51;border:1px solid #78d9a0;color:#f2fff5;box-shadow:0 5px 0 #133d30;
+    letter-spacing:.03em;}
+  #stGo:hover {background:#34875f;}
+  #stResume {border:1px solid #ddc078;background:#715c34;color:#fff6dd;}
+  #start .hint {color:#b9ceda;font-size:12px;}
+  .dispatchFooter {display:flex;gap:16px;justify-content:center;flex-wrap:wrap;
+    padding:13px 0 6px;color:#a5bdc9;font:700 10px ui-monospace,monospace;letter-spacing:.06em;}
+  .dispatchFooter span:first-child {color:#ed8b8b;}
+  .dispatchFooter span:nth-child(2) {color:#e7c47a;}
+  .dispatchFooter span:last-child {color:#77d9a1;}
+  #start :is(.stCard,.modeChoice,.btn):focus-visible,#menu .btn:focus-visible {
+    outline:3px solid #e8cc7c;outline-offset:3px;
+  }
+  #menu {background:#152730;border-left:2px solid #71848d;}
+  #menu .dispatchMenuHead {min-height:58px;padding:9px 12px;background:#203742;border-bottom:2px solid #d1ae5d;
+    color:#f0dcaa;letter-spacing:.07em;}
+  #menu .dispatchMenuHead > span {display:flex;align-items:center;gap:9px;}
+  .dispatchMenuSummary {padding:13px 14px 10px;display:flex;flex-direction:column;gap:6px;background:#132a34;
+    border-bottom:1px solid #49606c;font:700 11px ui-monospace,monospace;color:#e5c777;letter-spacing:.07em;}
+  .dispatchMenuSummary small {font:12px system-ui;color:#c0d2da;letter-spacing:0;}
+  .miniTrack {display:block;height:18px;border-top:2px solid #93b1bc;border-bottom:2px solid #93b1bc;position:relative;}
+  .miniTrack::after {content:"";position:absolute;top:6px;left:18%;right:28%;border-top:2px solid #f0cd73;transform:skewY(-6deg);}
+  #menu #settings {background:#182b35;border-bottom:1px solid #47636f;gap:8px;padding:13px;}
+  #menu .settingsSectionTitle {grid-column:1/-1;font:700 10px ui-monospace,monospace;
+    letter-spacing:.14em;color:#deb975;border-bottom:1px solid #49616b;padding:6px 0;}
+  #menu #settings .btn {border-color:#496777;background:#26404e;line-height:1.25;}
+  #menu #settings .btn.on {background:#28594e;border-color:#63c997;}
+  #menu .menuAspectLegend {display:flex;justify-content:space-around;gap:8px;padding:12px 10px;
+    font-size:11px;color:#cee0e9;border-bottom:1px solid #49606c;}
+  #menu .menuAspectLegend span {display:flex;align-items:center;gap:5px;}
+  #menu .menuAspectLegend i {width:10px;height:10px;border-radius:100%;display:inline-block;}
+  #menu .aspectStop {background:#ec6464;}#menu .aspectRoute {background:#eac45e;}#menu .aspectProceed {background:#55dd98;}
+  #menu .messagesHead {min-height:40px;color:#e6c875;background:#20343f;}
+  @media(max-width:640px) {
+    #start .dispatchHero {padding:12px;}
+    .dispatchHeroPlate {display:none;}
+    #start .dispatchBrand svg {width:51px;height:51px;}
+    .dispatchHeroState {margin-left:0;flex-basis:100%;font-size:9px;}
+    #start .dispatchBrand h1 {font-size:24px;}
+    #start .dispatchTrackDiagram {max-height:70px;}
+    .modeChoices {grid-template-columns:1fr;gap:8px;}
+    .modeChoice {min-height:70px;}
+    #start .box {padding:12px;}
+    #start .actions .big {width:100%;min-height:54px;font-size:16px;}
+    #start .actions {justify-content:center;}
+    #start .actions .btn:not(.big) {flex:1;}
+  }
+
   /* SVG-Animationen */
   .blink { animation: blink .9s steps(2, start) infinite; }
   .pulse { animation: pulse 1.2s ease-in-out infinite; }
@@ -352,47 +465,69 @@
 </div>
 <div id="menuBack"></div>
 <div id="menu">
-  <h2><span>Menü</span><button class="btn" id="btnMenuClose" aria-label="Menü schließen">✕</button></h2>
+  <h2 class="dispatchMenuHead"><span><span class="smallSignalIcon"></span> FAHRDIENSTLEITER-PULT</span><button class="btn" id="btnMenuClose" aria-label="Stellwerksmenü schließen">✕</button></h2>
+  <div class="dispatchMenuSummary"><span>STELLWERK · BEDIEN- UND MELDESTELLE</span><span class="miniTrack" aria-hidden="true"></span><small>Weichen · Signale · Fahrstraßen · Zugverkehr</small></div>
   <div id="settings">
+    <div class="settingsSectionTitle">BETRIEBSHILFEN</div>
     <button class="btn on" id="optSwitch">Weichen automatisch</button>
     <button class="btn on" id="optSignal">Signal automatisch auf Fahrt</button>
     <button class="btn" id="optDensity">Zugdichte: normal</button>
     <button class="btn on" id="optDisrupt">Störungen an</button>
     <button class="btn on" id="optQueue">Fahrstraßenspeicher an</button>
-    <button class="btn" id="btnHelp">? Hilfe</button>
-    <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
-    <button class="btn" id="btnHome" style="grid-column: span 2">🏠 Startmenü – Bahnhof, Schicht, neues Spiel</button>
-    <button class="btn" id="btnEditor" style="grid-column: span 2">🛠️ Baumodus · Bahnhofseditor</button>
-    <button class="btn" id="btnTycoon" style="grid-column: span 2">🏗️ Tycoon-Modus · Wirtschaft &amp; Ausbau</button>
+    <div class="settingsSectionTitle">DIENSTSTELLE & WERKZEUGE</div>
+    <button class="btn" id="btnHelp">📖 Dienstanweisung</button>
+    <button class="btn" id="btnInstall">📲 App installieren</button>
+    <button class="btn" id="btnHome" style="grid-column: span 2">🚦 Zur Dienstübernahme · Bahnhof wechseln</button>
+    <button class="btn" id="btnEditor" style="grid-column: span 2">🛤️ Gleisplan-Editor öffnen</button>
   </div>
-  <h2><span>Meldungen</span></h2>
+  <div class="menuAspectLegend"><span><i class="aspectStop"></i> Halt</span><span><i class="aspectRoute"></i> Fahrstraße</span><span><i class="aspectProceed"></i> Fahrt</span></div>
+  <h2 class="messagesHead"><span>BETRIEBSMELDUNGEN</span></h2>
   <div id="logWrap"><ul id="log"></ul></div>
 </div>
 
 <div id="start">
   <div class="wrap">
-    <div class="logo">
-      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="12" fill="#2f3337"/>
-        <path d="M6 38 H50 M6 38 L22 24 H50" stroke="#ffd21f" stroke-width="3" fill="none"/>
-        <rect x="36" y="8" width="10" height="20" rx="3" fill="#111"/><circle cx="41" cy="13" r="3" fill="#ff2d2d"/><circle cx="41" cy="22" r="3" fill="#33ff77"/></svg>
-      <div><h1>Stellwerk</h1><div class="sub">Fahrdienstleiter-Simulation fürs Tablet</div></div>
-    </div>
-    <div class="box"><h2>Spielbereich auswählen</h2>
+    <header class="logo dispatchHero">
+      <div class="dispatchEyebrow"><span class="smallSignalIcon" aria-hidden="true"></span> FAHRDIENSTLEITUNG <span class="dispatchHeroState">GLEISBILDSTELLWERK · SIMULATION</span></div>
+      <div class="dispatchHeroTitle">
+        <div class="dispatchBrand">
+          <svg width="66" height="66" viewBox="0 0 66 66" role="img" aria-label="Symbol für Signal und Weiche">
+            <rect width="66" height="66" rx="13" fill="#15252e" stroke="#55717f" stroke-width="2"/>
+            <path d="M8 49 H58 M8 49 L30 27 H58" stroke="#f1c45c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M31 27 V10" stroke="#8faab7" stroke-width="2.5" />
+            <rect x="27" y="8" width="9" height="28" rx="4" fill="#09161c" stroke="#91a6b3"/>
+            <circle cx="31.5" cy="15" r="3" fill="#ec5c5c"/>
+            <circle cx="31.5" cy="28" r="3" fill="#42db89"/>
+          </svg>
+          <div><h1>STELLWERK<span>SIMULATOR</span></h1><p class="dispatchSubtitle">Bahnhof wählen. Fahrstraßen stellen. Zugverkehr leiten.</p></div>
+        </div>
+        <div class="dispatchHeroPlate"><b>Fdl · DIENSTÜBERNAHME</b><span>Stellwerksbereich wählen</span></div>
+      </div>
+      <svg class="dispatchTrackDiagram" viewBox="0 0 900 94" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+        <path d="M10 23 H890 M10 70 H890 M170 23 L310 70 M535 70 L680 23" stroke="#6f8c9b" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M10 23 H170 L310 70 H535" stroke="#f7ca67" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M310 70 H535 L680 23 H890" stroke="#59d99d" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M10 70 H310 M680 70 H890" stroke="#526f7b" stroke-width="2" fill="none"/>
+        <g stroke="#9bafba" stroke-width="3" fill="none"><path d="M92 17 V1 M430 64 V48 M783 17 V1"/></g>
+        <g stroke="#101b20" stroke-width="2"><circle cx="92" cy="13" r="7" fill="#ef6468"/><circle cx="430" cy="60" r="7" fill="#eab74d"/><circle cx="783" cy="13" r="7" fill="#54de91"/></g>
+        <g fill="#c5d9e3" font-family="ui-monospace,monospace" font-size="12"><text x="12" y="14">EINFAHRT</text><text x="372" y="88">FAHRSTRASSE</text><text x="792" y="88">AUSFAHRT</text></g>
+      </svg>
+    </header>
+    <div class="box dispatchModeBox"><h2><span class="panelIndex">01</span> BETRIEBSART</h2>
       <div class="modeChoices">
-        <button class="modeChoice on" id="modeStellwerk" type="button"><b>🚦 Stellwerk spielen</b><span>Fahrstraßen und Signale bedienen · bestehender Simulator</span></button>
-        <button class="modeChoice" id="modeTycoon" type="button"><b>🏗️ Tycoon-Modus</b><span>Eigenes Eisenbahnunternehmen &amp; Infrastruktur verwalten · Prototyp</span></button>
-        <button class="modeChoice" id="modeBuild" type="button"><b>🛠️ Bahnhof bauen</b><span>Gleisplan mit Raster und freiem Zeichnen erstellen</span></button>
+        <button class="modeChoice on" id="modeStellwerk" type="button"><b><span class="modeGlyph" aria-hidden="true">🚦</span> STELLWERKDIENST</b><span>Signale und Weichen bedienen, Züge disponieren und Fahrstraßen einstellen</span></button>
+        <button class="modeChoice" id="modeBuild" type="button"><b><span class="modeGlyph" aria-hidden="true">🛤️</span> GLEISPLAN-EDITOR</b><span>Eigene Gleispläne zeichnen und einen neuen Bahnhof aufbauen</span></button>
       </div>
     </div>
-    <div class="box"><h2>Stellwerksbetrieb · Bahnhof wählen</h2><div id="stCards"></div><div id="customStation" class="group" style="margin-top:10px"></div></div>
+    <div class="box dispatchStationBox"><h2><span class="panelIndex">02</span> BAHNHOF & STELLWERKSBEZIRK</h2><div class="stationCaption">Wähle den Bahnhof, dessen Zugverkehr du übernehmen möchtest.</div><div id="stCards"></div><div id="customStation" class="group" style="margin-top:10px"></div></div>
     <div class="cols">
-      <div class="box"><h2>Schicht &amp; Verkehr</h2>
+      <div class="box"><h2><span class="panelIndex">03</span> SCHICHT & VERKEHRSLAGE</h2>
         <div class="optRow"><span>Schicht</span><span class="seg" data-opt="shift"></span></div>
         <div class="sub" id="shiftInfo" style="font-size:12px;margin:-2px 0 6px"></div>
         <div class="optRow"><span>Zugdichte</span><span class="seg" data-opt="density"></span></div>
         <div class="optRow"><span>Störungen</span><span class="seg" data-opt="disrupt"></span></div>
       </div>
-      <div class="box"><h2>Schwierigkeit</h2>
+      <div class="box"><h2><span class="panelIndex">04</span> BEDIENUNG & SICHERUNG</h2>
         <div class="optRow"><span>Voreinstellung</span><span class="seg" id="segLevel"></span></div>
         <div class="optRow"><span>Weichen</span><span class="seg" data-opt="autoSwitch"></span></div>
         <div class="optRow"><span>Signale</span><span class="seg" data-opt="autoSignal"></span></div>
@@ -400,13 +535,13 @@
       </div>
     </div>
     <div class="actions">
-      <button class="btn on big" id="stGo">Dienst beginnen ▶</button>
-      <button class="btn big" id="stResume" style="display:none">Weiterspielen</button>
+      <button class="btn on big" id="stGo">▶ FAHRDIENST ÜBERNEHMEN</button>
+      <button class="btn big" id="stResume" style="display:none">▶ DIENST FORTSETZEN</button>
       <span style="flex:1"></span>
-      <button class="btn" id="stHelp">📖 Anleitung</button>
-      <button class="btn" id="stInstall">📲 Als App installieren</button>
+      <button class="btn" id="stHelp">📖 Dienstanweisung</button>
+      <button class="btn" id="stInstall">📲 App installieren</button>
     </div>
-    <div class="sub hint" id="stHint"></div>
+    <div class="sub hint" id="stHint"></div><div class="dispatchFooter"><span>● ROT · HALT</span><span>◆ GELB · FAHRSTRASSE</span><span>● GRÜN · FAHRT</span></div>
   </div>
 </div>
 
@@ -3587,9 +3722,7 @@ $('#stResume').addEventListener('click', () => {
   syncOptions(); hideStart(); last = performance.now(); setSpeed(homeSpeed || 1);
 });
 $('#btnEditor').addEventListener('click', () => { window.location.href = './editor.html'; });
-$('#btnTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
 $('#modeStellwerk').addEventListener('click', () => { document.getElementById('modeStellwerk').classList.add('on'); document.getElementById('stCards').scrollIntoView({behavior:'smooth',block:'center'}); });
-$('#modeTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
 $('#modeBuild').addEventListener('click', () => { window.location.href = './editor.html'; });
 $('#stHelp').addEventListener('click', () => openHelp(true));
 $('#stInstall').addEventListener('click', () => $('#btnInstall').click());
