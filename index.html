@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#24272a">
-<meta name="app-version" content="2026-11-20.ra12-1">
+<meta name="app-version" content="2026-11-20.halle-signale-originalfahrplan-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -487,7 +487,7 @@
         <span class="dot" style="background:#33ff77"></span><span class="dot" style="background:#33ff77"></span> <b>Vr1</b> Fahrt erwarten ·
         <span class="dot" style="background:#ffc400"></span><span class="dot" style="background:#33ff77"></span> <b>Vr2</b> Langsamfahrt erwarten.</li>
     </ul>
-    <p>Im Gleisbild steht der aktuelle Signalbegriff direkt am Signal: <b>Hp0</b>, <b>Hp1</b>, <b>Hp2</b>, <b>Ra12</b> (Rangierfahrt) oder <b>Zs1</b> (Ersatzsignal mit weißem Blinklicht). Die Anzeige ist eine vereinfachte ESTW-Darstellung, keine vollständige Nachbildung aller deutschen Signalbauformen.</p>
+    <p>Im Gleisbild steht der aktuelle Signalbegriff direkt am Signal: <b>Hp0</b>, <b>Hp1</b>, <b>Hp2</b>, <b>Sh1</b> (Rangierfahrt) oder <b>Zs1</b> (Ersatzsignal mit weißem Blinklicht). Die Anzeige ist eine vereinfachte ESTW-Darstellung, keine vollständige Nachbildung aller deutschen Signalbauformen.</p>
     <h3>Weichen</h3>
     <ul>
       <li>Weiche (W…) antippen, um sie umzustellen – nur wenn sie frei und nicht verschlossen ist. Die Lücke im Gleisbild zeigt den nicht befahrbaren Strang.</li>
@@ -535,7 +535,7 @@
       <li>① <b>N1</b> antippen → Ziel <b>„Umsetzhalt ▶“</b>: Die Lok fährt nach Osten bis zum Umsetzhalt.</li>
       <li>② Rangiersignal <b>RY</b> antippen: Die Lok fährt über <b>Gleis 2</b> am Zug vorbei nach Westen bis zum „◀ Umsetzhalt“.</li>
       <li>③ Rangiersignal <b>RB</b> antippen: Die Lok fährt auf Gleis 1 an die Wagen und kuppelt an (+5 Punkte).</li>
-      <li>Danach ist der Zug ein neuer RE nach Altdorf: wie gewohnt <b>P1 → „◀ nach Altdorf“</b>. Rangiersignale zeigen <b>zwei weiße Lichter</b> (Ra12) statt grün. Gleis 2 und die Weichenbereiche müssen für die Lokfahrt frei sein.</li>
+      <li>Danach ist der Zug ein neuer RE nach Altdorf: wie gewohnt <b>P1 → „◀ nach Altdorf“</b>. Rangiersignale zeigen <b>weiß</b> (Sh1) statt grün. Gleis 2 und die Weichenbereiche müssen für die Lokfahrt frei sein.</li>
     </ul>
     </div>
     <div class="only-neustadt">
@@ -711,7 +711,7 @@ if (BF === 'neustadt') {
   SIGNALS.L9 = { x: 1200, y: 84,  dir: -1, kind: 'Rangiersignal (Abstellgleis 9)' };
   SIGNALS.L10 = { x: 1250, y: 58, dir: -1, kind: 'Rangiersignal (Abstellgleis 10)' };
   SIGNALS.L8 = { x: 560,  y: 470, dir:  1, kind: 'Rangiersignal (Abstellgleis)' };
-  // Rangiersignale für das Umsetzen der Lok (nur Rangierfahrten, zwei weiße Lichter = Ra12)
+  // Rangiersignale für das Umsetzen der Lok (nur Rangierfahrten, weißes Licht = Sh1)
   SIGNALS.RY = { x: 1130, y: 200, dir: -1, kind: 'Rangiersignal', sh: true };
   SIGNALS.RB = { x: 520,  y: 200, dir:  1, kind: 'Rangiersignal', sh: true };
   // Einfahrsignale vom Gegengleis (nur bei Streckensperrung benutzt)
@@ -1658,7 +1658,7 @@ function signalGo(id, quiet) {
     return true;
   }
   S.sig[id] = 'Hp1';
-  if (ar.r.shunt) { log(`Signal ${id}: Rangierfahrt erlaubt (Ra12).`, 'info'); toast(`Signal ${id}: RANGIERFAHRT Ra12 (zwei weiße Lichter)`); return true; }
+  if (ar.r.shunt) { log(`Signal ${id}: Rangierfahrt erlaubt (Sh1).`, 'info'); toast(`Signal ${id}: RANGIERFAHRT (weiß)`); return true; }
   const slow = ar.r.slow;
   log(`Signal ${id} zeigt ${slow ? 'Langsamfahrt (Hp2)' : 'Fahrt (Hp1)'}.`, 'info');
   toast(`Signal ${id}: ${slow ? 'LANGSAMFAHRT (grün/gelb)' : 'FAHRT (grün)'}`);
@@ -3053,11 +3053,11 @@ function render() {
     const asp = aspect(id);
     const arS = S.routes.find(a => a.r.from === id && !a.passed), shunt = arS && arS.r.shunt;
     const zs1 = S.sig[id] === 'Zs1';
-    const signalTerm = zs1 ? 'Zs1' : shunt && asp !== 'Hp0' ? 'Ra12' : asp;
+    const signalTerm = zs1 ? 'Zs1' : shunt && asp !== 'Hp0' ? 'Sh1' : asp;
     const blinkOn = Math.floor(performance.now() / 450) % 2 === 0;
     const off = '#182229';
     E_.lamp[id].setAttribute('fill', zs1 ? off : asp === 'Hp0' ? COL.red : shunt ? '#f2f6ff' : COL.green);
-    E_.lampMid[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : off) : off);
+    E_.lampMid[id].setAttribute('fill', zs1 ? (blinkOn ? '#ffffff' : off) : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
     E_.lamp2[id].setAttribute('fill', zs1 ? off : asp === 'Hp2' && !shunt ? COL.yellow : shunt && asp !== 'Hp0' ? '#f2f6ff' : off);
     E_.aspectText[id].textContent = signalTerm;
     E_.aspectText[id].setAttribute('fill', zs1 ? '#ffffff' : signalTerm === 'Hp0' ? '#ffaaa4' : signalTerm === 'Hp2' ? '#ffe17c' : '#a7f2c1');
@@ -3527,7 +3527,7 @@ function renderStart() {
   const bestAll = readBest();
   // Halle Hbf: echte OSM-Gleise, aber noch keine bestätigten Stellwerksfahrstraßen.
   {const b=document.createElement('button');b.className='stCard';
-   b.innerHTML='<b>🚦 Halle Hbf · Personenbahnhof + Abstellung (Vorschau)</b><span class="sub">Personengleise 1–13, Kasseler Abstellung und verbundene Original-OSM-Gleise. Ohne Güterbahnhof und ZBA. Fahrstraßen noch ungeprüft.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Kasseler Abstellung</span><span>Ohne Güterbahnhof</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
+   b.innerHTML='<b>🚦 Halle Hbf · Personenbahnhof + Abstellung (Vorschau)</b><span class="sub">Personengleise 1–13, Kasseler Abstellung, virtuelle Signale und belegter DB-Abfahrtsfahrplan (20.11.2026). Keine echten Verschlussabhängigkeiten; ohne Güterbahnhof.</span><span class="tags"><span>13 Bahnsteiggleise</span><span>Kasseler Abstellung</span><span>Ohne Güterbahnhof</span><span>Leipzig / Merseburg / Sangerhausen</span></span>';
    b.addEventListener('click',()=>{window.location.href='./halle-hbf-play.html';});cards.appendChild(b);
   }
   for (const id in STATIONS) {
