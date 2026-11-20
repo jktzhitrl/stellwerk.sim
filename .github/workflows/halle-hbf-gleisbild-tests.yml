@@ -24,3 +24,10 @@ jobs:
           node --check halle-hbf-bereiche.mjs
       - name: Schematic node mapping and game regressions
         run: node --test tools/tests/halle-hbf-gleisbild.test.mjs tools/tests/halle-hbf-bereiche.test.mjs tools/tests/halle-hbf-spielmodus.test.mjs
+      - name: Verify Android and PWA offline Gleisbild module
+        run: |
+          node android-app/scripts/prepare-web.mjs
+          test -f android-app/www/halle-hbf-gleisbild.mjs
+          test -f android-app/www/halle-hbf-bereiche.mjs
+          grep -q 'halle-hbf-gleisbild.mjs' sw.js
+
