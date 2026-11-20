@@ -1,0 +1,30 @@
+# Halle (Saale) Hbf – Originalgleis-Nachbau, erste spielbare Vorschau
+
+**Stand:** 20.11.2026. **Originaldaten: OSM/OpenRailwayMap**, ergänzt um den offiziellen [DB-InfraGO-Betriebsstellenplan LH vom 30.09.2026](https://trassenfinder.de/apn/LH).
+
+## Was tatsächlich übernommen wurde
+
+Automatischer OpenStreetMap-Import mit [OpenRailwayMap-Datenabfrage](halle-hbf-openrailwaymap-overpass.ql) und alternativem Abruf über die OpenStreetMap-API. Datensatz `data/halle-hbf-osm-review.json`, © OpenStreetMap contributors, ODbL 1.0.
+
+Beim ersten erfolgreichen Abruf wurden **609 Eisenbahn-Ways, 4.825 Segmentkanten, 4.799 Gleisknoten, 414 kartierte Weichen und 452 signalbezogene Objekte** im gewählten Kartenausschnitt geladen. **Nicht alle Objekte gehören betrieblich zum Hbf**: Das vorläufige Aufnahmefenster umfasst auch Nachbaranlagen. Die Komponentenliste enthält mehrere nicht verbundene Gleisgruppen; getrennte OSM-Knoten werden nicht aufgrund gleicher Bildposition verbunden. Die Rohdaten sind gekennzeichnet mit `UNVERIFIED_OSM_IMPORT`, nicht als betrieblicher Verschlussplan bestätigt.
+
+## Spiel- und Prüfoberfläche
+
+- `halle-hbf-play.html` bietet eine **experimentelle Gleis-Fahrwegvorschau** auf echten OSM-Knoten mit animiertem Testzug. Spieler wählen Start- und Zielgleis durch Antippen der Gleise. Es wird eine geometrische Wegsuche mit Knotenidentität und konservativen Weichenübergängen verwendet.
+- Im Testbetrieb werden unbekannte oder inkonsistente OSM-Weichen nicht zu erlaubten Übergängen erklärt. Bei Dreiweg-Weichen ist die direkte Fahrt zwischen beiden abzweigenden Schenkeln gesperrt; bei viergliedrigen Kreuzungen nur die räumlich eindeutig geradlinige Durchfahrt als Vorschau zugelassen. **Dies ist keine echte Stellwerksfreigabe.**
+- `halle-hbf-review.html` stellt den gesamten erfassten OSM-Gleisbestand inklusive einzeln anklickbarer Weichen und Signal-Tags dar.
+- Der Bahnhof erscheint in der Startauswahl als **Originalgleise (Vorschau)**. Bestehende Stellwerke werden nicht überschrieben. Web/PWA und Android-Offline-Bundle haben die dafür nötigen Dateien.
+
+## Noch nicht originalgetreu betriebsfähig
+
+1. Die Abgrenzung des tatsächlichen Bahnhofs Halle (Saale) Hbf gegen **Halle Gbf, Halle Ost/West, Abzweigstellen und benachbarte Betriebsanlagen** anhand des DB-InfraGO-Plans und aktueller OSM-Daten.
+2. Die tatsächlichen **Weichennummern und Weichenlagen**, Kreuzungsweichen-/DKW-Fahrmöglichkeiten, Sperrgleise, Schutzweichen und Flankenschutz.
+3. Die Lage, Richtung und Aufgabe **jedes Haupt-, Vorsignal- und Rangiersignals**. Die 452 OSM-Objekte sind **nicht** automatisch 452 Hauptsignale.
+4. **Fahrstraßen, Durchrutschwege, Gleisfreimeldeabschnitte, Blockgrenzen und Verschlussabhängigkeiten** – dafür reichen OSM und Serviceeinrichtungsplan nicht allein.
+5. Abgleich jedes Bahnsteiggleises 1–13 sowie weiterer Abstell-, Betriebs- und Werkstattgleise mit dem offiziellen Plan. Das Ziel ist die fortlaufende Ergänzung, nicht die Behauptung, diese Prüfung sei abgeschlossen.
+
+Quellen: [DB InfraGO LH](https://trassenfinder.de/apn/LH), [Halle Hbf Bahnsteigdaten](https://www.dbinfrago.com/web/bahnhoefe/leistungen/stationsnutzung/stationshalt/stationsausstattung/Halle-Saale-Hbf-12671632), [OpenRailwayMap](https://openrailwaymap.org/?lang=de&lat=51.478&lon=11.990&zoom=15&style=standard), [vorherige Quelleninventur](halle-hbf-gleisplan-quellen.md).
+
+## Technische Prüfungen
+
+Vier Node.js- und drei Python-Regressionstests aus dem Eilenburg-Verfahren für den Halle-Importer übernommen. [GitHub-Testlauf #44697217699](https://github.com/jktzhitrl/stellwerk.sim/actions/runs/44697217699) erfolgreich: OSM-Datenabruf, Konvertierung, Graph-Diagnose, Offline-Prüfkarte und Datensnapshot. Die dynamische fahrwegfähige Oberfläche ist als Entwicklungsstand zu betrachten; vor Behauptung voller Originaltreue sind Tablet- und Betriebsregressionstests notwendig.
