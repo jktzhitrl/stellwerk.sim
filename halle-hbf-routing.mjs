@@ -93,3 +93,41 @@ export function representativeTrackNode(tracks,indices,focus={x:1400,y:900}){
   const a=best.a,b=best.b;
   return String((Math.hypot(a.x-focus.x,a.y-focus.y)<=Math.hypot(b.x-focus.x,b.y-focus.y)?a:b).nodeId);
 }
+
+/** Find a reachable geometry-only test endpoint; it is NOT an official
+ * destination/exit signal or a validated route to a named station. */
+export function suggestTestRoute(graph,switches,start){
+ if(!graph.has(start))return null;
+ const init=start+'|-1',distance=new Map([[init,0]]),parent=new Map(),open=new MinHeap();
+ open.push({node:start,inEdge:-1,state:init,cost:0});
+ const base=graph.get(start).p;let best=null,bestScore=-1;
+ while(open.size){
+  const cur=open.pop();if(cur.cost!==distance.get(cur.state))continue;
+  const point=graph.get(cur.node).p;
+  const separation=Math.hypot(point.x-base.x,point.y-base.y);
+  // Prefer a long journey ending at an OSM track end. A missing track
+  // continuation at the geographic crop boundary is never called a real exit.
+  const endpoint=graph.get(cur.node).adj.length===1;
+  if(cur.node!==start&&separation>30){
+   const score=separation+(endpoint?130:0);
+   if(score>bestScore){bestScore=score;best=cur;}
+  }
+  for(const e of graph.get(cur.node).adj){
+   if(cur.inEdge!==-1&&!transitionPossible(graph,switches,cur.node,cur.inEdge,e.edge))continue;
+   const state=e.to+'|'+e.edge,cost=cur.cost+e.len;
+   if(cost>=(distance.get(state)??Infinity))continue;
+   distance.set(state,cost);parent.set(state,{previous:cur.state});
+   open.push({node:e.to,inEdge:e.edge,state,cost});
+  }
+ }
+ if(!best)return null;
+ const ids=[best.node];
+ for(let cur=best.state;cur!==init;){
+  const p=parent.get(cur);if(!p)return null;
+  cur=p.previous;ids.push(cur.slice(0,cur.lastIndexOf('|')));
+ }
+ ids.reverse();
+ if(new Set(ids).size!==ids.length)return null;
+ return{ids,points:ids.map(id=>graph.get(id).p),cost:best.cost,
+   originalExitVerified:false,description:'OSM-Gleis-Prüfpunkt ohne bestätigte Streckenzuordnung'};
+}
