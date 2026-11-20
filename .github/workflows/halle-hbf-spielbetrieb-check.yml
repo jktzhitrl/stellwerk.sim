@@ -2,7 +2,7 @@ name: Halle Hbf Fahrplan und Signalspiel – Regressionstests
 on:
   push:
     branches:
-      - chatgpt/halle-hbf-signale-originalfahrplan-20261120
+      - chatgpt/halle-hbf-originalfahrplan-live-20261120
       - gh-pages
     paths:
       - 'halle-hbf-betrieb.mjs'
