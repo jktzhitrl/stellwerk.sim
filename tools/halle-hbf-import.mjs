@@ -20,7 +20,7 @@ function project(lon,lat){
   const y=PAD+(BOUNDS.n-lat)/(BOUNDS.n-BOUNDS.s)*(H-2*PAD);
   return{x:+x.toFixed(3),y:+y.toFixed(3)};
 }
-export function importHalle (Saale) Hbf(osm){
+export function importHalleHbf(osm){
   if(!osm||!Array.isArray(osm.elements))throw Error('Expected Overpass JSON with elements array.');
   const nodes=new Map(),ways=[],switchNodes=new Map(),signalNodes=new Map();
   for(const e of osm.elements){
@@ -109,7 +109,7 @@ export function importHalle (Saale) Hbf(osm){
 }
 export async function main(args){
   if(args.length!==2)throw Error('Usage: node tools/halle-hbf-import.mjs INPUT-overpass.json OUTPUT-plan.json');
-  const data=JSON.parse(await readFile(args[0],'utf8')),result=importHalle (Saale) Hbf(data);
+  const data=JSON.parse(await readFile(args[0],'utf8')),result=importHalleHbf(data);
   await writeFile(args[1],JSON.stringify(result,null,2)+'\n');
   console.log('Halle (Saale) Hbf OSM import report:',JSON.stringify(result.report,null,2));
 }
