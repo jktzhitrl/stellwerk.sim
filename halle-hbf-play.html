@@ -83,6 +83,18 @@ body.sector-ww .dispatchDesk{display:none}
 #sectorHelp{font-size:10px;color:#9fb9c7;margin:5px 0 0}
 @media(max-width:850px){.sectorBar{padding:7px 8px;gap:5px}.sectorTabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}.sectorTabs button{flex:none;min-height:44px;padding:8px 11px;font-size:12px}#sectorViewMode{min-height:40px;flex:none}.sectorBar #sectorStatus{flex:1 1 100%;font-size:11px}#map{height:53dvh;min-height:310px}}
 @media(max-width:410px){.sectorTabs button{font-size:11px;padding:8px 9px}.sectorBar{gap:3px}#sectorViewMode{font-size:11px;padding:6px}}
+
+/* Like the other stations: a dedicated schematic drawing, not a rotated map. */
+#map{background:#202c33}
+#schematicWorld text{pointer-events:none}
+#schemaLabels [data-track-ref]{cursor:pointer;touch-action:manipulation}
+#schemaLabels [data-track-ref]:focus-visible rect{stroke:#ffd66b;stroke-width:3}
+#schemaWeichen polygon{cursor:pointer}
+#schemaWeichen polygon:focus-visible{stroke:#fff;stroke-width:3}
+body.sector-west #schemaRails [data-area="ost"],body.sector-ost #schemaRails [data-area="west"],
+body.sector-ww #schemaRails [data-area]:not([data-area="ww"]){opacity:.14}
+body.sector-west #schemaHits [data-area="ost"],body.sector-ost #schemaHits [data-area="west"],
+body.sector-ww #schemaHits [data-area]:not([data-area="ww"]){pointer-events:none}
 </style></head><body>
 <header><h1>🚦 Halle (Saale) Hbf · Personenbahnhof + Abstellung</h1><a href="./index.html">← Stellwerkspiel</a><a href="./halle-hbf-review.html">🗺️ Originaldaten prüfen</a><button id="center">Bahnhof zentrieren</button><button id="all">Alle Personengleise</button></header>
 <nav class="sectorBar" aria-label="Bedienbereich und Gleisbild">
@@ -95,7 +107,7 @@ body.sector-ww .dispatchDesk{display:none}
 <button id="sectorViewMode" type="button" aria-pressed="true" title="Schematische Spielansicht oder unveränderte OSM-Geometrie">Schemaplan ✓</button>
 <div id="sectorStatus" role="status">Spielbereich West · virtuelle Grenze</div>
 </nav>
-<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gleisplan Halle (Saale) Hbf aus OpenStreetMap"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
+<main><div id="map"><svg id="board" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Gleisbildstellwerk Halle Hbf – schematisches Bedienbild und OSM-Prüfkarte"><g id="rails"></g><g id="path"></g><g id="items"></g><g id="vehicle"></g><g id="virtualSignals"></g><g id="switchLocks"></g></svg><div class="mapHud">HALLE HBF · OSM-Gleisbild<small>Ziehen · Zoomen · Gleis antippen</small></div><div class="mapZoom"><button id="zoomIn" aria-label="Karte vergrößern">+</button><button id="zoomOut" aria-label="Karte verkleinern">−</button></div></div>
 <aside><div class="notice"><b>Nur Personenbahnhof und Abstellung · OSM-Gleisvorschau</b>
 <br>Die Gleise stammen aus OpenStreetMap/OpenRailwayMap. Der Güterbahnhof und die ZBA sind aus der Spielansicht herausgefiltert. Die Kasseler Gruppe und das DB-Abstellgleis 136 sind eingebunden. Zulässige Fahrstraßen, Schutzweichen und Signalabhängigkeiten sind <b>nicht</b> durch Original-Stellwerksunterlagen bestätigt. Dies ist noch kein vollwertiges Originalstellwerk.</div>
 <p id="stats">Lade Personenbahnhof und Abstellung …</p><div class="controls"><button id="kasseler" type="button">🅿 Kasseler Gruppe</button><button id="abstellung136" type="button">🅿 Abstellgleis 136</button></div><p><small>Nur Personenverkehr, Kasseler Abstellung und das bei DB InfraGO als Abstellung erfasste Gleis 136. Die „Neue Gruppe“, der Güterbahnhof und die ZBA sind nicht Bestandteil des Spielplans.</small></p><h2 style="font-size:15px">Original-Abfahrtsfahrplan · 20.11.2026 (Fr)</h2>
@@ -174,6 +186,7 @@ const {auditHalleRefs,HALLE_STATION_FOCUS}=await import('./halle-hbf-references.
 const {buildObjectAudit,readableObject}=await import('./halle-hbf-objects.mjs');
 const {HALLE_ORIGINAL_DEPARTURES,HALLE_TIMETABLE_SOURCE,timetableMinutes}=await import('./halle-hbf-originalfahrplan.mjs');
 const {HalleGameSession,clockLabel}=await import('./halle-hbf-betrieb.mjs');
+const {createHalleSchematic,HALLE_SCHEMATIC_LANES}=await import('./halle-hbf-gleisbild.mjs');
 const {HALLE_AREAS,createHalleAreas,pickShuntingPath}=await import('./halle-hbf-bereiche.mjs');
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('board'),rail=document.getElementById('rails'),pathLayer=document.getElementById('path'),items=document.getElementById('items'),vehicle=document.getElementById('vehicle');
 const $=id=>document.getElementById(id),el=(tag,props,parent)=>{const n=document.createElementNS(NS,tag);for(const k of Object.keys(props))n.setAttribute(k,props[k]);parent.append(n);return n};
@@ -181,12 +194,15 @@ const edges=data.tracks,graph=buildGraph(edges),wMap=new Map((data.osmSwitches||
 const objectAudit=buildObjectAudit(data.signals||[],data.osmSwitches||[],graph);
 const game=new HalleGameSession(HALLE_ORIGINAL_DEPARTURES);
 const areas=createHalleAreas(edges);
+const gleisbild=createHalleSchematic(edges,areas);
 let currentSector='west',schematicMode=true;
-const world=document.createElementNS(NS,'g');world.id='schematicWorld';
+const world=document.createElementNS(NS,'g');world.id='osmWorld';
 while(svg.firstElementChild)world.append(svg.firstElementChild);
 svg.append(world);
-world.setAttribute('transform','matrix('+areas.matrix.join(' ')+')');
-function displayPoint(p){return schematicMode?areas.toView(p):{x:p.x,y:p.y};}
+const schematicWorld=el('g',{id:'schematicWorld','aria-label':'Schematisches Gleisbild Halle Hbf'},svg);
+world.setAttribute('display','none');
+schematicWorld.setAttribute('display','inline');
+function displayPoint(p){return schematicMode?gleisbild.toDiagram(p):{x:p.x,y:p.y};}
 function viewAspect(){return Math.max(.5,$('map').clientWidth/Math.max(1,$('map').clientHeight));}
 function rawBoundsForSector(sector){
  const matching=edges.filter(e=>sector==='gesamt'||areas.edgeArea(e)===sector);
@@ -211,8 +227,10 @@ function selectSector(sector,{preserveView=false}={}){
  $('sectorViewMode').setAttribute('aria-pressed',String(schematicMode));
  document.querySelector('.mapHud').firstChild.textContent=schematicMode?
   'HALLE HBF · SCHEMATISCHES GLEISBILD':'HALLE HBF · OSM-ORIGINALGEOMETRIE';
- world.setAttribute('transform',schematicMode?'matrix('+areas.matrix.join(' ')+')':'');
- if(!preserveView){view=schematicMode?areas.bounds(sector,viewAspect()):rawBoundsForSector(sector);showView();}
+ world.setAttribute('transform','');
+ world.setAttribute('display',schematicMode?'none':'inline');
+ schematicWorld.setAttribute('display',schematicMode?'inline':'none');
+ if(!preserveView){view=schematicMode?gleisbild.frame(sector,viewAspect()):rawBoundsForSector(sector);showView();}
  if(typeof renderHandoff==='function')renderHandoff();
 }
 for(const btn of $('sectorTabs').querySelectorAll('[data-sector]'))
@@ -269,6 +287,109 @@ for(const {ref,osmCandidate} of referenceAudit.platforms){
  label.textContent='OSM '+ref+'?';
 }
 
+
+/* Gleisbildstellpult: each visible track segment has an original OSM edge.
+ * The ordered straight lanes, signal indicators and headings are a
+ * schematic UI, never a reconstruction of DB signal/turnout interlocking. */
+const schemaDecor=el('g',{id:'schemaDecor','pointer-events':'none'},schematicWorld);
+const schemaLabels=el('g',{id:'schemaLabels'},schematicWorld);
+function labelOn(layer,x,y,str,attrs={}){
+ const t=el('text',{x,y,'font-family':'system-ui,Arial,sans-serif',fill:'#d4e3ed',...attrs},layer);
+ t.textContent=str;return t;
+}
+el('rect',{x:325,y:74,width:1450,height:1360,rx:6,fill:'none',stroke:'#627887','stroke-width':1.8},schemaDecor);
+labelOn(schemaDecor,1050,113,'HALLE (SAALE) HBF · GLEISBILDSTELLWERK',
+ {'text-anchor':'middle','font-size':26,'font-weight':800,'letter-spacing':2});
+labelOn(schemaDecor,465,136,'FDL WEST · PERSONENBAHNHOF',{'font-size':16,'font-weight':800});
+labelOn(schemaDecor,465,630,'FDL OST · PERSONENBAHNHOF',{'font-size':16,'font-weight':800});
+labelOn(schemaDecor,465,1086,'WEICHENWÄRTER · ABSTELLUNG',{'font-size':16,'font-weight':800,fill:'#81ddb4'});
+for(const y of [614,1070])el('line',{x1:435,y1:y,x2:1700,y2:y,stroke:'#627b88','stroke-dasharray':'9 9'},schemaDecor);
+const platformLamps=new Map();
+for(const [ref,y] of Object.entries(HALLE_SCHEMATIC_LANES)){
+ const n=Number(ref),storage=n>13;
+ el('rect',{x:450,y:y-22,width:1260,height:44,rx:5,fill:storage?'#1a3b34':'#263f4b',opacity:.52},schemaDecor);
+ el('line',{x1:570,y1:y,x2:1690,y2:y,stroke:'#718996','stroke-dasharray':'6 12',opacity:.36},schemaDecor);
+ labelOn(schemaLabels,575,y-10,n<=13?'GL '+ref+' · OSM?':n===136?'GL 136 · Abst.':'Kasseler '+ref,
+  {'font-size':17,'font-weight':750,fill:storage?'#99e4bd':'#e5edf2'});
+ const hit=el('g',{'data-track-ref':ref,role:'button',tabindex:'0',
+  'aria-label':storage?'Virtuelle Abstellreferenz '+ref:'Originalfahrplanzug Gleis '+ref+' auswählen'},schemaLabels);
+ el('rect',{x:477,y:y-14,width:34,height:29,rx:5,fill:'#101d27',stroke:'#8498a5'},hit);
+ platformLamps.set(ref,el('circle',{cx:494,cy:y,r:7,fill:'#98484d',stroke:'#536c75','stroke-width':1.6},hit));
+ const tip=el('title',{},hit);tip.textContent='Virtueller Spielindikator, kein bestätigtes Originalsignal';
+ const activate=()=>{
+  if(storage){selectSector('ww');$(n===136?'shunt136':'shuntKasseler').click();return;}
+  if(run||shuntReady||game.running||game.route?.cleared)return;
+  const next=HALLE_ORIGINAL_DEPARTURES.find(d=>d.trackRef===ref&&!game.dispatched.has(d.id));
+  if(next)chooseService(next);
+  else status('Keine offene Original-Abfahrt auf Gleis '+ref+' im hinterlegten Fahrplan-Auszug.');
+ };
+ hit.addEventListener('click',ev=>{ev.stopPropagation();activate();});
+ hit.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();activate();}});
+}
+const schemaRails=el('g',{id:'schemaRails'},schematicWorld),schemaHits=el('g',{id:'schemaHits'},schematicWorld);
+let schemaEdgeCount=0;
+edges.forEach((edge,i)=>{
+ const [a,b]=gleisbild.edgeCoords(edge);if(!a||!b)return;
+ const section=gleisbild.ofEdge(edge),ref=String(edge.railwayTrackRef??'');
+ const platform=/^(?:[1-9]|1[0-3])$/.test(ref),storage=edge.kind==='abstellung'||edge.kind==='verbindung';
+ el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:storage?'#77deac':platform?'#e2e7ed':'#99aab4',
+  opacity:storage||platform?1:.68,'stroke-width':platform?5:storage?4.5:3.2,
+  'stroke-linecap':'round',class:'schemaRail','data-area':section},schemaRails);
+ const hit=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent','stroke-width':18,
+  class:'schemaHit','data-area':section,'data-edge':i},schemaHits);
+ hit.style.cursor='crosshair';schemaEdgeCount++;
+});
+const schemaWeichen=el('g',{id:'schemaWeichen'},schematicWorld);
+for(const w of objectAudit.switches){
+ const q=gleisbild.ofNode(w.osmNodeId);if(!q||q.x<330||q.x>1770)continue;
+ const diamond=el('polygon',{points:[q.x,q.y-8,q.x+8,q.y,q.x,q.y+8,q.x-8,q.y].join(','),
+  fill:w.kind==='complex'?'#f09385':'#efc473',stroke:'#172b37','stroke-width':1,
+  role:'button',tabindex:0,'aria-label':'OSM-Weiche '+(w.ref||w.osmNodeId)},schemaWeichen);
+ const key='switch:'+w.osmNodeId;
+ diamond.addEventListener('click',ev=>{ev.stopPropagation();showObject(key);});
+ diamond.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showObject(key);}});
+ const tip=el('title',{},diamond);tip.textContent='OSM-Weiche '+(w.ref||w.osmNodeId)+' · Lage ungeprüft';
+}
+const schemaRoute=el('g',{id:'schemaRoute','pointer-events':'none'},schematicWorld);
+const schemaLocks=el('g',{id:'schemaLocks','pointer-events':'none'},schematicWorld);
+const schemaTrain=el('g',{id:'schemaTrain','pointer-events':'none'},schematicWorld);
+const schemaFocus=el('g',{id:'schemaFocus','pointer-events':'none'},schematicWorld);
+function highlightSchemaPoint(p,text){
+ schemaFocus.replaceChildren();const q=gleisbild.toDiagram(p);
+ el('circle',{cx:q.x,cy:q.y,r:19,stroke:'#ffdb6a','stroke-width':3,fill:'none'},schemaFocus);
+ labelOn(schemaFocus,q.x+23,q.y-20,text,{'font-size':19,'font-weight':800,fill:'#ffe49c'});
+}
+function syncSchemaTrain(){
+ schemaTrain.replaceChildren();if(!run)return;
+ const p=run.diagramPosition||gleisbild.toDiagram(run.segments[0].a);
+ el('rect',{x:p.x-17,y:p.y-10,width:34,height:20,rx:5,fill:run.kind==='shunt'?'#6eacff':'#f25a52',
+   stroke:'#fff','stroke-width':2},schemaTrain);
+ labelOn(schemaTrain,p.x+25,p.y-14,run.kind==='shunt'?'RF · SIM':game.selected?.train||'Zug',
+   {'font-size':17,'font-weight':800,fill:'#fff'});
+}
+function renderGleisbild(){
+ schemaRoute.replaceChildren();schemaLocks.replaceChildren();
+ const active=shuntReady?.route?.points||routeResult?.points||points;
+ if(active?.length){
+  const color=run?'#ffad64':game.route?.cleared||shuntReady?.released?'#4aeea0':'#ffd35c';
+  el('polyline',{points:active.map(p=>{const q=gleisbild.toDiagram(p);return q.x+','+q.y;}).join(' '),
+   stroke:color,fill:'none','stroke-width':9,'stroke-linecap':'round','stroke-linejoin':'round'},schemaRoute);
+ }
+ const locked=game.route?.cleared?game.route.ids:shuntReady?.released?shuntReady.route.ids:null;
+ for(const id of locked||[]){
+  if(!wMap.has(String(id)))continue;
+  const p=gleisbild.ofNode(id);
+  if(p)el('circle',{cx:p.x,cy:p.y,r:14,fill:'none',stroke:'#70e6f6','stroke-width':3},schemaLocks);
+ }
+ for(const [ref,lamp] of platformLamps){
+  const active=game.selected?.trackRef===ref;
+  lamp.setAttribute('fill',active&&game.signal.startsWith('Ks1')?'#4cea9b':active?'#fa5459':
+    Number(ref)>13?'#5eae9c':'#93494f');
+  lamp.setAttribute('stroke',active?'#fff':'#53666f');
+ }
+ syncSchemaTrain();
+}
+
 const objectByKey=new Map();
 function objectKey(kind,id){return kind+':'+id;}
 for(const w of objectAudit.switches){
@@ -318,6 +439,7 @@ function focusCandidate(candidate,label=''){
  el('circle',{cx:candidate.x,cy:candidate.y,r:20,fill:'none',stroke:'#bdf7de','stroke-width':5},platformMarkers);
  const name=el('text',{x:candidate.x+24,y:candidate.y-26,class:'mapRefLabel'},platformMarkers);
  name.textContent=label||'OSM-Ref '+candidate.ref+'?';
+ highlightSchemaPoint(candidate,label||'OSM '+(candidate.ref||'?')+'?');
 }
 for(const {ref,osmCandidate} of referenceAudit.platforms){
  const btn=document.createElement('button');btn.type='button';btn.textContent=ref;btn.title='OSM-Referenz '+ref+' anzeigen (Bahnsteigzuordnung ungeprüft)';
@@ -347,8 +469,8 @@ let shuntReady=null,shuntCount=0,handoffRequested=false;
 const approvedSectors=new Set();
 function requiredHandoffs(){
  if(!routeResult||!serviceOriginNode||!graph.has(serviceOriginNode))return [];
- const own=areas.areaForNode(serviceOriginNode,graph.get(serviceOriginNode).p);
- return areas.routeAreas(routeResult.ids,graph).filter(s=>s!==own);
+ const own=gleisbild.sectorForRef(game.selected?.trackRef)||gleisbild.sectorForNode(serviceOriginNode);
+ return [...new Set(routeResult.ids.map(id=>gleisbild.sectorForNode(id)))].filter(s=>s!==own);
 }
 function resetHandoffs(){handoffRequested=false;approvedSectors.clear();}
 function handoffsOk(){return !$('manualHandoff').checked||requiredHandoffs().every(s=>approvedSectors.has(s));}
@@ -447,7 +569,7 @@ function renderSchedule(){
    btn.querySelector('.state').textContent=st;
  }
  updateSignalVisual();
- drawSwitchLocks();renderHandoff();renderShunt();
+ drawSwitchLocks();renderHandoff();renderShunt();renderGleisbild();
 }
 function suggestRouteForSelected(){
  if(!serviceOriginNode||!game.selected){status('Bitte erst eine Fahrplan-Abfahrt wählen.');return;}
@@ -467,7 +589,7 @@ function chooseService(service){
  start=null;end=null;points=null;routeResult=null;
  pathLayer.replaceChildren();vehicle.replaceChildren();
  if(serviceOriginNode&&graph.has(serviceOriginNode)){
-   selectSector(areas.sectorForPoint(graph.get(serviceOriginNode).p));
+   selectSector(gleisbild.sectorForRef(service.trackRef));
    focusCandidate(target,'Gleis '+service.trackField+'?');
    suggestRouteForSelected();
    status(service.train+' '+service.time+' nach '+service.destination+' ausgewählt. Geometrischer OSM-Prüfweg vorgeschlagen: virtuelle Fahrstraße stellen. Realer Ausfahrweg und Bahnsteigzuordnung nicht bestätigt.');
@@ -518,7 +640,7 @@ function pickRef(forced){
 $('fromRef').onclick=()=>pickRef('start');
 $('toRef').onclick=()=>pickRef('end');
 let pointerTravel=0,ignoreNextClick=false;
-svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev,true);if(!e||!pt)return;const da=Math.hypot(pt.x-e.a.x,pt.y-e.a.y),db=Math.hypot(pt.x-e.b.x,pt.y-e.b.y);choose(String((da<=db?e.a:e.b).nodeId));});
+svg.addEventListener('click',ev=>{if(ignoreNextClick){ignoreNextClick=false;return;}const edge=ev.target.getAttribute('data-edge');if(edge==null||run)return;const e=edges[Number(edge)],pt=screenPoint(ev,!schematicMode);if(!e||!pt)return;const qa=displayPoint(e.a),qb=displayPoint(e.b),da=Math.hypot(pt.x-qa.x,pt.y-qa.y),db=Math.hypot(pt.x-qb.x,pt.y-qb.y);choose(String((da<=db?e.a:e.b).nodeId));});
 $('new').onclick=()=>{
  if(shuntReady){shuntReady=null;resetHandoffs();}
  if(game.running||run){status('Erst laufende Zugfahrt beenden.');return;}
@@ -563,6 +685,9 @@ function step(now){
   const x=seg.a.x+(seg.b.x-seg.a.x)*frac,y=seg.a.y+(seg.b.y-seg.a.y)*frac;
   train.setAttribute('cx',x);train.setAttribute('cy',y);
   run.label.setAttribute('x',x+15);run.label.setAttribute('y',y-13);
+  const q1=gleisbild.toDiagram(seg.a),q2=gleisbild.toDiagram(seg.b);
+  run.diagramPosition={x:q1.x+(q2.x-q1.x)*frac,y:q1.y+(q2.y-q1.y)*frac};
+  syncSchemaTrain();
  }
  if(run.pos<run.total)requestAnimationFrame(step);
  else{
