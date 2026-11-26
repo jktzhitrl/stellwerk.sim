@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10161c">
-<meta name="app-version" content="2026-11-26.no-halle-1">
+<meta name="app-version" content="2026-11-26.eilenburg-realline-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1287,6 +1287,14 @@ const CFG = BF === 'neustadt' ? {
     branch: { inDir: -1, town: 'Eilenburg Ost', entry: 'E', exitE: 'EBO', exitW: 'WEST', type: 'RBN', tracks: () => [1, 2] },
     overtake: { fast: 'RE', tracks: () => FT },
     closure: false, fit: { by: 6, bh: 814 }, shunting: true, branchLabel: 'Strecke 6831', lokw: true,
+    // Takt auf Strecke 6345 (Stand 2025): S 4 ca. alle 30 Minuten Leipzig – Eilenburg – Torgau,
+    // RE 10/RE 11 fahren bis Falkenberg vereint im Stundentakt und trennen sich dort nach Cottbus/Hoyerswerda.
+    clockLines: [
+      { type: 'S',  dir:  1, minute: 12, line: 'S 4',          from: 'Leipzig-Stötteritz', to: 'Torgau', every: 1800 },
+      { type: 'S',  dir: -1, minute: 27, line: 'S 4',          from: 'Leipzig-Stötteritz', to: 'Torgau', every: 1800 },
+      { type: 'RE', dir:  1, minute: 42, line: 'RE 10 / RE 11', from: 'Leipzig Hbf', to: 'Cottbus / Hoyerswerda' },
+      { type: 'RE', dir: -1, minute:  9, line: 'RE 10 / RE 11', from: 'Leipzig Hbf', to: 'Cottbus / Hoyerswerda' },
+    ],
     bau: { exit: 'OST', entry: '-1', legs: ['eL0', 'eL3', 'eU0', 'eU2'], name: 'Strecke Eilenburg – Torgau' },
     gbf: [5, 6, 7, 8, 9, 10, 11, 12, 13], shunt: { O: [5, 6, 7, 8, 9], W: [5, 6, 7, 8, 9, 10, 11, 12, 13] },
     gbf: ALLG, gbfTracks: () => FT, gbfEndTracks: dir => dir > 0 ? ALLG : FT,
@@ -1301,24 +1309,24 @@ const CFG = BF === 'neustadt' ? {
     },
     gen(t, dir) {
       pickWeighted(t, [
-        [0.26, 'P', () => svc(t, dir, 'S', 'LZ', 'T', [3, 4], [2, 4], ['Leipzig-Stötteritz', 'Torgau'], 'S 4')],
-        [0.14, 'P', () => svc(t, dir, 'RE', 'LZ', 'T', [3], [2], ['Leipzig Hbf', 'Cottbus'], 'RE 10')],
+        [0.08, 'P', () => svc(t, dir, 'S', 'LZ', 'T', [3, 4], [2, 4], ['Leipzig-Stötteritz', 'Torgau'], 'S 4')],       // zusätzliche S 4 neben dem 30-Minuten-Takt
+        [0.05, 'P', () => svc(t, dir, 'RE', 'LZ', 'T', [3], [2], ['Leipzig Hbf', 'Cottbus / Hoyerswerda'], 'RE 10 / RE 11')], // Verstärker neben dem Stundentakt
         [0.12, 'P', () => {                                                            // Wendezüge: enden in Eilenburg, wenden im Abstellgleis 39/40
           const sid = sidingFree('AG40', t) ? 'AG40' : sidingFree('AG39', t) ? 'AG39' : null;
           if (dir < 0 || !sid) return svc(t, dir, 'S', 'LZ', 'T', [3, 4], [2, 4], ['Leipzig-Stötteritz', 'Torgau'], 'S 4');
-          const fromLZ = sid === 'AG40' || Math.random() < 0.5, A = addTurnPair(t, sid, fromLZ ? 'S' : 'RB'), B = A.link;
+          const fromLZ = sid === 'AG40' || Math.random() < 0.5, A = addTurnPair(t, sid, 'S'), B = A.link;
           A.entry = fromLZ ? 'B' : '1'; A.from = fromLZ ? 'Leipzig-Stötteritz' : 'Halle (Saale)'; A.to = ST.short;
-          B.exit = fromLZ ? 'LPZ' : 'WEST'; B.to = A.from; if (fromLZ) { A.service = B.service = 'S 4'; }
+          B.exit = fromLZ ? 'LPZ' : 'WEST'; B.to = A.from; A.service = B.service = fromLZ ? 'S 4' : 'S 9';
         }],
         [0.07, 'P', () => svc(t, dir, 'RBN', 'LZ', 'EO', [1, 2], [1, 2], ['Leipzig Hbf', 'Bad Düben'])],
         [0.10, 'P', () => addBranch(t, dir)],                                          // Halle ↔ Eilenburg Ost
-        [0.06, 'P', () => addTrain('RB', dir, t)],                                    // Halle ↔ Torgau
+        [0.06, 'P', () => svc(t, dir, 'S', 'H', 'T', [1, 2], [1, 2], undefined, 'S 9')],  // Strecke 6345: S 9 Halle – Eilenburg – Torgau
         [0.05, 'X', () => addOvertake(t, dir)],                                       // Güterzug wartet im Gbf auf den RE
-        [0.10, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'T', FT, FT)],          // Güterzug durch den Gbf
-        [0.06, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'LU', FT, FT)],         // von/nach Lüptitz (6825)
-        [0.09, 'F', () => { addGbfEnd(t, dir); const G = lastTrain(); setLine(G, Math.random() < 0.75 ? 'H' : 'LZ', dir > 0 ? 'T' : pick(['T', 'LU'])); G.to = ST.short + ' Gbf'; }],
-        [0.06, 'F', () => addGbfStart(t, dir)],
-        [0.06, 'F', () => dir > 0 && !S.bau && S.t > (S.lokwBusy || 0) ? addLokw(t) : svc(t, dir, 'GC', 'H', 'LU', FT, FT)],   // Lokwechsel E → Diesel für Lüptitz
+        [0.13, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'T', FT, FT)],          // Güterzug durch den Gbf
+        [0.08, 'F', () => svc(t, dir, 'GC', Math.random() < 0.8 ? 'H' : 'LZ', 'LU', FT, FT)],         // von/nach Lüptitz (6825)
+        [0.12, 'F', () => { addGbfEnd(t, dir); const G = lastTrain(); setLine(G, Math.random() < 0.75 ? 'H' : 'LZ', dir > 0 ? 'T' : pick(['T', 'LU'])); G.to = ST.short + ' Gbf'; }],
+        [0.08, 'F', () => addGbfStart(t, dir)],
+        [0.08, 'F', () => dir > 0 && !S.bau && S.t > (S.lokwBusy || 0) ? addLokw(t) : svc(t, dir, 'GC', 'H', 'LU', FT, FT)],   // Lokwechsel E → Diesel für Lüptitz
       ]);
     },
   };
