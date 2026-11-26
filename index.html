@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10161c">
-<meta name="app-version" content="2026-11-26.ui-glass-1">
+<meta name="app-version" content="2026-11-26.ui-glass-2">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -269,11 +269,6 @@
   .stCard .best { margin-top: 6px; display: block; font-size: 12px; color: var(--route); }
   .stCard .tags span { font-size: 11px; background: var(--panel); border-radius: 6px; padding: 2px 7px; color: var(--muted); }
   .stCard.on { border-color: var(--accent); background: rgba(73,200,255,.12); box-shadow: 0 0 0 1px var(--accent) inset; }
-  .modeChoices { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
-  .modeChoice { text-align:left; background: var(--panel2); border: 1px solid var(--border); border-radius:12px; padding:14px; color: var(--text); cursor:pointer; min-height:104px; }
-  .modeChoice b { display:block; font-size:17px; margin-bottom:6px; }
-  .modeChoice span { font-size:12px; color: var(--muted); line-height:1.4; }
-  .modeChoice.on { border-color: var(--accent); background: rgba(73,200,255,.12); box-shadow: 0 0 0 1px var(--accent) inset; }
   #start .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
   #start .cols .box { margin-bottom: 0; }
   .optRow { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
@@ -369,8 +364,6 @@
     <button class="btn" id="btnHelp">? Hilfe</button>
     <button class="btn" id="btnInstall" style="grid-column: span 2">📲 Als App installieren</button>
     <button class="btn" id="btnHome" style="grid-column: span 2">🏠 Startmenü – Bahnhof, Schicht, neues Spiel</button>
-    <button class="btn" id="btnEditor" style="grid-column: span 2">🛠️ Baumodus · Bahnhofseditor</button>
-    <button class="btn" id="btnTycoon" style="grid-column: span 2">🏗️ Tycoon-Modus · Wirtschaft &amp; Ausbau</button>
   </div>
   <h2><span>Meldungen</span></h2>
   <div id="logWrap"><ul id="log"></ul></div>
@@ -384,14 +377,7 @@
         <rect x="36" y="8" width="10" height="20" rx="3" fill="#111"/><circle cx="41" cy="13" r="3" fill="#ff2d2d"/><circle cx="41" cy="22" r="3" fill="#33ff77"/></svg>
       <div><h1>Stellwerk</h1><div class="sub">Fahrdienstleiter-Simulation fürs Tablet</div></div>
     </div>
-    <div class="box"><h2>Spielbereich auswählen</h2>
-      <div class="modeChoices">
-        <button class="modeChoice on" id="modeStellwerk" type="button"><b>🚦 Stellwerk spielen</b><span>Fahrstraßen und Signale bedienen · bestehender Simulator</span></button>
-        <button class="modeChoice" id="modeTycoon" type="button"><b>🏗️ Tycoon-Modus</b><span>Eigenes Eisenbahnunternehmen &amp; Infrastruktur verwalten · Prototyp</span></button>
-        <button class="modeChoice" id="modeBuild" type="button"><b>🛠️ Bahnhof bauen</b><span>Gleisplan mit Raster und freiem Zeichnen erstellen</span></button>
-      </div>
-    </div>
-    <div class="box"><h2>Stellwerksbetrieb · Bahnhof wählen</h2><div id="stCards"></div><div id="customStation" class="group" style="margin-top:10px"></div></div>
+    <div class="box"><h2>Bahnhof wählen</h2><div id="stCards"></div></div>
     <div class="cols">
       <div class="box"><h2>Schicht &amp; Verkehr</h2>
         <div class="optRow"><span>Schicht</span><span class="seg" data-opt="shift"></span></div>
@@ -3703,9 +3689,6 @@ const LEVELS = {
   profi:  { name: 'Profi', density: 'dicht', disrupt: true, autoSwitch: false, autoSignal: false, useQueue: false },
 };
 function renderStart() {
-  const custom=$('#customStation'); custom.replaceChildren();
-  let saved=null;try{saved=JSON.parse(localStorage.getItem('stw_editor_draft_v1')||'null');}catch(e){}
-  if(saved&&saved.version===1&&Array.isArray(saved.tracks)&&saved.tracks.length){const b=document.createElement('button');b.className='stCard';b.style.width='100%';b.innerHTML='<b>🛠️ Eigener Bahnhof spielen ▶</b><span class="sub"></span>';b.querySelector('.sub').textContent=(saved.name||'Mein Bahnhof')+' · '+saved.tracks.length+' Gleise · eigener Stellwerkbetrieb';b.addEventListener('click',()=>{window.location.href='./custom-play.html';});custom.appendChild(b);}
   const cards = $('#stCards'); cards.innerHTML = '';
   const bestAll = readBest();
   for (const id in STATIONS) {
@@ -3766,11 +3749,6 @@ $('#stResume').addEventListener('click', () => {
   if (!S.useQueue) S.queue = [];
   syncOptions(); hideStart(); last = performance.now(); setSpeed(homeSpeed || 1);
 });
-$('#btnEditor').addEventListener('click', () => { window.location.href = './editor.html'; });
-$('#btnTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
-$('#modeStellwerk').addEventListener('click', () => { document.getElementById('modeStellwerk').classList.add('on'); document.getElementById('stCards').scrollIntoView({behavior:'smooth',block:'center'}); });
-$('#modeTycoon').addEventListener('click', () => { window.location.href = './tycoon.html'; });
-$('#modeBuild').addEventListener('click', () => { window.location.href = './editor.html'; });
 $('#stHelp').addEventListener('click', () => openHelp(true));
 $('#stInstall').addEventListener('click', () => $('#btnInstall').click());
 // ---------- Installierbare App (PWA) ----------
