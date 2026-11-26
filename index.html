@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10161c">
-<meta name="app-version" content="2026-11-26.ui-glass-2">
+<meta name="app-version" content="2026-11-26.no-halle-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -241,8 +241,8 @@
   #help h1 { margin: 0 0 6px; font-size: 22px; }
   #help h3 { margin: 14px 0 4px; font-size: 15px; color: var(--accent); }
   #help ul { margin: 4px 0; padding-left: 20px; }
-  .only-neustadt, .only-teutschenthal, .only-burgstadt, .only-eilenburg, .only-halle, .only-citytunnel { display: none; }
-  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt, body[data-bf="eilenburg"] .only-eilenburg, body[data-bf="halle"] .only-halle, body[data-bf="citytunnel"] .only-citytunnel { display: revert; }
+  .only-neustadt, .only-teutschenthal, .only-burgstadt, .only-eilenburg, .only-citytunnel { display: none; }
+  body[data-bf="neustadt"] .only-neustadt, body[data-bf="teutschenthal"] .only-teutschenthal, body[data-bf="burgstadt"] .only-burgstadt, body[data-bf="eilenburg"] .only-eilenburg, body[data-bf="citytunnel"] .only-citytunnel { display: revert; }
   .stationPick { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .stationPick .btn { margin: 4px 4px 0 0; }
   #help li { margin: 3px 0; }
@@ -440,16 +440,6 @@
         <li><b>Lokwechsel</b>: Güterzüge nach <b>Wurzen über Lüptitz</b> (Strecke 6825 ohne Oberleitung) halten im Gbf (Gl 5–9) und tauschen die E-Lok gegen eine Diesellok. ① Die E-Lok fährt als Lokfahrt ab: <b>N… → „Torgau ▶“</b>. ② Danach steht die Diesellok auf dem Ausziehgleis Ost: <b>RO → P…</b> (gleiches Gleis), sie kuppelt vorne an. ③ Ausfahrt <b>N… → „Lüptitz (6825) ▶“</b>. Lokwechsel +8 Punkte, die Lokfahrt +3.</li>
         <li><b>Baustelle Eilenburg – Torgau</b>: Ab und zu wird die Strecke nach Torgau gesperrt (Ankündigung ca. 15 Minuten vorher, das gesperrte Streckengleis ist orange gestrichelt). Dann enden Züge Richtung Torgau in Eilenburg, wechseln am Bahnsteig die Fahrtrichtung und fahren nach ca. 5 Minuten über <b>P…</b> zurück nach Halle bzw. Leipzig. Züge aus Torgau fallen aus, Güterzüge nach Torgau enden im Gbf.</li>
       </ul></div>
-    <div class="only-halle">Du bist Fahrdienstleiter im <b>Halle (Saale) Hbf</b>. Der Knoten ist nach dem echten Bahnhof nachgebaut (13 Bahnsteiggleise, Inselbahnhof) – die genaue Weichenlage ist trotzdem vereinfacht, es lagen keine Rohdaten vor. <b>Links ist Norden, rechts Süden.</b> In jedem Kopf kommen vier zweigleisige Strecken an. Das obere Gleis eines Paars führt nach Norden (◀), das untere nach Süden (▶).
-      <ul>
-        <li><b>Gleis 1–4</b>: Delitzsch/Eilenburg (Einfahrt <b>E</b>) ↔ Leipzig über Schkeuditz (Einfahrt <b>L</b>). S 9 aus Eilenburg wendet hier, S 3 fährt durch.</li>
-        <li><b>Gleis 5–8</b>: Bitterfeld/Berlin (<b>A</b>) ↔ Flughafen/Erfurt über die Neubaustrecke (<b>F</b>). Hier halten die <b>ICE Berlin – München/Frankfurt/Wien</b> durch, RE 3 und S 8 wenden Richtung Bitterfeld, S 5/S 5X Richtung Erfurt/Zwickau.</li>
-        <li><b>Gleis 9–11</b>: Köthen/Magdeburg (<b>M</b>) ↔ Merseburg (<b>R</b>). IC 55/56/57 und RE 30 fahren durch; RE 16, RB 25 und S 11 Richtung Erfurt/Saalfeld/Querfurt wenden hier.</li>
-        <li><b>Gleis 12–13</b>: Könnern/Harz (<b>Z</b>) ↔ Eisleben/Kassel (<b>K</b>) – <b>beide Enden wenden</b>, es gibt hier keine Durchfahrt. RE 4/RE 24/RB 47 Richtung Harz, RE 8/RE 9/S 7 Richtung Eisleben/Kassel.</li>
-        <li><b>Andere Gruppen</b>, z. B. Güterzüge Magdeburg ↔ Merseburg, erreichst du über mehrere Gleisverbindungen hintereinander. Die Fahrt kreuzt dann die anderen Strecken, und die Weichen sind länger belegt.</li>
-        <li><b>Wendezüge</b>: Die meisten Regional- und S-Bahn-Linien enden in Halle. Nach dem Halt wechseln sie am Bahnsteig die Fahrtrichtung und fahren unter neuer Nummer zur Planzeit zurück („wendet“ im Fahrplan). Die Ausfahrt stellst du am anderen Ende desselben Gleises.</li>
-        <li>Güterzüge warten auf <b>Gleis 5/8</b> manchmal, bis ein ICE durch ist (Überholung).</li>
-      </ul></div>
     <div class="only-neustadt">Du bist Fahrdienstleiter im Bahnhof Neustadt mit <b>7 Bahnsteiggleisen</b> (Gleis 5 Baustelle, Gleis 7 Stumpfgleis). Die Strecken nach Altdorf (Westen) und Neuhafen (Osten) sind <b>zweigleisig mit Rechtsverkehr</b>: Züge nach Osten (▸) kommen unten an Signal A an, Züge nach Westen (◂) oben an Signal F. Über die Gleisverbindungen erreicht jeder Zug jedes Gleis.</div>
     <div class="only-citytunnel">Du bist Fahrdienstleiter im <b>Leipziger Citytunnel</b>, genauer am <b>Nordkopf von Leipzig Hbf (tief)</b> – nur dort gibt es echte Weichen. Die Tunnelstrecke dahinter (weiter nach Markt, Wilhelm-Leuschner-Platz und MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Strecke ohne Weichen – Züge Richtung Süden fahren dort nach Verlassen des Weichenbereichs automatisch weiter und halten von selbst an diesen drei Haltepunkten, ohne dass du etwas stellen musst.
       <ul>
@@ -606,9 +596,6 @@ const STATIONS = {
   eilenburg: { name: 'Bf Eilenburg', short: 'Eilenburg', stw: 'Stw Eilenburg (LEG)',
     info: 'Nach realem Vorbild (vereinfacht nach OSM und DB-Gleisplan): Gleise 1–4, Güterbahnhof Gl 5–13, Strecken 6345 Halle – Torgau, 6360 Leipzig, 6831 Eilenburg Ost, 6825 Lüptitz',
     tags: ['reales Vorbild', '5 Strecken', 'S-Bahn & RE', 'Gbf Gl 5–13 & Rangieren', 'Lokwechsel', 'Baustellen', 'Leipzig · Halle · Torgau'] },
-  halle: { locked: true, name: 'Halle (Saale) Hbf', short: 'Halle', stw: 'Stw Halle (Saale) Hbf',
-    info: 'Großer Knoten nach realem Vorbild (13 Bahnsteiggleise, Inselbahnhof): ICE Berlin – Erfurt, IC Leipzig – Magdeburg, echte RE/RB/S-Bahn-Linien aus Richtung Harz, Eisleben/Kassel, Merseburg, Eilenburg und Bitterfeld',
-    tags: ['reales Vorbild', '13 Bahnsteiggleise', '8 Strecken', 'ICE-Halt', 'S-Bahn & Wendezüge', 'Richtung Harz', 'sehr groß'] },
   citytunnel: { name: 'Leipzig Hbf (tief)', short: 'City-Tunnel', stw: 'Stw Leipzig Hbf (tief)',
     info: 'Nach realem Vorbild (vereinfacht): Citytunnel-Nordkopf mit 2 Bahnsteiggleisen, Strecke Halle (Saale) und Abzweig Bitterfeld (S2); nur S-Bahn und RE/RB, kein Güterverkehr',
     tags: ['reales Vorbild (schematisch)', '2 Bahnsteiggleise', 'S-Bahn & RE', 'Abzweig Bitterfeld', 'ohne Güterverkehr'] },
@@ -956,67 +943,6 @@ if (BF === 'neustadt') {
     'E':  { segs: [{ leg: 'XEB', d: -1 }, { leg: 'eEO0', d: -1 }], sec: 'eEO0', sig: 'E' },
     'L':  { segs: [{ leg: 'XLP', d: -1 }, { leg: 'eLP0', d: -1 }], sec: 'eLP0', sig: 'L' },
   });
-} else if (BF === 'halle') {
-  // Halle (Saale) Hbf – nach dem realen Knoten (Wikipedia-Artikel „Halle (Saale) Hauptbahnhof“, 13 Bahnsteiggleise,
-  // Inselbahnhof): links Norden, rechts Süden. Vier zweigleisige Streckenpaare je Kopf, Richtungsbetrieb:
-  //     y 130/180: Delitzsch – Eilenburg (S 9)       ↔ Leipzig über Schkeuditz (S 3)      → Gl 1–4
-  //     y 350/400: Bitterfeld – Berlin (RE 3, S 8)   ↔ Flughafen – Erfurt (ICE, S 5/S 5X)  → Gl 5–8
-  //     y 570/620: Köthen – Magdeburg (RE 30, IC)    ↔ Merseburg (RE 16, RB 25, S 11)      → Gl 9–11
-  //     y 780/830: Könnern – Harz (RE 4/24, RB 47)   ↔ Eisleben – Kassel (RE 8/9, S 7)     → Gl 12–13
-  //   Oberes Gleis eines Paars = ◀ (nach Norden), unteres = ▶ (nach Süden). Gleisverbindungen verbinden nur benachbarte
-  //   Gleise (keine Kreuzungen); Fahrten zu anderen Gruppen laufen über mehrere Verbindungen. Südkopf = Spiegelbild (x → WID − x).
-  WID = 2800; X0 = 1100; X1 = 1700; NTRACKS = 13; MAIN_Y = [130, 180, 350, 400, 570, 620, 780, 830]; THROUGH = ['G6', 'G7', 'G10', 'G11'];
-  TRACK_Y = { 1: 80, 2: 130, 3: 180, 4: 230, 5: 300, 6: 350, 7: 400, 8: 450, 9: 520, 10: 570, 11: 620, 12: 780, 13: 830 };
-  const HEAD = {   // Knoten (x) je Streckengleis im Nordkopf
-    130: [0, 120, 700, 860, 900, 1100], 180: [0, 120, 680, 760, 800, 900, 1100],
-    350: [0, 120, 520, 560, 700, 860, 900, 1100], 400: [0, 120, 420, 460, 760, 800, 900, 1100],
-    570: [0, 120, 260, 300, 700, 860, 900, 1100], 620: [0, 120, 200, 420, 760, 800, 900, 1100],
-    780: [0, 120, 260, 300, 1100], 830: [0, 120, 200, 1100],
-  };
-  const NAME = { 130: 'U1', 180: 'L1', 350: 'U2', 400: 'L2', 570: 'U3', 620: 'L3', 780: 'U4', 830: 'L4' };
-  const DIAG = [
-    // Verbindungen zwischen den Streckenpaaren (▶ nach oben / ◀ nach unten)
-    [[200,620],[260,570]], [[300,570],[420,400]], [[460,400],[520,350]], [[560,350],[680,180]],
-    [[200,830],[260,780]], [[300,780],[420,620]],
-    // Gleiswechsel innerhalb der Paare
-    [[800,180],[860,130]], [[800,400],[860,350]], [[800,620],[860,570]],      // ▶ nach oben / ◀ nach unten
-    [[700,130],[760,180]], [[700,350],[760,400]], [[700,570],[760,620]],      // ◀ nach oben / ▶ nach unten
-    // Bahnsteigzufahrten
-    [[900,130],[960,80]], [[960,80],[1100,80]], [[900,180],[960,230]], [[960,230],[1100,230]],
-    [[900,350],[960,300]], [[960,300],[1100,300]], [[900,400],[960,450]], [[960,450],[1100,450]],
-    [[900,570],[960,520]], [[960,520],[1100,520]],
-  ];
-  const mir = p => [WID - p[0], p[1]];
-  const both = (k, pts) => { LEGS['n' + k] = { pts }; LEGS['s' + k] = { pts: pts.map(mir).reverse() }; };
-  for (const y in HEAD) { const xs = HEAD[y]; for (let i = 0; i < xs.length - 1; i++) both(NAME[y] + '_' + i, [[xs[i], +y], [xs[i + 1], +y]]); }
-  DIAG.forEach((p, i) => both('d' + i, p));
-  for (let g = 1; g <= 13; g++) LEGS['G' + g] = { pts: [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]] };
-  for (const y of MAIN_Y) {
-    LEGS['XN' + y] = { pts: [[-300, y], [0, y]], virtual: true };
-    LEGS['XS' + y] = { pts: [[WID, y], [WID + 300, y]], virtual: true };
-  }
-  const ent = [['A', 'n', 400, 'Bitterfeld / Berlin'], ['E', 'n', 180, 'Delitzsch / Eilenburg'], ['M', 'n', 620, 'Köthen / Magdeburg'], ['Z', 'n', 830, 'Könnern / Harz'],
-               ['F', 's', 350, 'Flughafen / Erfurt'], ['L', 's', 130, 'Leipzig'], ['R', 's', 570, 'Merseburg'], ['K', 's', 780, 'Eisleben / Kassel']];
-  for (const [id, side, y, what] of ent) {
-    const d = side === 'n' ? 1 : -1;
-    SIGNALS[id] = { x: side === 'n' ? 120 : WID - 120, y, dir: d, kind: 'Einfahrsignal (' + what + ')' };
-    DISTANT['V' + id] = { x: side === 'n' ? 40 : WID - 40, y, dir: d, main: id };
-    ENTRY[id === 'A' ? '1' : id === 'F' ? '-1' : id] = { segs: [{ leg: (side === 'n' ? 'XN' : 'XS') + y, d }, { leg: side + NAME[y] + '_0', d }], sec: side + NAME[y] + '_0', sig: id };
-  }
-  for (let g = 1; g <= 13; g++) {
-    SIGNALS['P' + g] = { x: X0, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
-    SIGNALS['N' + g] = { x: X1, y: TRACK_Y[g], dir:  1, kind: 'Ausfahrsignal' };
-  }
-  Object.assign(EXITS, {
-    EB:   { label: '◀ Delitzsch / Eilenburg', town: 'Eilenburg',     node: '0,130', dir: -1, virt: 'XN130', box: [6, 88, 170, 26] },
-    WEST: { label: '◀ Bitterfeld / Berlin',   town: 'Bitterfeld',    node: '0,350', dir: -1, virt: 'XN350', box: [6, 308, 170, 26] },
-    MD:   { label: '◀ Köthen / Magdeburg',    town: 'Magdeburg Hbf', node: '0,570', dir: -1, virt: 'XN570', box: [6, 528, 170, 26] },
-    HZ:   { label: '◀ Könnern / Harz',        town: 'Halberstadt',   node: '0,780', dir: -1, virt: 'XN780', box: [6, 738, 170, 26] },
-    LZ:   { label: 'Leipzig (Schkeuditz) ▶',  town: 'Leipzig Hbf',   node: WID + ',180', dir: 1, virt: 'XS180', box: [WID - 176, 194, 170, 26] },
-    OST:  { label: 'Flughafen / Erfurt ▶',    town: 'Erfurt Hbf',    node: WID + ',400', dir: 1, virt: 'XS400', box: [WID - 176, 414, 170, 26] },
-    MB:   { label: 'Merseburg ▶',             town: 'Merseburg',     node: WID + ',620', dir: 1, virt: 'XS620', box: [WID - 176, 634, 170, 26] },
-    KS:   { label: 'Eisleben / Kassel ▶',     town: 'Kassel-Wilhelmshöhe', node: WID + ',830', dir: 1, virt: 'XS830', box: [WID - 176, 844, 170, 26] },
-  });
 } else if (BF === 'citytunnel') {
   // Leipzig Hbf (tief) / Citytunnel-Nordkopf (schematisch, aus dem Gedächtnis): Der eigentliche Citytunnel
   // (weiter nach Markt, Wilhelm-Leuschner-Platz, MDR/Bayerischer Bahnhof) ist eine reine zweigleisige Tunnelstrecke
@@ -1335,81 +1261,7 @@ const CFG = BF === 'neustadt' ? {
       [0.26, 'F', () => addGbfEnd(t, dir)],               // Güterzug endet im Gbf und wird aufgelöst
     ]);
   },
-} : BF === 'halle' ? (() => {
-  // Streckenäste: Nord EB = Delitzsch/Eilenburg, BT = Bitterfeld/Berlin, MD = Köthen/Magdeburg, HZ = Könnern/Harz;
-  //               Süd  LZ = Leipzig (Schkeuditz), NB = Flughafen/Erfurt (NBS), MB = Merseburg, KS = Eisleben/Kassel
-  const LN = {
-    EB: { entry: 'E', exit: 'EB',  town: 'Eilenburg' },     BT: { entry: '1',  exit: 'WEST', town: 'Bitterfeld' },
-    MD: { entry: 'M', exit: 'MD',  town: 'Magdeburg Hbf' }, HZ: { entry: 'Z',  exit: 'HZ',   town: 'Halberstadt' },
-    LZ: { entry: 'L', exit: 'LZ',  town: 'Leipzig Hbf' },   NB: { entry: '-1', exit: 'OST',  town: 'Erfurt Hbf' },
-    MB: { entry: 'R', exit: 'MB',  town: 'Merseburg' },     KS: { entry: 'K',  exit: 'KS',   town: 'Kassel-Wilhelmshöhe' },
-  };
-  const NORTH = ['EB', 'BT', 'MD', 'HZ'];
-  const setLine = (tr, n, s, names) => {
-    const N = LN[n], Sd = LN[s];
-    if (tr.dir > 0) { tr.entry = N.entry; tr.exit = Sd.exit; tr.from = (names && names[0]) || N.town; tr.to = (names && names[1]) || Sd.town; }
-    else { tr.entry = Sd.entry; tr.exit = N.exit; tr.from = (names && names[1]) || Sd.town; tr.to = (names && names[0]) || N.town; }
-    return tr;
-  };
-  const svc = (t, dir, type, n, s, tracksS, tracksN, names, service) => {
-    const tr = setLine(addTrain(type, dir, t), n, s, names);
-    tr.plan.track = pick(dir > 0 ? tracksS : tracksN);
-    if (service) tr.service = service;
-    return tr;
-  };
-  // Fernzug mit Halt (ICE halten in Halle)
-  const fern = (...a) => {
-    const tr = svc(...a);
-    if (!tr.stops) { tr.stops = true; tr.dwell = 120; tr.plan.arr = tr.plan.spawn + 300; tr.plan.dep = Math.ceil((tr.plan.arr + 120) / 60) * 60; }
-    return tr;
-  };
-  // Zug endet in Halle und fährt nach der Wendezeit vom selben Gleis zurück
-  const wende = (t, key, type, tracks, far, service) => {
-    const L = LN[key], tr = addTrain(type, NORTH.includes(key) ? 1 : -1, t);
-    tr.entry = L.entry; tr.from = far || L.town; tr.to = 'Halle (Saale) Hbf'; tr.plan.track = pick(tracks);
-    if (service) tr.service = service;
-    tr.wende = { exit: L.exit, to: tr.from, dep: Math.ceil((tr.plan.arr + (7 + Math.floor(Math.random() * 5)) * 60) / 60) * 60 };
-    return tr;
-  };
-  return {
-    townsW: ['Bitterfeld', 'Dessau Hbf'], townsE: ['Erfurt Hbf', 'Leipzig/Halle Flughafen'],
-    sideW: 'Norden', sideE: 'Süden',
-    overtake: { fast: 'ICE', tracks: dir => dir > 0 ? [8] : [5] },
-    closure: false, fit: { by: 6, bh: 884 }, shunting: false,
-    trackFor(type, dir) {   // Grundlinie Bitterfeld ↔ Flughafen/Erfurt (Gruppe Mitte, Gl 5–8)
-      if (type === 'ICE') return dir > 0 ? 7 : 6;
-      return dir > 0 ? pick([7, 8]) : pick([6, 5]);
-    },
-    clockHook(tr) {
-      if (tr.type === 'RE') { setLine(tr, 'MD', 'LZ'); tr.plan.track = tr.dir > 0 ? pick([3, 4]) : pick([1, 2]); tr.service = 'RE 30'; }
-      else { setLine(tr, 'MD', 'MB', ['Köthen', 'Weißenfels']); tr.plan.track = tr.dir > 0 ? 9 : pick([9, 10]); tr.service = 'RB Köthen – Weißenfels'; }
-    },
-    // Reale Linien (Stand Wikipedia-Artikel „Halle (Saale) Hauptbahnhof“, 12/2025): ICE 11/15/18/29/82/91 und
-    // IC 55/56/57 bilden die beiden Fernverkehrsachsen Berlin–Erfurt und Leipzig–Magdeburg/Hannover. Die meisten
-    // Regional- und S-Bahn-Linien enden und wenden in Halle, statt durchzufahren.
-    gen(t, dir) {
-      pickWeighted(t, [
-        [0.10, 'P', () => fern(t, dir, 'ICE', 'BT', 'NB', [7], [6], ['Berlin Hbf', pick(['München Hbf', 'Frankfurt (Main) Hbf', 'Erfurt Hbf', 'Wien Hbf'])])],
-        [0.05, 'P', () => fern(t, dir, 'IC', 'MD', 'LZ', [3, 4], [1, 2], [pick(['Magdeburg Hbf', 'Hannover Hbf', 'Rostock Hbf']), 'Leipzig Hbf'])],
-        [0.07, 'P', () => svc(t, dir, 'RE', 'MD', 'LZ', [3, 4], [1, 2], ['Magdeburg Hbf', 'Leipzig Hbf'], 'RE 30')],
-        [0.05, 'P', () => wende(t, 'BT', 'RE', [7, 8], pick(['Wittenberg', 'Schwedt (Oder)']), 'RE 3')],
-        [0.09, 'P', () => svc(t, dir, 'S', 'MD', 'LZ', [3, 4], [1, 2], ['Halle-Nietleben', 'Geithain'], 'S 3')],
-        [0.08, 'P', () => wende(t, 'EB', 'S', [1, 2, 3, 4], 'Eilenburg', 'S 9')],
-        [0.10, 'P', () => wende(t, 'NB', 'S', [5, 6, 7, 8], pick(['Zwickau (Sachs) Hbf', 'Altenburg']), pick(['S 5', 'S 5X']))],
-        [0.07, 'P', () => wende(t, 'BT', 'S', [5, 6, 7, 8], pick(['Dessau Hbf', 'Lutherstadt Wittenberg']), 'S 8')],
-        [0.06, 'P', () => wende(t, 'MB', 'RE', [9, 10, 11], pick(['Erfurt Hbf', 'Saalfeld (Saale)']), 'RE 16')],
-        [0.06, 'P', () => wende(t, 'MB', 'RB', [9, 10, 11], 'Jena Paradies', 'RB 25')],
-        [0.05, 'P', () => wende(t, 'MB', 'S', [9, 10, 11], 'Querfurt', 'S 11')],
-        [0.05, 'P', () => wende(t, 'HZ', 'RE', [12, 13], pick(['Halberstadt', 'Goslar']), pick(['RE 4', 'RE 24']))],
-        [0.05, 'P', () => wende(t, 'HZ', 'RB', [12, 13], 'Bernburg', 'RB 47')],
-        [0.05, 'P', () => wende(t, 'KS', 'RE', [12, 13], 'Kassel-Wilhelmshöhe', pick(['RE 8', 'RE 9']))],
-        [0.04, 'P', () => wende(t, 'KS', 'S', [12, 13], 'Lutherstadt Eisleben', 'S 7')],
-        [0.05, 'X', () => addOvertake(t, dir)],                                             // Güterzug wartet auf Gl 5/8 auf den ICE
-        [0.03, 'F', () => svc(t, dir, 'GC', 'MD', 'MB', [11], [9, 10], [pick(['Köthen', 'Bernburg']), 'Weißenfels'])],
-      ]);
-    },
-  };
-})() : BF === 'eilenburg' ? (() => {
+} : BF === 'eilenburg' ? (() => {
   // Streckenäste: West H = 6345 Delitzsch/Halle, LZ = 6360 Leipzig; Ost T = 6345 Torgau, EO = 6831 Eilenburg Ost, LU = 6825 Lüptitz
   const LN = {
     H:  { entry: '1',  exit: 'WEST', town: 'Halle (Saale)' }, LZ: { entry: 'B', exit: 'LPZ', town: 'Leipzig Hbf' },
@@ -1725,11 +1577,6 @@ function trySetRoute(r, fromQueue) {
 }
 function secName(sec) {
   if (/^G\d+$/.test(sec)) return 'Gleis ' + sec.slice(1);
-  if (BF === 'halle') {
-    const m = /^([ns])([UL])(\d)_0$/.exec(sec);
-    if (m) return 'Strecke ' + { n1: 'Eilenburg', n2: 'Bitterfeld', n3: 'Magdeburg', n4: 'Könnern/Harz', s1: 'Leipzig', s2: 'Flughafen/Erfurt', s3: 'Merseburg', s4: 'Eisleben/Kassel' }[m[1] + m[3]];
-    return 'Weichenbereich ' + (sec[0] === 'n' ? 'Nord' : 'Süd') + ' (' + sec + ')';
-  }
   if (/^AG(39|40)$/.test(sec)) return 'Abstellgleis ' + sec.slice(2);
   if (/^AG(9|10)$/.test(sec)) return 'Abstellgleis ' + sec.slice(2);
   if (/^AG[afbgc]$/.test(sec)) return 'Weichen Abstellgruppe';
@@ -2444,7 +2291,7 @@ function transferTrain(tr) {
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
-  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel') return;
+  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel') return;
   for (const transfer of queue) {
     // Nur bereits eingetroffene Züge für dieses Stellwerk übernehmen.
     if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
@@ -2478,12 +2325,12 @@ function renderNetwork() {
     }).join('');
     return '<div class="blockrow"><span class="blockcap">' + caption + '</span>' + cells + '</div>';
   };
-  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel'
+  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel'
     ? '<div class="netline"><span>' + ST.name + ' · eigener Streckenast in Planung</span></div>'
     : blockLine('R1','▶ Neustadt → Teutschenthal') + blockLine('R2','◀ Teutschenthal → Neustadt');
   $('#network').innerHTML = '<span class="netactive">🚦 Streckenbetrieb · ' + ST.short + '</span> · ' +
     waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
-    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'halle' || BF === 'citytunnel' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
+    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id, st]) => id !== BF && !st.locked).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
@@ -3083,7 +2930,7 @@ function buildStatic() {
   const W = $('#world'); W.innerHTML = '';
   const defs = el('defs', {}, W);
   const cp = el('clipPath', { id: 'clipW' }, defs);
-  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : BF === 'halle' ? 900 : BF === 'citytunnel' ? 490 : 600 }, cp);
+  el('rect', { x: 0, y: 0, width: WID, height: BF === 'burgstadt' ? 1000 : BF === 'eilenburg' ? 840 : BF === 'citytunnel' ? 490 : 600 }, cp);
   const txt = (x, y, s, a) => { const t = el('text', Object.assign({ x, y, fill: '#8b9298', 'font-size': 12 }, a || {}), W); t.textContent = s; return t; };
 
   const arrow = (x, y, d) => el('polygon', { points: `${x - 10 * d},${y - 9} ${x + 10 * d},${y} ${x - 10 * d},${y + 9}`, fill: '#ffffff', stroke: '#1d2023', 'stroke-width': 2 }, W);
@@ -3724,7 +3571,7 @@ function renderStart() {
   }
   $('#shiftInfo').textContent = { frueh: 'Beginnt mit dem Berufsverkehr (viele Reisezüge bis 9 Uhr), danach Tagesverkehr.',
     spaet: 'Tagesverkehr, ab 15 Uhr Berufsverkehr, abends ruhiger, ab 22 Uhr Nachtverkehr.',
-    nacht: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' + (!['neustadt', 'halle'].includes(pickBF) ? ' und Rangieraufträge' : '') + '. Ab 5 Uhr wird es wieder lebhafter.' }[P.shift];
+    nacht: 'Nachtverkehr: kaum Reisezüge, viel Güterverkehr' + (pickBF !== 'neustadt' ? ' und Rangieraufträge' : '') + '. Ab 5 Uhr wird es wieder lebhafter.' }[P.shift];
   const resume = played && pickBF === BF;
   $('#stResume').style.display = resume ? '' : 'none';
   $('#stGo').textContent = played ? 'Neues Spiel beginnen ▶' : 'Dienst beginnen ▶';
