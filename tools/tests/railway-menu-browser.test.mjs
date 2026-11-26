@@ -13,9 +13,9 @@ try{
    await page.locator('#start:not(.hidden) #stCards .stCard').first().waitFor({timeout:12000});
    assert.equal(await page.locator('#start .dispatchHero').count(),1);
    assert.equal(await page.locator('#start .dispatchTrackDiagram').count(),1);
-   assert.equal(await page.locator('#modeStellwerk').count(),1);
-   assert.equal(await page.locator('#modeBuild').count(),1);
-   assert.equal(await page.locator('#start .modeChoice').count(),2);
+   assert.equal(await page.locator('#modeStellwerk').count(),0);
+   assert.equal(await page.locator('#modeBuild').count(),0);
+   assert.equal(await page.locator('#start .modeChoice').count(),0);
    assert.equal(await page.locator('#start button:has-text("Tycoon")').count(),0);
    assert.equal(await page.locator('#btnTycoon').count(),0);
    assert.equal(await page.locator('#modeTycoon').count(),0);
@@ -31,7 +31,6 @@ try{
    });
    assert.equal(overflowInfo.has,false,'Menu has horizontal overflow at '+viewport.width+': '+JSON.stringify(overflowInfo));
    assert.equal(await page.locator('#start .dispatchTrackDiagram').isVisible(),true);
-   if(viewport.width===390)assert.equal(await page.locator('#start .modeChoice').first().evaluate(e=>Math.round(e.getBoundingClientRect().width)>300),true);
    await page.screenshot({path:'menu-'+viewport.width+'.png',fullPage:false});
    // Start actual station and open the in-game overlay.
    await page.locator('#stGo').click();
@@ -41,7 +40,7 @@ try{
    assert.equal(await page.locator('#menu .dispatchMenuHead').count(),1);
    assert.equal(await page.locator('#menu .menuAspectLegend span').count(),3);
    assert.equal(await page.locator('#menu button:has-text("Tycoon")').count(),0);
-   assert.equal(await page.locator('#btnEditor').count(),1);
+   assert.equal(await page.locator('#btnEditor').count(),0);
    assert.equal(await page.locator('#btnHome').count(),1);
    await page.locator('#btnMenuClose').click();
    assert.equal(await page.locator('#menu.open').count(),0);
