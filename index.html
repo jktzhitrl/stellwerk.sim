@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10161c">
-<meta name="app-version" content="2026-11-26.eilenburg-realline-1">
+<meta name="app-version" content="2026-11-27.muehlstadt-1">
 <meta name="apple-mobile-web-app-title" content="Stellwerk">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -599,6 +599,9 @@ const STATIONS = {
   citytunnel: { name: 'Leipzig Hbf (tief)', short: 'City-Tunnel', stw: 'Stw Leipzig Hbf (tief)',
     info: 'Nach realem Vorbild (vereinfacht): Citytunnel-Nordkopf mit 2 Bahnsteiggleisen, Strecke Halle (Saale) und Abzweig Bitterfeld (S2); nur S-Bahn und RE/RB, kein Güterverkehr',
     tags: ['reales Vorbild (schematisch)', '2 Bahnsteiggleise', 'S-Bahn & RE', 'Abzweig Bitterfeld', 'ohne Güterverkehr'] },
+  muehlstadt: { name: 'Bf Mühlstadt', short: 'Mühlstadt', stw: 'Stw Mühlstadt',
+    info: 'Fiktiver Bahnhof: 4 Bahnsteiggleise, zweigleisige Hauptstrecke, eingleisige Nebenbahn nach Mühlental, Güterbahnhof Gl 5–7 (nur von Westen) für die Anlieferung des Mühlwerks',
+    tags: ['4 Bahnsteiggleise', 'Nebenbahn Mühlental', 'Güterbahnhof & Rangieren', 'fiktiv'] },
 };
 const BF = (() => { let b = null; try { b = new URLSearchParams(location.search).get('bf') || localStorage.getItem('stw_bf'); } catch (e) {} return STATIONS[b] && !STATIONS[b].locked ? b : 'neustadt'; })();
 const ST = STATIONS[BF];
@@ -1010,6 +1013,65 @@ if (BF === 'neustadt') {
     'C':  { segs: [{ leg: 'XB',  d:  1 }, { leg: 'BR0', d:  1 }], sec: 'BR0', sig: 'C' },
     'G':  { segs: [{ leg: 'XG',  d:  1 }, { leg: 'GO0', d:  1 }], sec: 'GO0', sig: 'G' },
   });
+} else if (BF === 'muehlstadt') {
+  // Bf Mühlstadt (fiktiv): 4 Bahnsteiggleise, zweigleisige Hauptstrecke, eingleisige Nebenbahn nach Mühlental (Osten),
+  //   Güterbahnhof Gl 5–7 (nur von Westen erreichbar) mit Ausziehgleis für Rangieraufträge.
+  //   Westen = Richtung Rodenau, Osten = Richtung Falkenwerde / Nebenbahn Mühlental.
+  WID = 2300; X0 = 750; X1 = 1250; NTRACKS = 4; MAIN_Y = [200, 260]; THROUGH = ['G2', 'G3'];
+  TRACK_Y = { 1: 140, 2: 200, 3: 260, 4: 320, 5: 400, 6: 445, 7: 490 };
+  const add = (k, pts) => { LEGS[k] = { pts }; };
+  // --- Westkopf ---
+  add('wU0', [[0,200],[110,200]]); add('wU1', [[110,200],[260,200]]); add('wU2', [[260,200],[320,200]]); add('wU3', [[320,200],[600,200]]); add('wU4', [[600,200],[640,200]]); add('wU5', [[640,200],[750,200]]);
+  add('wL0', [[0,260],[110,260]]); add('wL1', [[110,260],[200,260]]); add('wL2', [[200,260],[380,260]]); add('wL3', [[380,260],[480,260]]); add('wL4', [[480,260],[540,260]]); add('wL5', [[540,260],[600,260]]); add('wL6', [[600,260],[750,260]]);
+  add('wX1', [[200,260],[260,200]]); add('wX2', [[320,200],[380,260]]);
+  add('wG1', [[640,200],[700,140],[750,140]]);     // Abzweig Gleis 1 → Nebenbahn Mühlental
+  add('wX4', [[600,260],[700,320]]);                // Gleiswechsel ▶ auf Gleis 4 (Stumpfgleis / Güterbahnhof-Zufahrt)
+  add('wG4', [[700,320],[750,320]]);
+  // Weichenstraße Güterbahnhof West (Leiter, Gl 5–7), Ausziehgleis am Leiterkopf (Rangiersignal RW)
+  add('lwd1a', [[700,320],[740,360]]); add('lwd1b', [[740,360],[780,400]]);
+  add('AZW0', [[700,360],[740,360]]); add('AZW', [[540,360],[700,360]]);
+  add('lwd2', [[780,400],[825,445]]); add('lwd3', [[825,445],[870,490]]);
+  add('lw5', [[780,400],[1180,400]]); add('lw6', [[825,445],[1180,445]]); add('lw7', [[870,490],[1180,490]]);
+  // Bahnsteig- und Gütergleise
+  for (let g = 1; g <= 4; g++) add('G' + g, [[X0, TRACK_Y[g]], [X1, TRACK_Y[g]]]);
+  for (let g = 5; g <= 7; g++) add('G' + g, [[1180, TRACK_Y[g]], [1450, TRACK_Y[g]]]);
+  // --- Ostkopf ---
+  add('eU5', [[1250,200],[1460,200]]); add('eU4', [[1460,200],[1980,200]]); add('eU3', [[1980,200],[2020,200]]); add('eU2', [[2020,200],[2190,200]]); add('eU0', [[2190,200],[2300,200]]);
+  add('eL6', [[1250,260],[1860,260]]); add('eL5', [[1860,260],[1920,260]]); add('eL4', [[1920,260],[2080,260]]); add('eL3', [[2080,260],[2190,260]]); add('eL0', [[2190,260],[2300,260]]);
+  add('eX1', [[1920,260],[1980,200]]); add('eX2', [[2020,200],[2080,260]]);
+  add('eG1a', [[1250,140],[1900,140]]); add('eMT1', [[1900,140],[1960,140]]); add('eMT0', [[1960,140],[2300,140]]);   // Gleis 1 → Nebenbahn Mühlental
+  Object.assign(LEGS, {
+    XWi: { pts: [[-300,260],[0,260]], virtual: true }, XWo: { pts: [[-300,200],[0,200]], virtual: true },
+    XEi: { pts: [[2300,200],[2600,200]], virtual: true }, XEo: { pts: [[2300,260],[2600,260]], virtual: true },
+    XMT: { pts: [[2300,140],[2600,140]], virtual: true },
+  });
+  Object.assign(SIGNALS, {
+    A: { x: 110,  y: 260, dir:  1, kind: 'Einfahrsignal' },            // von Rodenau
+    F: { x: 2190, y: 200, dir: -1, kind: 'Einfahrsignal' },            // von Falkenwerde
+    C: { x: 2190, y: 140, dir: -1, kind: 'Einfahrsignal' },            // von der Nebenbahn Mühlental
+    RW: { x: 700, y: 360, dir: 1, kind: 'Rangiersignal', sh: true },   // vom Ausziehgleis West in den Gbf
+  });
+  for (let g = 1; g <= 7; g++) {
+    SIGNALS['P' + g] = { x: g <= 4 ? X0 : 1180, y: TRACK_Y[g], dir: -1, kind: 'Ausfahrsignal' };
+    SIGNALS['N' + g] = { x: g <= 4 ? X1 : 1450, y: TRACK_Y[g], dir: 1, kind: g <= 4 ? 'Ausfahrsignal' : 'Gleisabschluss (Stumpfgleis)' };
+  }
+  Object.assign(SHUNT_TGT, { RWH: { label: '◀ Rangierhalt', node: '540,360', dir: -1, box: [436, 372, 104, 22], rev: 'RW' } });
+  for (const g of [5, 6, 7]) SHUNT_LIST.push(['P' + g, 'RWH'], ['RW', 'N' + g]);
+  Object.assign(DISTANT, {
+    VA: { x: 40,   y: 260, dir:  1, main: 'A' },
+    VF: { x: 2260, y: 200, dir: -1, main: 'F' },
+    VC: { x: 2260, y: 140, dir: -1, main: 'C' },
+  });
+  Object.assign(EXITS, {
+    WEST: { label: '◀ nach Rodenau',     town: 'Rodenau',     node: '0,200',    dir: -1, virt: 'XWo', box: [6, 154, 140, 26] },
+    OST:  { label: 'nach Falkenwerde ▶', town: 'Falkenwerde', node: '2300,260', dir:  1, virt: 'XEo', box: [2156, 274, 138, 26] },
+    MUT:  { label: 'Mühlental ▶',        town: 'Mühlental',   node: '2300,140', dir:  1, virt: 'XMT', box: [2156, 100, 138, 24] },
+  });
+  Object.assign(ENTRY, {
+    '1':  { segs: [{ leg: 'XWi', d:  1 }, { leg: 'wL0',  d:  1 }], sec: 'wL0',  sig: 'A' },
+    '-1': { segs: [{ leg: 'XEi', d: -1 }, { leg: 'eU0',  d: -1 }], sec: 'eU0',  sig: 'F' },
+    'C':  { segs: [{ leg: 'XMT', d: -1 }, { leg: 'eMT0', d: -1 }], sec: 'eMT0', sig: 'C' },
+  });
 } else {
   // Bf Teutschenthal (vereinfacht nach OpenRailwayMap): Strecke 6343 Halle – Hann. Münden zweigleisig mit Haltepunkt,
   // Strecke 6840 eingleisig (Gleis 3), Güterbahnhof Gleis 5–10/12, Anschlussgleis, Stellwerk B1 im Osten.
@@ -1358,6 +1420,29 @@ const CFG = BF === 'neustadt' ? {
       [0.10, 'P', () => addTrain('RE', dir, t)],
     ]);
   },
+} : BF === 'muehlstadt' ? {
+  townsW: ['Rodenau', 'Kreuzbach'], townsE: ['Falkenwerde', 'Birkenhagen', 'Sandau'],
+  branch: { inDir: -1, town: 'Mühlental', entry: 'C', exitE: 'MUT', exitW: 'WEST', type: 'RBN', tracks: () => [1] },
+  overtake: { fast: 'RE', tracks: () => [5, 6, 7] },
+  closure: false, fit: { by: 10, bh: 620 }, shunting: true, branchLabel: 'Nebenbahn Mühlental',
+  shunt: { O: [], W: [5, 6, 7] }, gbf: [5, 6, 7], gbfTracks: () => [5, 6, 7],
+  trackFor(type, dir) {
+    if (type === 'RBN') return 1;
+    if (type === 'GC') return dir > 0 ? 3 : 2;
+    return dir > 0 ? pick([3, 3, 4]) : pick([2, 2, 3]);
+  },
+  gen(t, dir) {
+    pickWeighted(t, [
+      [0.14, 'P', () => addTrain('RE', dir, t)],
+      [0.18, 'P', () => addTrain('RB', dir, t)],
+      [0.08, 'P', () => addTrain('IC', dir, t)],
+      [0.14, 'P', () => addBranch(t, dir)],
+      [0.06, 'X', () => addOvertake(t, dir)],
+      [0.16, 'F', () => addTrain('GC', dir, t)],
+      [0.14, 'F', () => addGbfEnd(t, dir)],
+      [0.10, 'F', () => addGbfStart(t, dir)],
+    ]);
+  },
 } : {
   townsW: ['Altheim', 'Kreuzfeld'], townsE: ['Hafenau', 'Seehausen', 'Marienhof'],
   // Strecke Westerburg ↔ Abzweig Talburg (je zweigleisig): Gruppe Nord, Gl 1/2 Richtung West, Gl 3/4 Richtung Ost
@@ -1598,6 +1683,7 @@ function secName(sec) {
   if (sec === 'wLZ0' || sec === 'wLI0') return 'Strecke 6360 Leipzig';
   if (sec === 'eEO0') return 'Strecke 6831 Eilenburg Ost';
   if (sec === 'eLP0') return 'Strecke 6825 Lüptitz';
+  if (sec === 'eMT0') return 'Nebenbahn Mühlental';
   if (/^wGZ/.test(sec)) return 'Güter-Einfahrgleis West';
   if (/^eGZ/.test(sec)) return 'Güter-Einfahrgleis Ost';
   if (/[LU]0$/.test(sec)) return 'Streckengleis ' + (sec[0] === 'w' ? 'West' : 'Ost');
@@ -2299,7 +2385,7 @@ function transferTrain(tr) {
 }
 function importNetwork() {
   const queue = readNetwork(), remain = [];
-  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel') return;
+  if (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel' || BF === 'muehlstadt') return;
   for (const transfer of queue) {
     // Nur bereits eingetroffene Züge für dieses Stellwerk übernehmen.
     if (transfer.to !== BF || Date.now() < (transfer.ready || 0)) { remain.push(transfer); continue; }
@@ -2333,12 +2419,12 @@ function renderNetwork() {
     }).join('');
     return '<div class="blockrow"><span class="blockcap">' + caption + '</span>' + cells + '</div>';
   };
-  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel'
+  const netLines = BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel' || BF === 'muehlstadt'
     ? '<div class="netline"><span>' + ST.name + ' · eigener Streckenast in Planung</span></div>'
     : blockLine('R1','▶ Neustadt → Teutschenthal') + blockLine('R2','◀ Teutschenthal → Neustadt');
   $('#network').innerHTML = '<span class="netactive">🚦 Streckenbetrieb · ' + ST.short + '</span> · ' +
     waiting + ' eingetroffen · ' + outbound + ' unterwegs' +
-    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
+    '<div class="netcaption">' + (BF === 'burgstadt' || BF === 'eilenburg' || BF === 'citytunnel' || BF === 'muehlstadt' ? 'Noch keine durchgehende Netzverbindung.' : 'Freie Strecke: drei Blockabschnitte je Richtung · Zugfolge 45 s') + '</div>' +
     '<div class="netlines">' + netLines + '</div>' +
     '<div class="netlinks">' + Object.entries(STATIONS).filter(([id, st]) => id !== BF && !st.locked).map(([id,st]) =>
       '<button class="btn" data-network-station="' + id + '">Zu ' + st.short + ' ↗</button>').join('') + '</div>';
@@ -2933,6 +3019,28 @@ function decorEilenburg(W, txt, arrow, buffer) {
   [[62, 260, 1], [62, 200, -1], [62, 320, -1], [62, 380, 1], [WID - 62, 200, -1], [WID - 62, 260, 1],
    [WID - 200, 140, -1], [WID - 170, 140, 1], [WID - 200, 360, -1], [WID - 170, 360, 1]].forEach(a => arrow(...a));
 }
+function decorMuehlstadt(W, txt, arrow, buffer) {
+  el('rect', { x: -14, y: 14, width: WID + 28, height: 560, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
+  txt(1000, 46, 'Bf MÜHLSTADT', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
+  txt(1000, 62, 'Fiktiver Bahnhof · Nebenbahn Mühlental', { 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': 1 });
+  txt(8, 40, '◀ WESTEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(8, 56, 'Rodenau · Kreuzbach', { 'font-size': 11 });
+  txt(WID - 8, 40, 'OSTEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
+  txt(WID - 8, 56, 'Falkenwerde · Birkenhagen · Sandau', { 'text-anchor': 'end', 'font-size': 11 });
+  txt(WID - 330, 132, '⇄ Mühlental (Einfahrt an C)', { 'text-anchor': 'end', fill: '#c9ced3' });
+  el('rect', { x: 790, y: 88, width: 200, height: 18, rx: 2, fill: '#6b5a3a', stroke: '#a08a5c' }, W);
+  txt(890, 101, 'EMPFANGSGEBÄUDE', { 'text-anchor': 'middle', 'font-size': 10, fill: '#e0cfa8', 'letter-spacing': 1 });
+  el('rect', { x: 780, y: 190, width: 440, height: 32, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
+  txt(1000, 210, 'BAHNSTEIG GLEIS 2 / 3', { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 11, 'letter-spacing': 1 });
+  for (const g of [1, 2, 3, 4]) txt(1236, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'end', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
+  for (let g = 5; g <= 7; g++) txt(1300, TRACK_Y[g] - 6, 'Gl ' + g, { 'text-anchor': 'middle', fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
+  for (let g = 5; g <= 7; g++) buffer(1458, TRACK_Y[g], 1);
+  buffer(540, 360, -1);
+  txt(620, 352, 'Ausziehgleis', { 'text-anchor': 'middle', 'font-size': 10, fill: '#9aa1a8' });
+  txt(1300, 520, 'GÜTERBAHNHOF · Gl 5–7 (Anlieferung Mühlwerk)', { 'text-anchor': 'middle', fill: '#8b9298', 'font-size': 11, 'letter-spacing': 1 });
+  [[62, 260, 1], [62, 200, -1], [WID - 62, 200, -1], [WID - 62, 260, 1],
+   [WID - 200, 140, -1], [WID - 170, 140, 1]].forEach(a => arrow(...a));
+}
 function buildStatic() {
   trainDrawings.clear();
   const W = $('#world'); W.innerHTML = '';
@@ -2947,7 +3055,7 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, halle: decorHalle, citytunnel: decorCitytunnel })[BF](W, txt, arrow, buffer);
+  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, halle: decorHalle, citytunnel: decorCitytunnel, muehlstadt: decorMuehlstadt })[BF](W, txt, arrow, buffer);
 
   // Gleise
   E_.legs = {};
