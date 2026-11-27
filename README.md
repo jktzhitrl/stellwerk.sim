@@ -1,4 +1,4 @@
-# Stellwerk-Simulator (Neustadt, Teutschenthal, Burgstadt Hbf, Eilenburg, Mühlstadt, Halle (Saale) Hbf, Leipzig Hbf (tief))
+# Stellwerk-Simulator (Neustadt, Teutschenthal, Burgstadt Hbf, Eilenburg, Mühlstadt, Leipzig Hbf (tief))
 
 Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnhof mit 6 Gleisen, zwei Abstellgleisen, Nebenbahn-Abzweig und zweigleisiger Strecke; ICE-Durchfahrten, Überholungen, Störungen und Fahrstraßenspeicher – in einer einzigen Datei: `index.html`.
 
@@ -23,11 +23,9 @@ Tablet-optimiertes Gleisbildstellwerk-Spiel (HTML5 + SVG + Vanilla JS) – Bahnh
 
 - **Bf Mühlstadt** (fiktiv): 4 Bahnsteiggleise, zweigleisige Hauptstrecke, eingleisige Nebenbahn nach Mühlental, Güterbahnhof Gl 5–7 (nur von Westen erreichbar, Ausziehgleis mit Rangiersignal RW) für die Anlieferung des Mühlwerks. `index.html?bf=muehlstadt`
 
-- **Halle (Saale) Hbf** (noch gesperrt – in Arbeit; nach dem realen Knoten aufgebaut, Quelle: Wikipedia-Artikel „Halle (Saale) Hauptbahnhof“ – Inselbahnhof mit 13 Bahnsteiggleisen, die genaue Weichenlage ist vereinfacht): je Kopf vier zweigleisige Streckenpaare (Norden: Delitzsch/Eilenburg (S 9), Bitterfeld/Berlin (RE 3, S 8, ICE), Köthen/Magdeburg (RE 30, IC), Könnern/Harz (RE 4/24, RB 47); Süden: Leipzig über Schkeuditz (S 3, IC), Flughafen/Erfurt (ICE, S 5/S 5X), Merseburg (RE 16, RB 25, S 11), Eisleben/Kassel (RE 8/9, S 7)); ICE-Halt, S-Bahn Mitteldeutschland und viele **Wendezüge**, die am Bahnsteig die Richtung wechseln. `index.html?bf=halle`
-
 - **Leipzig Hbf (tief)** (schematisch nach dem realen Citytunnel-Nordkopf mit den Portalen Nord und Nordwest): 2 Bahnsteiggleise, Hauptstrecke Halle (Saale), Abzweig Bitterfeld (S2, Portal Nord) und Abzweig Gohlis (S1, Portal Nordwest, eingleisig). Dahinter ist der Citytunnel selbst (Markt, Wilhelm-Leuschner-Platz, MDR/Bayerischer Bahnhof) als reine Tunnelstrecke **ohne Weichen** nachgebildet: Südwärts fahrende Züge halten dort **automatisch** (kein Fahrdienstleiter-Eingriff) an allen drei Haltepunkten, bevor sie Richtung Gaschwitz/Plagwitz weiterfahren. Nur S-Bahn (S1/S3/S3X/S4/S5/S5X/S6) und RE/RB, kein Güterverkehr, kein Rangieren. `index.html?bf=citytunnel`
 
-In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg, Mühlstadt) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg, Mühlstadt und Halle gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen, Weichen-/Signalstörungen und zeitweise **Langsamfahrstellen** 🐌 (angekündigte Tempobeschränkung auf einem Streckenabschnitt, gelb gepunktet) gibt es in jedem Bahnhof.
+In den Bahnhöfen mit Güterbahnhof (Teutschenthal, Burgstadt, Eilenburg, Mühlstadt) gibt es **Rangieraufträge** (Köf mit Wagen über Ausziehgleise und Rangiersignale RO/RW). In Neustadt, Burgstadt, Eilenburg und Mühlstadt gibt es **Anschlüsse**: Zubringer melden sich verspätet, du entscheidest „Warten“ oder „Freigeben“. Verspätungsmeldungen, Weichen-/Signalstörungen und zeitweise **Langsamfahrstellen** 🐌 (angekündigte Tempobeschränkung auf einem Streckenabschnitt, gelb gepunktet) gibt es in jedem Bahnhof.
 
 Auswahl im Startfenster oder im ☰ Menü; direkt per Link: `index.html?bf=teutschenthal`.
 

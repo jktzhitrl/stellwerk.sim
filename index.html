@@ -2971,24 +2971,6 @@ function decorBurgstadt(W, txt, arrow, buffer) {
   // Fahrtrichtungspfeile (Rechtsverkehr)
   [[75, 450, 1], [75, 350, -1], [75, 200, 1], [75, 150, -1], [2125, 350, -1], [2125, 450, 1], [2125, 150, -1], [2125, 200, 1], [170, 600, 1], [200, 600, -1], [2000, 535, 1], [2030, 535, -1]].forEach(a => arrow(...a));
 }
-function decorHalle(W, txt, arrow, buffer) {
-  el('rect', { x: -14, y: 14, width: WID + 28, height: 870, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
-  txt(8, 40, '◀ NORDEN', { 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(8, 56, 'Eilenburg · Berlin · Magdeburg · Harz', { 'font-size': 11 });
-  txt(WID - 8, 40, 'SÜDEN ▶', { 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: '#aeb5bc', 'letter-spacing': 2 });
-  txt(WID - 8, 56, 'Leipzig · Erfurt · Merseburg · Eisleben/Kassel', { 'text-anchor': 'end', 'font-size': 11 });
-  // Empfangsgebäude, Hausbahnsteig Gl 1, Mittelbahnsteige 2/3 … 12/13
-  el('rect', { x: X0 + 160, y: 26, width: 280, height: 22, rx: 2, fill: '#6b5a3a', stroke: '#a08a5c' }, W);
-  txt((X0 + X1) / 2, 41, 'HALLE (SAALE) HBF · EMPFANGSGEBÄUDE', { 'text-anchor': 'middle', 'font-size': 10, fill: '#e0cfa8', 'letter-spacing': 1 });
-  el('rect', { x: X0 + 20, y: 54, width: X1 - X0 - 40, height: 14, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
-  [[2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13]].forEach(([a, b]) => {
-    const y0 = TRACK_Y[a] + 12, y1 = TRACK_Y[b] - 12;
-    el('rect', { x: X0 + 20, y: y0, width: X1 - X0 - 40, height: y1 - y0, rx: 2, fill: '#555c63', stroke: '#6a7178' }, W);
-    txt((X0 + X1) / 2, (y0 + y1) / 2 + 4, 'BAHNSTEIG ' + a + ' / ' + b, { 'text-anchor': 'middle', fill: '#c9ced3', 'font-size': 10, 'letter-spacing': 1 });
-  });
-  for (let g = 1; g <= 13; g++) txt(X0 + 46, TRACK_Y[g] - 6, 'Gl ' + g, { fill: '#9aa1a8', 'font-size': 11, 'font-weight': 700 });
-  for (const y of [130, 350, 570, 780]) { arrow(62, y, -1); arrow(62, y + 50, 1); arrow(WID - 62, y, -1); arrow(WID - 62, y + 50, 1); }
-}
 function decorEilenburg(W, txt, arrow, buffer) {
   el('rect', { x: -14, y: 14, width: WID + 28, height: 796, rx: 6, fill: 'none', stroke: '#3c4247', 'stroke-width': 1.5 }, W);
   txt(1000, 46, 'Bf EILENBURG', { 'text-anchor': 'middle', fill: '#d4d9de', 'font-size': 20, 'font-weight': 800, 'letter-spacing': 2 });
@@ -3055,7 +3037,7 @@ function buildStatic() {
     el('line', { x1: x, y1: y - 6, x2: x + 6 * d, y2: y - 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
     el('line', { x1: x, y1: y + 6, x2: x + 6 * d, y2: y + 6, stroke: '#d0d4d8', 'stroke-width': 2 }, W);
   };
-  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, halle: decorHalle, citytunnel: decorCitytunnel, muehlstadt: decorMuehlstadt })[BF](W, txt, arrow, buffer);
+  ({ neustadt: decorNeustadt, teutschenthal: decorTeutschenthal, burgstadt: decorBurgstadt, eilenburg: decorEilenburg, citytunnel: decorCitytunnel, muehlstadt: decorMuehlstadt })[BF](W, txt, arrow, buffer);
 
   // Gleise
   E_.legs = {};
